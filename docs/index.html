@@ -90,14 +90,14 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
 .thickness-toggle{white-space:nowrap;font-size:11px!important;padding:8px 9px!important}
 .thickness-toggle.thickness-on{background:var(--accent-soft);color:var(--accent);border-color:#bdd8c8}
 .plan-backup-icon{font-size:20px!important;width:34px;height:34px;padding:0!important;flex:none}
-.toolbar .topaction{min-width:41px;white-space:nowrap}
+.toolbar .topaction{min-width:41px;min-height:38px;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:5px;flex-shrink:0}.topaction-icon{font-size:20px;font-weight:700;line-height:1;min-width:20px;display:inline-flex;justify-content:center}.toolbar .topaction:disabled{opacity:.53}.toolbar .topaction[aria-busy="true"] .topaction-icon{opacity:.55}
 @media(max-width:580px){.toolbar{gap:5px}.toolbar .topaction{padding:7px 10px;font-size:19px;min-width:37px}.card-actions{gap:5px}.thickness-toggle{font-size:10px!important}}
 </style>
 </head>
 <body>
 <header class="topbar"><div class="container topbar-inner">
   <div class="brand"><div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></div><div><div class="brand-name">Beythaus <span style="font-weight:420;color:#81968a">Cut</span></div><div class="brand-meta">KESİM PLANLAYICI</div></div></div>
-  <div class="toolbar"><button class="btn ghost topaction" id="newProjectTopBtn" title="Yeni proje oluştur" aria-label="Yeni proje oluştur">＋ <span class="desktop-text">Yeni</span></button><button class="btn topaction" id="projectsBtn" title="Geçmiş projeleri aç" aria-label="Geçmiş projeler">↑ <span class="desktop-text">Projeler</span></button><button class="btn primary topaction" id="downloadPdfTopBtn" title="Üretim PDF indir" aria-label="Üretim PDF indir" disabled>↓ <span class="desktop-text">PDF</span></button><input id="fileInput" type="file" accept=".json,application/json" hidden></div>
+  <div class="toolbar"><button class="btn ghost topaction" id="newProjectTopBtn" type="button" title="Yeni proje oluştur" aria-label="Yeni proje oluştur"><span class="topaction-icon">＋</span><span class="desktop-text">Yeni</span></button><button class="btn topaction" id="projectsBtn" type="button" title="Geçmiş projeleri aç" aria-label="Geçmiş projeler"><span class="topaction-icon">↑</span><span class="desktop-text">Projeler</span></button><button class="btn primary topaction" id="downloadPdfTopBtn" type="button" title="Üretim PDF indir" aria-label="Üretim PDF indir" disabled><span class="topaction-icon">↓</span><span class="desktop-text">PDF</span></button><input id="fileInput" type="file" accept=".json,application/json" hidden></div>
 </div></header>
 <div class="container workspace">
 <section class="sidebar" aria-label="Proje ayarları">
@@ -186,7 +186,7 @@ byId('partCount').textContent=fmt(state.parts.reduce((s,p)=>s+(Number(val(p.qty)
 function syncThicknessVisibility(){for(const [flag,cardId,buttonId] of [['partsThicknessEnabled','partsCard','partsThicknessToggle'],['stocksThicknessEnabled','stocksCard','stocksThicknessToggle']]){const on=state[flag]!==false,btn=byId(buttonId);byId(cardId).classList.toggle('thickness-off',!on);btn.setAttribute('aria-pressed',String(on));btn.textContent='Kalınlık '+(on?'✓':'＋');btn.classList.toggle('thickness-on',on)}}
 for(const [flag,buttonId] of [['partsThicknessEnabled','partsThicknessToggle'],['stocksThicknessEnabled','stocksThicknessToggle']])byId(buttonId).onclick=()=>{state[flag]=!state[flag];syncThicknessVisibility();changed()};
 function syncSettings(){syncThicknessVisibility();byId('unitSelect').value=state.unit;byId('kerfInput').value=state.kerf;byId('trimInput').value=state.trim;byId('projectName').value=state.project;byId('m3Input').value=state.m3Price;for(const b of qsa('#modeSegment button'))b.classList.toggle('active',b.dataset.mode===state.mode);for(const b of qsa('#priceSegment button'))b.classList.toggle('active',b.dataset.price===state.priceMode);byId('m3Field').classList.toggle('hidden',state.priceMode==='panel');byId('priceHelp').textContent=state.priceMode==='m3'?'Toplam maliyet, kullanılan tam stokların hacmine göre hesaplanır.':'Her stok satırının ₺ / Panel fiyatı kullanılır.';byId('modeHelp').textContent=state.mode==='nest'?'Serbest yerleşim: daha sıkı dizilim; CNC ve uygun içten kesim yöntemleri için.':'Düz kesim: her adımda kenardan kenara tam kesim yapılabilecek yerleşim.';byId('resultTitle').textContent=state.project||'Kesim planı'}
-function changed(){dirty=true;save();if(solution){for(const id of ['zoomBtn','downloadPdfTopBtn','printBtn'])byId(id).disabled=true;byId('status').className='status-line warning';byId('status').innerHTML='<span class="status-dot"></span><span>Girdiler değişti. Yeni plan için tekrar hesaplayın.</span>'}}
+function changed(){dirty=true;invalidateCachedPdf();save();if(solution){for(const id of ['zoomBtn','downloadPdfTopBtn','printBtn'])byId(id).disabled=true;byId('status').className='status-line warning';byId('status').innerHTML='<span class="status-dot"></span><span>Girdiler değişti. Yeni plan için tekrar hesaplayın.</span>'}}
 function toast(msg){const el=byId('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove('show'),2800)}
 function bindTable(id,key){const root=byId(id);root.addEventListener('input',e=>{const t=e.target,field=t.dataset.k,row=t.closest('tr');if(!field||!row)return;const obj=state[key].find(x=>x.id===row.dataset.id);if(!obj)return;obj[field]=t.type==='checkbox'?t.checked:t.value;changed();if(field==='qty')byId('partCount').textContent=fmt(state.parts.reduce((a,p)=>a+(Number(val(p.qty))||0),0),0)});root.addEventListener('focusout',e=>{const t=e.target,row=t.closest('tr');if(key!=='parts'||t.dataset.k!=='label'||!row||String(t.value??'').trim())return;const obj=state.parts.find(p=>p.id===row.dataset.id);if(!obj)return;obj.label=nextPartLabel(state.parts);t.value=obj.label;changed()});root.addEventListener('change',e=>{const t=e.target;if(t.type!=='checkbox')return;const obj=state[key].find(x=>x.id===t.closest('tr').dataset.id);if(obj){obj[t.dataset.k]=t.checked;changed()}});root.addEventListener('click',e=>{if(e.target.dataset.action!=='delete')return;state[key]=state[key].filter(x=>x.id!==e.target.closest('tr').dataset.id);renderRows();changed()})}
 bindTable('partRows','parts');bindTable('stockRows','stocks');
@@ -268,7 +268,7 @@ const dx=Math.min(p.x+p.w,v.x+v.w)-Math.max(p.x,v.x),dy=Math.min(p.y+p.h,v.y+v.h
 const colors=['#cbe0d1','#a8d3ca','#dddcc6','#b9cddc','#e7d7c7','#c5dad5','#d7cbe4','#e2dfbf','#bcd3ae','#e5c7c5'];
 function svgFor(bin,width=1040){const sw=bin.stock.l,sh=bin.stock.w,margin=24,vw=width,vh=Math.max(65,Math.round(width*sh/sw)),viewW=vw+margin*2,viewH=vh+margin*2;let out=`<svg xmlns="http://www.w3.org/2000/svg" class="cut-svg" viewBox="0 0 ${viewW} ${viewH}" role="img" aria-label="Kesim yerleşim planı"><rect x="${margin}" y="${margin}" width="${vw}" height="${vh}" fill="#f2f4ef" stroke="#73877c" stroke-width="1.5" rx="2"/>`;const x=n=>margin+n/sw*vw,y=n=>margin+n/sh*vh;for(let i=0;i<bin.placed.length;i++){const p=bin.placed[i],xx=x(p.x),yy=y(p.y),ww=p.w/sw*vw,hh=p.h/sh*vh,fill=colors[p.order%colors.length],title=`${p.label} · ${fmt(p.w/10,2)} × ${fmt(p.h/10,2)} cm · ${thicknessText(p.t)}`;out+=`<g class="piece"><title>${esc(title)}</title><rect x="${round(xx,3)}" y="${round(yy,3)}" width="${round(ww,3)}" height="${round(hh,3)}" fill="${fill}" stroke="#516c60" stroke-width="1"/><text x="${round(xx+ww/2,2)}" y="${round(yy+hh/2-1.5,2)}" text-anchor="middle" fill="#29473a" font-size="${Math.max(7,Math.min(14,hh*.33,ww/Math.max(p.label.length,3)*1.4))}" font-weight="750">${esc(p.label)}</text>`;if(hh>22&&ww>44)out+=`<text x="${round(xx+ww/2,2)}" y="${round(yy+hh/2+10,2)}" text-anchor="middle" fill="#4b6759" font-size="${Math.max(7,Math.min(11,hh*.23))}">${fmt(p.w/(state.unit==='cm'?10:1),1)}×${fmt(p.h/(state.unit==='cm'?10:1),1)}</text>`;out+='</g>'}if(state.mode==='guillotine')for(const c of bin.cuts)out+=`<line x1="${x(c.x1)}" y1="${y(c.y1)}" x2="${x(c.x2)}" y2="${y(c.y2)}" stroke="#6c8275" stroke-width="1" stroke-dasharray="4 3" opacity=".6"/>`;out+=`<text x="${margin}" y="${margin-8}" fill="#6d8074" font-size="12" font-family="sans-serif">${fmt(sw/(state.unit==='cm'?10:1),2)} ${state.unit}</text><text x="${viewW-margin}" y="${viewH-5}" text-anchor="end" fill="#6d8074" font-size="12" font-family="sans-serif">${fmt(sh/(state.unit==='cm'?10:1),2)} ${state.unit}</text></svg>`;return out}
 function planHtml(bin){const used=bin.placed.reduce((sum,p)=>sum+p.w*p.h,0),pct=used/(bin.stock.l*bin.stock.w)*100;return`<div class="plan-stage"><div class="drawing-wrap"><div class="drawing-inner">${svgFor(bin)}</div></div><div class="plan-meta"><div class="legend"><span><i style="background:#aecfba"></i>Parçalar</span><span><i style="background:#f2f4ef;border:1px solid #ccd8cf"></i>Boş alan</span></div><span>${fmt(bin.stock.l/dimFactor(),2)} × ${fmt(bin.stock.w/dimFactor(),2)} ${state.unit} · ${thicknessText(bin.stock.t)} · ${esc(bin.stock.material)}</span></div></div><div class="details"><div class="detail-card"><div class="detail-label">Bu stokta kesilen</div><div class="detail-value">${bin.placed.length} parça</div></div><div class="detail-card"><div class="detail-label">Alan kullanımı</div><div class="detail-value">%${fmt(pct,1)}</div></div></div>`}
-function showEmpty(){dirty=true;byId('mSheets').textContent='—';byId('mYield').textContent='—';byId('mCost').textContent='—';byId('mParts').textContent='—';byId('summarySub').textContent='Parçalar ve stok hazır.';byId('status').className='status-line';byId('status').innerHTML='<span class="status-dot"></span><span>Hesaplamak için düğmeye basın.</span>';byId('planTabs').innerHTML='';byId('planBody').className='empty-state';byId('planBody').innerHTML='<div class="empty-icon">▤</div><strong>Kesim planı burada görünecek</strong><p>Parça ve stok ölçülerini girip yerleşimi hesaplayın. Kalınlık isteğe bağlıdır.</p>';byId('costDetails').innerHTML='<p style="color:#8a968d;font-size:12px">Hesaplama bekleniyor.</p>';byId('cutDetails').innerHTML='<p style="color:#8a968d;font-size:12px">Hesaplama bekleniyor.</p>';for(const id of ['zoomBtn','downloadPdfTopBtn','printBtn'])byId(id).disabled=true}
+function showEmpty(){dirty=true;invalidateCachedPdf();byId('mSheets').textContent='—';byId('mYield').textContent='—';byId('mCost').textContent='—';byId('mParts').textContent='—';byId('summarySub').textContent='Parçalar ve stok hazır.';byId('status').className='status-line';byId('status').innerHTML='<span class="status-dot"></span><span>Hesaplamak için düğmeye basın.</span>';byId('planTabs').innerHTML='';byId('planBody').className='empty-state';byId('planBody').innerHTML='<div class="empty-icon">▤</div><strong>Kesim planı burada görünecek</strong><p>Parça ve stok ölçülerini girip yerleşimi hesaplayın. Kalınlık isteğe bağlıdır.</p>';byId('costDetails').innerHTML='<p style="color:#8a968d;font-size:12px">Hesaplama bekleniyor.</p>';byId('cutDetails').innerHTML='<p style="color:#8a968d;font-size:12px">Hesaplama bekleniyor.</p>';for(const id of ['zoomBtn','downloadPdfTopBtn','printBtn'])byId(id).disabled=true}
 function kv(k,v){return`<div class="kv"><span>${esc(k)}</span><strong>${v}</strong></div>`}
 function showResult(data,sol){solution=sol;dirty=false;activeSheet=0;
 const completeThickness=sol.bins.length>0&&sol.bins.every(b=>b.stock.t!==null);
@@ -286,7 +286,7 @@ byId('planSub').textContent=sol.bins.length?fmt(sol.bins.length,0)+' stok üzeri
 const unresolved=sol.unplaced.length?`<div class="warning-box"><b>Yerleşmeyen ${fmt(sol.unplaced.length,0)} parça:</b><div class="parts-pill">${Object.entries(sol.unplaced.reduce((o,p)=>(o[`${p.label} · ${fmt(p.l/dimFactor(),2)}×${fmt(p.w/dimFactor(),2)} ${state.unit} · ${thicknessText(p.t)}`]=(o[`${p.label} · ${fmt(p.l/dimFactor(),2)}×${fmt(p.w/dimFactor(),2)} ${state.unit} · ${thicknessText(p.t)}`]||0)+1,o),{})).map(([key,n])=>`<span class="pill">${esc(key)} × ${n}</span>`).join('')}</div></div>`:'';
 byId('cutDetails').innerHTML=kv('Toplam parça',fmt(data.parts.length,0))+kv('Yerleşen',fmt(sol.placedCount,0))+kv('Yerleşmeyen',sol.unplaced.length?`<span style="color:#a65d38">${fmt(sol.unplaced.length,0)}</span>`:'0')+kv('Kullanılan alan',fmt(sol.partArea/1e6,3)+' m²')+kv('Stok alanı',fmt(sol.stockArea/1e6,3)+' m²')+kv('Alan farkı',fmt((sol.stockArea-sol.partArea)/1e6,3)+' m²');
 const validPrice=priceKnown;byId('costDetails').innerHTML=kv('Maliyet yöntemi',state.priceMode==='m3'?'Hacim (m³)':'Tam panel')+kv('Stok hacmi',fmt(m3Stock,5)+' m³')+kv('Parça hacmi',fmt(m3Parts,5)+' m³')+kv('Ham malzeme alımı',validPrice?money(sol.cost):'<span style="color:#a65d38">'+(missingThicknessCost?'Stok kalınlığı gerekli':'Fiyat girilmedi')+'</span>')+kv('Parçaların teorik payı',validPrice?money(netCost):'—')+kv('Fireye düşen değer',validPrice?money(sol.cost-netCost):'—')+'<div style="font-size:11px;color:#98a69a;padding-top:12px">İşçilik, kenar bantlama, nakliye ve vergi hariçtir.</div>';
-window._unresolved=unresolved;drawActive();for(const id of ['zoomBtn','downloadPdfTopBtn','printBtn'])byId(id).disabled=!sol.bins.length}
+window._unresolved=unresolved;drawActive();for(const id of ['zoomBtn','printBtn'])byId(id).disabled=!sol.bins.length;prepareCachedPdf()}
 function drawActive(){const s=solution;if(!s||!s.bins.length){byId('planTabs').innerHTML='';byId('planBody').className='empty-state';byId('planBody').innerHTML='<div class="empty-icon">▤</div><strong>Yerleşim oluşturulamadı</strong><p>Bu ölçü, malzeme veya belirtilmiş kalınlığa uygun stok bulunamadı.</p>';return}
 byId('planTabs').innerHTML=s.bins.map((b,i)=>`<button class="sheet-tab ${i===activeSheet?'active':''}" data-i="${i}">Stok ${i+1} <span style="opacity:.65">· ${thicknessText(b.stock.t)}</span></button>`).join('');byId('planBody').className='';byId('planBody').innerHTML=planHtml(s.bins[activeSheet])+(window._unresolved||'')}
 byId('planTabs').onclick=e=>{const b=e.target.closest('button[data-i]');if(!b)return;activeSheet=Number(b.dataset.i);drawActive()};
@@ -404,21 +404,62 @@ function makePdfDocument(){
   footer:(page,pages)=>({columns:[{text:'BEYTHAUS CUT · '+code,color:'#849A8B'}, {text:String(page)+' / '+String(pages),alignment:'right',color:'#849A8B'}],margin:[38,0,38,0],fontSize:8})
  };
 }
-byId('downloadPdfTopBtn').onclick=async()=>{
- if(!solution?.bins.length||dirty){toast('Önce kesim yerleşimini hesaplayın.');return}
- const button=byId('downloadPdfTopBtn'),before=button.innerHTML;
- button.disabled=true;button.textContent='PDF…';
- try{
-   const engine=await loadPDFEngine();
-   const name=(state.project||'Kesim-Plani').replace(/[^\p{L}\p{N}._-]+/gu,'-').slice(0,65)||'Kesim-Plani';
-   engine.createPdf(makePdfDocument()).download('Beythaus-Cut-'+name+'.pdf');
- }catch(err){
-   console.error(err);
-   toast('Doğrudan PDF indirilemedi. Safari yazdırma görünümü açılıyor.');
-   if(productionFile())window.print()
- }finally{button.disabled=false;button.innerHTML=before}
-};
 
+let cachedPdf=null,pdfRenderGeneration=0,pdfExportState='idle',pdfFailure=null;
+function invalidateCachedPdf(){
+ pdfRenderGeneration++;cachedPdf=null;pdfExportState='idle';pdfFailure=null;
+ const b=byId('downloadPdfTopBtn');if(!b)return;
+ b.disabled=true;b.removeAttribute('aria-busy');b.title='Yerleşimi hesaplayınca PDF hazırlanır';
+}
+function pdfFilename(){
+ const name=(state.project||'Kesim-Plani').trim().replace(/[^\p{L}\p{N}._-]+/gu,'-').slice(0,65)||'Kesim-Plani';
+ return 'Beythaus-Cut-'+name+'.pdf'
+}
+function prepareCachedPdf(){
+ const rev=++pdfRenderGeneration;cachedPdf=null;pdfFailure=null;pdfExportState='preparing';
+ const b=byId('downloadPdfTopBtn');b.disabled=true;b.title='PDF hazırlanıyor';b.setAttribute('aria-busy','true');
+ if(!solution?.bins.length||dirty){pdfExportState='idle';b.removeAttribute('aria-busy');return}
+ Promise.resolve().then(async()=>{
+  const engine=await loadPDFEngine();
+  if(rev!==pdfRenderGeneration||dirty)return;
+  const doc=makePdfDocument();
+  const blob=await new Promise((resolve,reject)=>{
+   let done=false;const handle=b=>{if(done)return;done=true;if(b&&b.size>100)resolve(b);else reject(new Error('Oluşturulan PDF boş'))};
+   try{engine.createPdf(doc).getBlob(handle)}catch(err){reject(err)}
+  });
+  if(rev!==pdfRenderGeneration||dirty)return;
+  cachedPdf={blob,filename:pdfFilename()};pdfExportState='ready';b.disabled=false;b.title='Üretim PDF indir';b.removeAttribute('aria-busy');
+ }).catch(err=>{
+  if(rev!==pdfRenderGeneration)return;
+  console.error('Beythaus PDF',err);pdfFailure=err;pdfExportState='fallback';b.disabled=false;b.title='PDF yazdırma görünümünü aç';b.removeAttribute('aria-busy');
+  toast('PDF indirme hazır değil. Yazdırma seçeneği kullanılabilir.');
+ });
+}
+function exportCachedPdf(){
+ if(!solution?.bins.length||dirty){toast('Önce güncel kesim yerleşimini hesaplayın.');return}
+ if(!cachedPdf){
+  if(pdfExportState==='fallback'){if(productionFile())window.print()}
+  else toast('PDF hazırlanıyor; aşağı ok etkinleşince yeniden deneyin.');
+  return;
+ }
+ const {blob,filename}=cachedPdf;
+ const file=new File([blob],filename,{type:'application/pdf'});
+ const appleMobile=/iPad|iPhone|iPod/.test(navigator.userAgent||'')||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+ if(appleMobile&&navigator.canShare&&navigator.share&&navigator.canShare({files:[file]})){
+  // Share directly in the same user activation. iOS offers Save to Files / iCloud Drive.
+  try{const result=navigator.share({files:[file],title:filename});
+   if(result?.catch)result.catch(err=>{
+    if(err?.name==='AbortError')return;
+    console.warn('PDF paylaşımı başarısız',err);
+    toast('Paylaşım açılamadı. Safari üzerinden yeniden deneyin.');
+   })
+   return
+  }catch(err){console.warn('PDF sharing fallback',err)}
+ }
+ // On browsers with download support, a ready Blob is downloaded synchronously.
+ download(blob,filename);
+}
+byId('downloadPdfTopBtn').onclick=exportCachedPdf;
 
 byId('zoomBtn').onclick=()=>{if(!solution?.bins[activeSheet])return;const b=solution.bins[activeSheet];byId('modalTitle').textContent=`Stok ${activeSheet+1} · ${fmt(b.stock.l/dimFactor(),1)} × ${fmt(b.stock.w/dimFactor(),1)} ${state.unit}`;byId('modalBody').innerHTML='<div class="drawing-wrap"><div class="drawing-inner">'+svgFor(b,1600)+'</div></div>';byId('modal').classList.remove('hidden');document.body.classList.add('no-overflow')};
 function closeModal(){byId('modal').classList.add('hidden');document.body.classList.remove('no-overflow')};byId('modalClose').onclick=closeModal;byId('modal').onclick=e=>{if(e.target.id==='modal')closeModal()};document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();run()}});
