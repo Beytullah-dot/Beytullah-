@@ -1128,7 +1128,8 @@ assert.ok(firstProduction.every(e=>e.source==='production'&&e.batchId&&e.before=
 const secondConsumption=app.remnantMovements({pieceId:originalId,type:'consumed'});
 assert.equal(secondConsumption.some(e=>e.source==='production'&&e.batchId),true);
 assert.ok(app.remnantMovements({pieceId:shelfId,type:'corrected'}).length>=1);
-assert.ok(app.remnantMovements({pieceId:changedPiece.id,type:'moved'}).length>=1);
+assert.ok(app.remnantMovements({pieceId:changedPiece.id,type:'corrected'}).length>=1,
+ 'Location and note changed together, so this is a multi-field correction, not a location-only move');
 assert.ok(app.remnantMovements({pieceId:shelfId,type:'imported'}).length>=1);
 const sortedHistory=app.remnantMovements();
 assert.ok(sortedHistory.every((e,i)=>!i||sortedHistory[i-1].at>=e.at));
