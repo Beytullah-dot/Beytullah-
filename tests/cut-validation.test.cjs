@@ -40,7 +40,7 @@ const sandbox = {
   setTimeout(){return 1},clearTimeout(){},requestAnimationFrame(){},
   confirm(){return true},prompt(){return null}
 };
-vm.runInNewContext(script, sandbox, {filename:'docs/index.html', timeout:10000});
+vm.runInNewContext(script.replace('window.BeythausCut={','window.__testHooks={showResult,makePdfDocument,productionFile};window.BeythausCut={'), sandbox, {filename:'docs/index.html', timeout:10000});
 const app = window.BeythausCut;
 assert.ok(app?.normalize && app?.optimize && app?.auditCutPlan);
 
@@ -144,5 +144,59 @@ assert.ok(enhanced.search?.refinementAttempts>0,'Improvement pass must be exerci
 assert.ok(enhanced.bins.length<baseline.bins.length,'Benchmark must demonstrate an actual panel reduction');
 tests+=6;
 console.log('Advanced optimization benchmark: '+baseline.bins.length+' → '+enhanced.bins.length+' panels; '+enhanced.search.refinementAttempts+' bounded repack attempts.');
+
+
+// Known panel: one 150x100 mm part from 300x200 mm, with 3 mm kerf.
+const offcutCase=verify(state({
+  project:'Offcut fixture',mode:'guillotine',unit:'mm',kerf:3,trim:0,
+  offcutMinEdgeMm:50,offcutMinAreaCm2:100,
+  parts:[{l:150,w:100,t:'',qty:1,material:'Wood',label:'P01',rotate:false}],
+  stocks:[{l:300,w:200,t:'',qty:1,material:'Wood',price:100}]
+}));
+const board=offcutCase.result.bins[0];
+const usable=app.collectOffcuts(board);
+assert.equal(usable.available,true);
+assert.equal(usable.count,2);
+assert.equal(usable.area,43950);
+assert.equal(usable.unclassifiedArea,1050);
+assert.equal(board.cuts.length,2);
+assert.equal(board.cuts[0].number,1);
+assert.equal(board.cuts[1].number,2);
+assert.equal(app.auditGuillotineCuts(board,{trim:0,kerf:3}).length,0);
+tests+=7;
+const corruptedCut=clone(offcutCase.result);
+corruptedCut.bins[0].cuts[0].x1+=9;
+assert.equal(app.auditCutPlan(corruptedCut,offcutCase.input).ok,false,
+  'Independent cut replay must reject an incorrect kerf center line');
+tests++;
+const corruptedSource=clone(offcutCase.result);
+corruptedSource.bins[0].cuts[1].source.w+=12;
+assert.equal(app.auditCutPlan(corruptedSource,offcutCase.input).ok,false,
+  'Independent cut replay must reject incorrect source dimensions');
+tests++;
+window.__testHooks.showResult(offcutCase.input,offcutCase.result);
+const pdf=window.__testHooks.makePdfDocument();
+assert.ok(pdf.content.some(x=>x.text==='KULLANILABİLİR ARTIKLAR'));
+assert.ok(pdf.content.some(x=>x.text==='ÖNERİLEN GEOMETRİK KESİM SIRASI'));
+assert.ok(pdf.content.some(x=>x.table?.body?.some(row=>Array.isArray(row)&&row.some(cell=>cell?.text==='Düşey'))));
+assert.equal(window.__testHooks.productionFile(),true);
+assert.ok(node('printCollection').innerHTML.includes('Önerilen geometrik kesim sırası'));
+tests+=5;
+const noOffcuts=state({
+  project:'Cutoff threshold',mode:'guillotine',unit:'mm',kerf:3,
+  offcutMinEdgeMm:500,offcutMinAreaCm2:100,
+  parts:[{l:150,w:100,t:'',qty:1,material:'Wood',label:'P01',rotate:false}],
+  stocks:[{l:300,w:200,t:'',qty:1,material:'Wood',price:100}]
+});
+const none=verify(noOffcuts);
+assert.equal(app.collectOffcuts(none.result.bins[0]).count,0);
+tests++;
+const freeForm=verify(state({mode:'nest',unit:'mm',kerf:3,
+  parts:[{l:150,w:100,t:'',qty:1,material:'Wood',label:'P01',rotate:false}],
+  stocks:[{l:300,w:200,t:'',qty:1,material:'Wood',price:100}]
+}));
+assert.equal(app.collectOffcuts(freeForm.result.bins[0]).available,false,
+  'Nesting free rectangles overlap and cannot be sold as exact offcuts');
+tests++;
 
 console.log('Beythaus Cut: '+tests+' checks passed; invalid plans rejected and unknown prices preserved.');
