@@ -828,4 +828,165 @@ tests+=4;
 tests+=5;
 console.log('Remnant inventory: physical production only, project-to-project reuse, consumption, PDF provenance, status, backup and idempotency passed.');
 
+
+// SHELF / LOCATION INVENTORY: physical metadata, filters and old DB migration.
+assert.equal(typeof app.filterRemnants,'function');
+assert.equal(typeof app.editRemnantRecord,'function');
+assert.equal(typeof app.setRemnantDefaultLocation,'function');
+assert.equal(typeof app.openRemnantEditor,'function');
+assert.equal(typeof app.submitRemnantEditor,'function');
+tests+=5;
+
+const inventoryBefore=app.getRemnantDB();
+const shelfId='imported-sample-1';
+assert.ok(inventoryBefore.pieces.some(p=>p.id===shelfId));
+assert.equal(app.editRemnantRecord(shelfId,{
+ l:120,w:60,t:18,material:'Meşe',location:'Raf A / Göz 2',
+ notes:'Damar yönü uzun kenar & <img src=x onerror=alert(1)>'
+}),true);
+const shelfEdited=app.getRemnantDB().pieces.find(p=>p.id===shelfId);
+assert.equal(shelfEdited.l,120);
+assert.equal(shelfEdited.w,60);
+assert.equal(shelfEdited.t,18);
+assert.equal(shelfEdited.material,'Meşe');
+assert.equal(shelfEdited.location,'Raf A / Göz 2');
+assert.ok(shelfEdited.notes.includes('<img'));
+assert.ok(Number.isFinite(shelfEdited.updatedAt));
+assert.equal(app.editRemnantRecord(shelfId,{l:-1}),false,'Negative size correction must be rejected');
+assert.equal(app.editRemnantRecord(shelfId,{location:'X'.repeat(81)}),false,
+ 'Shelf strings longer than the on-screen limit must be rejected');
+assert.equal(app.editRemnantRecord(shelfId,{material:'  '}),false,'Material cannot be empty');
+tests+=11;
+const records=app.getRemnantDB().pieces;
+const shelfFilter={status:'available',material:'Meşe',thickness:'18',location:'Raf A / Göz 2'};
+const matches=app.filterRemnants(records,shelfFilter);
+assert.equal(matches.length,1);
+assert.equal(matches[0].id,shelfId);
+assert.equal(app.filterRemnants(records,{...shelfFilter,minL:100,minW:50}).length,1);
+assert.equal(app.filterRemnants(records,{...shelfFilter,minL:50,minW:100}).length,1,
+ 'Minimum side filters must allow rotated 2D orientation');
+assert.equal(app.filterRemnants(records,{...shelfFilter,minL:125,minW:20}).length,0);
+assert.equal(app.filterRemnants(records,{...shelfFilter,query:'damar yönü'}).length,1);
+assert.equal(app.filterRemnants(records,{...shelfFilter,query:'göz 3'}).length,0);
+assert.equal(app.filterRemnants(records,{status:'used',material:'Meşe'}).length,0);
+assert.ok(app.filterRemnants(records,{status:'all',location:'__unassigned__'}).length>=1,
+ 'Empty shelf must be independently filterable');
+assert.ok(app.filterRemnants(records,{status:'all',thickness:'unknown'}).length>=1);
+tests+=10;
+
+// UI controls really call the filtering and correction logic, not only pure helpers.
+node('remnantStatusFilter').value='available';
+node('remnantMaterialFilter').value='Meşe';
+node('remnantThicknessFilter').value='18';
+node('remnantLocationFilter').value='Raf A / Göz 2';
+node('remnantSearch').value='damar';
+node('remnantMinLength').value='50';
+node('remnantMinWidth').value='100';
+node('remnantSearch').oninput();
+assert.ok(node('remnantFilteredCount').textContent.startsWith('1 parça'));
+assert.ok(node('remnantList').innerHTML.includes('Raf A / Göz 2'));
+assert.ok(node('remnantList').innerHTML.includes('&lt;img'));
+assert.equal(node('remnantList').innerHTML.includes('<img '),false,
+ 'Inventory notes must not inject raw HTML');
+node('remnantClearFilters').onclick();
+assert.equal(node('remnantStatusFilter').value,'available');
+assert.equal(node('remnantLocationFilter').value,'all');
+tests+=6;
+
+assert.equal(app.openRemnantEditor(shelfId),true);
+assert.equal(node('remnantEditLocation').value,'Raf A / Göz 2');
+node('remnantEditLength').value='121,5';
+node('remnantEditWidth').value='61';
+node('remnantEditThickness').value='19';
+node('remnantEditMaterial').value='Meşe';
+node('remnantEditLocation').value='Raf B / Göz 5';
+node('remnantEditNotes').value='Damar düz';
+assert.equal(app.submitRemnantEditor(),true);
+assert.equal(app.getRemnantDB().pieces.find(p=>p.id===shelfId).l,121.5);
+assert.equal(app.getRemnantDB().pieces.find(p=>p.id===shelfId).location,'Raf B / Göz 5');
+assert.equal(app.getRemnantDB().pieces.find(p=>p.id===shelfId).t,19);
+tests+=6;
+
+// Saving a default shelf must NOT create or consume stock by itself.
+const noAddBefore=app.getRemnantDB().pieces.length;
+assert.equal(app.setRemnantDefaultLocation('Raf C / Üst göz'),true);
+assert.equal(app.getRemnantDB().defaultLocation,'Raf C / Üst göz');
+assert.equal(app.getRemnantDB().pieces.length,noAddBefore);
+assert.equal(app.setRemnantDefaultLocation('X'.repeat(81)),false);
+tests+=4;
+
+// Physical production creates brand-new remnants in the current default shelf.
+const shelfProduction=state({...productionJob,
+ project:'Raflı üretim',useRemnantStock:false,
+ parts:[{l:150,w:100,t:'',qty:1,material:'Wood',label:'SHELF-P',rotate:false}]
+});
+const shelfProductionRun=verify(shelfProduction);
+window.__testHooks.showResult(shelfProductionRun.input,shelfProductionRun.result);
+assert.equal(app.registerRemnantProduction(),true);
+const afterProduction=app.getRemnantDB();
+const newPhysical=afterProduction.pieces.filter(p=>p.projectName==='Raflı üretim');
+assert.equal(newPhysical.length,2);
+assert.ok(newPhysical.every(p=>p.location==='Raf C / Üst göz'));
+assert.ok(newPhysical.every(p=>p.status==='available'));
+assert.ok(app.filterRemnants(afterProduction.pieces,{
+ status:'available',location:'Raf C / Üst göz'}).length>=2);
+tests+=5;
+
+// Stock corrections carry over into following projects and preserve physical
+// source identity, while editing a selected item invalidates the existing plan.
+const changedPiece=newPhysical[0];
+app.setState(state({project:'Raf arama',unit:'mm',mode:'nest',stocks:[],
+ parts:[{l:40,w:30,t:'',qty:1,material:'Wood',label:'LP',rotate:true}],
+ useRemnantStock:true}));
+assert.ok(app.normalize().stocks.some(x=>x.remnantId===changedPiece.id));
+assert.equal(app.editRemnantRecord(changedPiece.id,{location:'Raf Z',notes:'Kullanım öncesi ölçü kontrolü'}),true);
+assert.ok(app.normalize().stocks.some(x=>x.remnantId===changedPiece.id));
+assert.equal(app.filterRemnants(app.getRemnantDB().pieces,{
+ status:'available',location:'Raf Z'}).some(x=>x.id===changedPiece.id),true);
+tests+=4;
+
+// Backup preserves shelf, notes and default location without duplicating stock.
+const beforeImport=app.getRemnantDB(),shelfBackup={
+ kind:'beythaus-cut-remnant-backup',version:1,
+ pieces:beforeImport.pieces,batches:beforeImport.batches,defaultLocation:beforeImport.defaultLocation
+};
+assert.equal(app.mergeRemnantBackup(shelfBackup),0);
+assert.equal(app.getRemnantDB().pieces.length,beforeImport.pieces.length);
+assert.equal(app.getRemnantDB().pieces.find(p=>p.id===shelfId).location,'Raf B / Göz 5');
+const another={...beforeImport.pieces.find(p=>p.id===shelfId),
+ id:'shelf-location-backup-copy',sourceKey:'physical:unique:shelf',
+ location:'Raf X / Göz 9',notes:'Yedekten aktarım'};
+assert.equal(app.mergeRemnantBackup({...shelfBackup,pieces:[another]}),1);
+assert.equal(app.mergeRemnantBackup({...shelfBackup,pieces:[another]}),0);
+assert.equal(app.getRemnantDB().pieces.find(p=>p.id===another.id).location,'Raf X / Göz 9');
+assert.equal(app.getRemnantDB().defaultLocation,'Raf C / Üst göz');
+tests+=7;
+
+// Old v1 records lacking shelf/notes must hydrate without any data loss.
+const historical={version:1,pieces:[
+ {id:'legacy-stock',l:100,w:75,t:18,material:'Meşe',status:'available',
+  createdAt:1730000000000,sourceKey:'legacy:one',projectName:'Eski kayıt'}
+],batches:[]};
+const oldStore=new Map([['beythaus-cut-remnant-library-v1',JSON.stringify(historical)]]);
+const oldWindow={addEventListener(){}},oldDocument={
+ getElementById:id=>node('_legacy_'+id),querySelectorAll(){return []},
+ addEventListener(){},createElement(){return node('_legacy_temp')},
+ head:{appendChild(){}},body:{classList:emptyClasses(),append(){}}
+};
+vm.runInNewContext(script,{
+ ...sandbox,window:oldWindow,document:oldDocument,
+ localStorage:{
+  getItem:k=>oldStore.get(k)??null,setItem:(k,v)=>oldStore.set(k,String(v))
+ }
+},{filename:'legacy-inventory-hydration.js',timeout:10000});
+const migrated=oldWindow.BeythausCut.getRemnantDB();
+assert.equal(migrated.pieces.length,1);
+assert.equal(migrated.pieces[0].l,100);
+assert.equal(migrated.pieces[0].material,'Meşe');
+assert.equal(migrated.pieces[0].location,'');
+assert.equal(migrated.pieces[0].notes,'');
+assert.equal(migrated.defaultLocation,'');
+tests+=6;
+console.log('Shelf inventory: 58+ metadata, responsive UI, filter, rotation, legacy-migration, production, edit and backup assertions passed.');
+
 console.log('Beythaus Cut: '+tests+' checks passed; invalid plans rejected and unknown prices preserved.');
