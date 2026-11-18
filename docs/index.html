@@ -380,12 +380,26 @@ function mergeRemnantBackup(payload){
   if(!r||existingIds.has(r.id)||(r.sourceKey&&existingKeys.has(r.sourceKey)))continue;
   existingIds.add(r.id);if(r.sourceKey)existingKeys.add(r.sourceKey);additions.push(r)
  }
- if(!additions.length)return 0;
- if(!commitRemnants({...remnantDB,pieces:remnantDB.pieces.concat(additions)}))
+ const newBatches=[],batchIds=new Set(remnantDB.batches.map(x=>x.id));
+ if(Array.isArray(payload.batches))for(const raw of payload.batches.slice(-900)){
+  if(!raw||typeof raw.id!=='string'||!raw.id||batchIds.has(raw.id)||
+     typeof raw.signature!=='string'||!raw.signature)continue;
+  batchIds.add(raw.id);
+  newBatches.push({
+   id:String(raw.id).slice(0,90),signature:String(raw.signature).slice(0,180),
+   projectId:String(raw.projectId||'').slice(0,90),
+   projectName:String(raw.projectName||'').slice(0,60),
+   createdAt:Number(raw.createdAt)||Date.now(),
+   usedIds:Array.isArray(raw.usedIds)?raw.usedIds.slice(0,700).map(String):[],
+   createdIds:Array.isArray(raw.createdIds)?raw.createdIds.slice(0,700).map(String):[]
+  })
+ }
+ if(!additions.length&&!newBatches.length)return 0;
+ if(!commitRemnants({...remnantDB,pieces:remnantDB.pieces.concat(additions),
+   batches:remnantDB.batches.concat(newBatches).slice(-900)}))
   throw Error('Envanter yedeği kaydedilemedi.');
  changed();return additions.length
 }
-
 let projectLibrary=[],activeProjectId='';
 try{const a=JSON.parse(localStorage.getItem('beythaus-cut-project-library-v1')||'[]');if(Array.isArray(a)){projectLibrary=a.filter(x=>x&&typeof x.id==='string'&&x.data&&Array.isArray(x.data.parts)&&Array.isArray(x.data.stocks)).slice(0,250)}}catch{}
 try{activeProjectId=localStorage.getItem('beythaus-cut-active-project-v1')||''}catch{}
