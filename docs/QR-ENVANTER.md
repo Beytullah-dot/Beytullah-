@@ -11,6 +11,14 @@ Bu modül, atölyede kaydedilmiş fiziksel artık parçalar için **çevrimdış
 5. **QR tara** düğmesi mobil kamerayı açar. Kamera izni reddedilir veya tarayıcı kameraya erişemezse cihaz kamerasıyla çekilmiş bir fotoğraf seçilebilir ya da QR bağlantısı / parça ID'si elle girilebilir.
 6. Eşleşen kayıt envanter düzenleme alanında açılır. **Okutmak stok kullanmak demek değildir.** Stok ancak kullanıcı “Kullanıldı” seçtiğinde veya fiziksel üretim doğrulandığında tüketilir.
 
+## QR üzerinden stok hareketleri
+
+QR okutmak malzemeyi **otomatik olarak tüketmez**: sadece ilgili parça kaydını açar. Parça kaydı açıldıktan sonra ölçü, raf veya not **Kaydet** ile güncellenirse ya da **Kullanıldı işaretle / Mevcut yap** seçilirse, işlem **QR üzerinden** kaynağıyla envanter hareket geçmişine kaydedilir.
+
+Bütün işlemleri **Envanter → Yönet → Hareket geçmişi** ekranından inceleyebilir, parça bazında filtreleyebilir ve CSV olarak dışa aktarabilirsin. Bu geçmiş yalnız tarayıcıda tutulur; QR okutan kişinin kimliği doğrulanmaz.
+
+Ayrıntılı teknik açıklama: [HAREKET-GECMISI.md](./HAREKET-GECMISI.md).
+
 ## QR kodu ve veri güvenliği
 
 Kodun içeriği şu biçimde bir HTTPS bağlantısıdır:
