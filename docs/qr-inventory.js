@@ -50,7 +50,7 @@
   for(const key of ['remnantMinLength','remnantMinWidth'])$(key).value='';
   // Existing project viewer/edit form owns physical data and status.
   $('remnantOverlay').classList.remove('hidden');
-  app.openRemnantEditor(result.id);
+  app.openRemnantEditor(result.id,'qr');
   notify('Artık stok kaydı açıldı.');
   return true
  }
