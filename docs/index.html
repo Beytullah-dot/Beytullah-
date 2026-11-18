@@ -144,7 +144,7 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
    <div class="remnant-summary" id="remnantSummary">Kayıtlı kullanılabilir artık yok.</div>
    <label class="remnant-enable"><input type="checkbox" id="useRemnantStockInput" checked><span>Mevcut artıkları yeni yerleşimlerde otomatik değerlendir</span></label>
    <div class="remnant-actions"><button class="btn small" id="remnantConfirmProductionBtn" type="button" disabled>✓ Üretimi onayla · artıkları kaydet</button></div>
-   <p class="remnant-warning">Artıklar yalnız fiziksel kesim tamamlandıktan sonra kaydedilir. Plan hesaplamak stok tüketmez. Envanter bu tarayıcıda tutulur; düzenli yedek alın.</p>
+   <p class="remnant-warning">Artıklar yalnız fiziksel kesim tamamlandıktan sonra kaydedilir. Plan hesaplamak stok tüketmez. Envanter bu tarayıcıda tutulur; düzenli yedek alın. Artık stokların alış maliyeti 0 ₺ kabul edilir; bu ekonomik değerlerinin sıfır olduğu anlamına gelmez.</p>
   </div>
   <div class="card" id="settingsCard"><div class="card-head"><div><div class="card-title">Hesap ayarları</div><div class="card-sub">Kesim ve fiyat</div></div></div>
     <div class="settings-body">
@@ -1251,7 +1251,7 @@ function cutStepRows(bin,unitMode='display'){
 function planHtml(bin){
  const used=bin.placed.reduce((sum,p)=>sum+p.w*p.h,0),pct=used/(bin.stock.l*bin.stock.w)*100;
  const base='<div class="plan-stage"><div class="drawing-wrap"><div class="drawing-inner">'+svgFor(bin)+'</div></div><div class="plan-meta"><div class="legend"><span><i style="background:#aecfba"></i>Parçalar</span><span><i style="background:#f2f4ef;border:1px solid #ccd8cf"></i>Boş alan</span></div><span>'+
- fmt(bin.stock.l/dimFactor(),2)+' × '+fmt(bin.stock.w/dimFactor(),2)+' '+state.unit+' · '+thicknessText(bin.stock.t)+' · '+esc(bin.stock.material)+'</span></div></div><div class="details"><div class="detail-card"><div class="detail-label">Bu stokta kesilen</div><div class="detail-value">'+bin.placed.length+' parça</div></div><div class="detail-card"><div class="detail-label">Alan kullanımı</div><div class="detail-value">%'+fmt(pct,1)+'</div></div></div>';
+ fmt(bin.stock.l/dimFactor(),2)+' × '+fmt(bin.stock.w/dimFactor(),2)+' '+state.unit+' · '+thicknessText(bin.stock.physicalThickness??bin.stock.t)+' · '+esc(bin.stock.material)+(bin.stock.isRemnant?' · Artık stok':'')+'</span></div></div><div class="details"><div class="detail-card"><div class="detail-label">Bu stokta kesilen</div><div class="detail-value">'+bin.placed.length+' parça</div></div><div class="detail-card"><div class="detail-label">Alan kullanımı</div><div class="detail-value">%'+fmt(pct,1)+'</div></div></div>';
  if(state.mode!=='guillotine')return base+'<p class="offcut-disclaimer">Kesin artık ölçüleri ve sıralı kesim talimatı, yalnızca Düz kesim modunda oluşturulur.</p>';
  const info=collectOffcuts(bin),f=dimFactor(),rows=cutStepRows(bin),cutCount=bin.cuts?.length||0;
  const pieces=info.pieces.map((p,i)=>'<tr><td>A'+String(i+1).padStart(2,'0')+'</td><td>'+fmt(p.w/f,2)+' × '+fmt(p.h/f,2)+' '+state.unit+'</td><td>'+fmt(p.area/1e6,4)+' m²</td></tr>').join('');
@@ -1271,10 +1271,10 @@ function showResult(data,sol){const audit=auditCutPlan(sol,data);if(!audit.ok)th
 const completeThickness=sol.bins.length>0&&sol.bins.every(b=>b.stock.t!==null);
 const m3Stock=completeThickness?sol.bins.reduce((a,b)=>a+b.stock.l*b.stock.w*b.stock.t,0)/1e9:null;
 const m3Parts=completeThickness?sol.bins.reduce((a,b)=>a+b.placed.reduce((sum,p)=>sum+p.w*p.h*b.stock.t,0),0)/1e9:null;
-const netCost=state.priceMode==='m3'?(completeThickness?m3Parts*data.m3:null):sol.bins.reduce((a,b)=>a+b.placed.reduce((x,p)=>x+p.w*p.h/(b.stock.l*b.stock.w)*b.stock.price,0),0);
+const netCost=state.priceMode==='m3'?sol.bins.every(b=>b.stock.isRemnant||(b.stock.t!==null&&data.m3>0))?sol.bins.reduce((a,b)=>a+(b.stock.isRemnant?0:b.placed.reduce((x,p)=>x+p.w*p.h*b.stock.t/1e9*data.m3,0)),0):null:sol.bins.reduce((a,b)=>a+b.placed.reduce((x,p)=>x+p.w*p.h/(b.stock.l*b.stock.w)*b.stock.price,0),0);
 const yieldPct=sol.stockArea?sol.partArea/sol.stockArea*100:0,all=sol.unplaced.length===0;
-const priceKnown=state.priceMode==='m3'?completeThickness&&data.m3>0:sol.bins.length>0&&sol.bins.every(b=>b.stock.price>0);
-const missingThicknessCost=state.priceMode==='m3'&&!completeThickness&&sol.bins.length>0;
+const priceKnown=sol.bins.length>0&&sol.bins.every(b=>b.stock.isRemnant||(state.priceMode==='m3'?b.stock.t!==null&&data.m3>0:b.stock.price>0));
+const missingThicknessCost=state.priceMode==='m3'&&sol.bins.some(b=>!b.stock.isRemnant&&b.stock.t===null);
 byId('mSheets').textContent=fmt(sol.bins.length,0);byId('mYield').textContent='%'+fmt(yieldPct,1);byId('mCost').textContent=priceKnown?money(sol.cost):'—';byId('mParts').textContent=sol.placedCount+'/'+data.parts.length;
 byId('summarySub').textContent=fmt(data.parts.length,0)+' parça · '+fmt(data.stocks.length,0)+' stok türü · '+(state.mode==='nest'?'Serbest yerleşim':'Düz kesim')+(sol.bins.some(b=>b.stock.isRemnant)?' · '+sol.bins.filter(b=>b.stock.isRemnant).length+' artık stok':'');
 byId('status').className=all&&!missingThicknessCost?'status-line':'status-line warning';
@@ -1306,8 +1306,8 @@ function productionFile(){
  const warning=state.mode==='nest'?'SERBEST YERLEŞİM: Çizim panel testeresinde kesim sırasını garanti etmez. Operatör uygulanabilirliği kontrol etmelidir.':'DÜZ KESİM: Kesim sırası, iş parçası bağlama ve gerçek testere payı operatör tarafından doğrulanmalıdır.';
  const parts=state.parts.filter(p=>val(p.l)>0&&val(p.w)>0&&val(p.qty)>0).map((p,i)=>'<tr><td>'+esc(p.label||'P'+(i+1))+'</td><td>'+esc(p.material||'Ahşap')+'</td><td>'+n(val(p.l))+' × '+n(val(p.w))+' '+u+'</td><td>'+thick(p.t)+'</td><td>'+fmt(val(p.qty),0)+'</td><td>'+(p.rotate?'Serbest':'Sabit')+'</td></tr>').join('');
  const stockMap=new Map();
- for(const bin of bins){const stock=bin.stock,key=stock.material+'|'+stock.l+'|'+stock.w+'|'+stock.t;const row=stockMap.get(key)||{stock,count:0};row.count++;stockMap.set(key,row)}
- const stocks=[...stockMap.values()].map(({stock,count})=>'<tr><td>'+esc(stock.material)+'</td><td>'+measured(stock.l)+' × '+measured(stock.w)+'</td><td>'+thick(stock.t)+'</td><td>'+count+'</td></tr>').join('');
+ for(const bin of bins){const stock=bin.stock,key=[stock.material,stock.l,stock.w,stock.physicalThickness??stock.t,!!stock.isRemnant].join('|');const row=stockMap.get(key)||{stock,count:0};row.count++;stockMap.set(key,row)}
+ const stocks=[...stockMap.values()].map(({stock,count})=>'<tr><td>'+esc(stock.material)+(stock.isRemnant?' (Artık stok)':'')+'</td><td>'+measured(stock.l)+' × '+measured(stock.w)+'</td><td>'+thick(stock.physicalThickness??stock.t)+'</td><td>'+count+'</td></tr>').join('');
  const pct=sol.stockArea?100*sol.partArea/sol.stockArea:0;
  const extra=sol.unplaced.length?'<div class="doc-caution"><b>EKSİK YERLEŞİM:</b> '+sol.unplaced.length+' parça kesim planında bulunmuyor. İmalattan önce gözden geçirin.</div>':'';
  const proofInfo=stockProofDescription(sol.stockProof);
@@ -1380,8 +1380,8 @@ function makePdfDocument(){
  :'Düz kesim işlemlerinde kesim sırası ve gerçek testere payı üretici tarafından teyit edilmelidir.';
  const parts=state.parts.filter(p=>val(p.l)>0&&val(p.w)>0&&val(p.qty)>0).map((p,i)=>[p.label||'P'+(i+1),p.material||'Ahşap',fmt(val(p.l),2)+' × '+fmt(val(p.w),2)+' '+unit,state.partsThicknessEnabled?thick(p.t):'Belirtilmedi',fmt(val(p.qty),0),p.rotate?'Serbest':'Sabit']);
  const stockCounts=new Map();
- for(const bin of sol.bins){const x=bin.stock,key=[x.material,x.l,x.w,x.t].join('|');const row=stockCounts.get(key)||{x,count:0};row.count++;stockCounts.set(key,row)}
- const stocks=[...stockCounts.values()].map(({x,count})=>[x.material,m(x.l)+' × '+m(x.w),thick(x.t),String(count)]);
+ for(const bin of sol.bins){const x=bin.stock,key=[x.material,x.l,x.w,x.physicalThickness??x.t,!!x.isRemnant].join('|');const row=stockCounts.get(key)||{x,count:0};row.count++;stockCounts.set(key,row)}
+ const stocks=[...stockCounts.values()].map(({x,count})=>[x.material+(x.isRemnant?' (Artık stok)':''),m(x.l)+' × '+m(x.w),thick(x.physicalThickness??x.t),String(count)]);
  const content=[
   {columns:[{text:'BEYTHAUS  /  CUT',style:'brand'}, {text:'ÜRETİM DOSYASI · '+code,alignment:'right',fontSize:10,bold:true,color:'#64836A'}]},
   {canvas:[{type:'line',x1:0,y1:0,x2:766,y2:0,lineColor:'#365D46',lineWidth:1.5}],margin:[0,12,0,14]},
