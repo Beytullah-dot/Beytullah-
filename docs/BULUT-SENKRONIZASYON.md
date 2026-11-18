@@ -8,10 +8,8 @@ Bulut kullanımı tamamen isteğe bağlıdır. Kullanıcının yerel stok verile
 
 ## Tek seferlik kurulum
 
-1. [Supabase Dashboard](https://supabase.com/dashboard) üzerinden hesabınla bir PostgreSQL projesi oluştur. Veritabanı ve uygulama Auth özelliklerinin aktif olduğunu kontrol et.
-2. Projenin **SQL Editor** ekranında depodaki
-   [\`supabase/migrations/20261118_000001_cloud_inventory.sql\`](../supabase/migrations/20261118_000001_cloud_inventory.sql)
-   dosyasını çalıştır. Bu şema, RLS etkin tabloları, üyelik/katılım mekanizmasını ve sunucu tarafı atomik stok işlemlerini kurar.
+1. **Tamamlandı:** Beythaus organizasyonunda, Frankfurt bölgesinde **Beythaus Cut** Supabase projesi oluşturuldu; proje sağlıklı çalışıyor.
+2. **Tamamlandı:** `supabase/migrations/20261118_000001_cloud_inventory.sql` veritabanına uygulandı. Yedi tablonun tamamında RLS etkin, doğrudan anonim stok erişimi kapalı ve yetkili RPC işlemleri açık.
 3. **Authentication → Providers → Email** bölümünde e-posta/parola ile hesabın açılabildiğini kontrol et. E-posta doğrulaması aktifse doğrulama e-postasındaki bağlantıyı tamamla. Canlı kullanım öncesinde güvenli şifre politikası ve e-posta gönderim ayarlarını düzenle.
 4. **Beythaus Cut projesi bağlı:** https://pdqgpupdqgrxejvjpdzs.supabase.co adresi ve **tarayıcıda kullanılması güvenli publishable API anahtarı** uygulama formuna önceden yerleştirildi. Kullanıcı ayrıca URL veya API anahtarı kopyalamak zorunda değil; gizli `service_role` anahtarına gerek yok.
 5. Supabase Dashboard → **Authentication → URL Configuration** alanında **Site URL** adresini `https://beytullah-dot.github.io/Beytullah-/` olarak ayarla. **Redirect URLs** listesine de bu tam adresi ekle. Böylece e-posta doğrulama bağlantısı varsayılan `http://localhost:3000` adresine gitmez. Kaynak: https://supabase.com/docs/guides/auth/redirect-urls
