@@ -1059,6 +1059,9 @@ const model=qrModule.labelInfo(qrRecord);
 assert.equal(model.id,qrRecord.id);
 assert.ok(model.dimensions.includes('mm'));
 assert.equal(model.location,'Raf X / Göz 9');
+// The regression suite's DOM stubs need appendChild for the REAL QRCode.js canvas renderer.
+node('qr-preview-0').appendChild=()=>{};
+node('qr-print-0').appendChild=()=>{};
 assert.equal(qrModule.labelSingle(qrRecord.id),true);
 assert.equal(trackedQR.length,2,'Every label must render preview and A4-print QR');
 assert.equal(trackedQR[0].opts.text,deepLink);
