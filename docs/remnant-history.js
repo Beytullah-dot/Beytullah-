@@ -28,14 +28,14 @@ function filters(){
 }
 function records(){return app.remnantMovements(filters())}
 function render(){
- const all=records(),limited=all.slice(0,180);
- const max=(app.getRemnantDB().movements||[]).length>=3000;
+ const all=records(),limited=all.slice(0,180),db=app.getRemnantDB(),knownIds=new Set(db.pieces.map(p=>p.id));
+ const max=(db.movements||[]).length>=3000;
  $('remnantHistorySummary').textContent=all.length+' kayıt · '+limited.length+' görüntüleniyor'+
   (activePiece?' · Parça: '+activePiece:'')+
   (max?' · en eski kayıtlar kapasite nedeniyle çıkarılmış olabilir':'');
  $('remnantHistoryList').innerHTML=limited.length?limited.map(e=>{
   const changes=differences(e),when=new Date(e.at).toLocaleString('tr-TR'),
-   exists=app.getRemnantDB().pieces.some(x=>x.id===e.pieceId);
+   exists=knownIds.has(e.pieceId);
   return '<div class="remnant-history-entry"><div class="remnant-history-entry-head">'+
    '<strong>'+escape(names[e.type]||e.type)+'</strong><time>'+escape(when)+'</time></div>'+
    '<div class="remnant-history-meta">'+escape(sources[e.source]||'Elle')+
@@ -64,8 +64,8 @@ function csvContent(){
   if(/^[\t\r\n ]*[=+\-@]/.test(str))str="'"+str;
   return '"'+str.replace(/"/g,'""')+'"'
  };
- const header=['Tarih','İşlem','Kaynak','Parça kimliği','Proje','Parti','Eski durum','Yeni durum','Değişiklikler'];
- const row=e=>[new Date(e.at).toISOString(),names[e.type]||e.type,
+ const header=['Olay kimliği','Tarih','İşlem','Kaynak','Parça kimliği','Proje','Parti','Eski durum','Yeni durum','Değişiklikler'];
+ const row=e=>[e.id,new Date(e.at).toISOString(),names[e.type]||e.type,
   sources[e.source]||e.source,e.pieceId,e.projectName,e.batchId,
   e.before?.status||'',e.after?.status||'',differences(e).join(' | ')];
  return '\uFEFF'+[header,...records().map(row)].map(x=>x.map(toCell).join(';')).join('\r\n')
