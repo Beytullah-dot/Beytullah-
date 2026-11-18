@@ -199,4 +199,56 @@ assert.equal(app.collectOffcuts(freeForm.result.bins[0]).available,false,
   'Nesting free rectangles overlap and cannot be sold as exact offcuts');
 tests++;
 
+
+// Sound minimum-stock-count certificates. Geometry and optimality are distinct.
+// The area lower bound must never be advertised as a minimum-waste proof.
+assert.equal(typeof app.certifyStockCount,'function');
+assert.equal(typeof app.minStockCountLowerBound,'function');
+const certPart=(l,w,material='Wood')=>({l,w,t:'',qty:1,material,label:'P',rotate:false});
+const certStock=(l,w,qty=5,material='Wood')=>({l,w,t:'',qty,material,price:100});
+function certificate(inputState) {
+  const run=verify(inputState),proof=app.certifyStockCount(run.result,run.input,app.auditCutPlan(run.result,run.input));
+  assert.equal(proof.goal,'minimum-stock-count');
+  if(proof.proven) {
+    assert.equal(run.result.unplaced.length,0);
+    assert.equal(proof.usedStockCount,proof.lowerBound);
+  }
+  tests++;
+  return {...run,proof};
+}
+const oneStock=certificate(state({kerf:0,trim:0,
+  parts:[certPart(100,100)],stocks:[certStock(100,100)]}));
+assert.equal(oneStock.proof.proven,true);
+assert.equal(oneStock.proof.lowerBound,1);
+const exactTwo=certificate(state({kerf:0,trim:0,
+  parts:[certPart(100,100),certPart(100,100)],stocks:[certStock(100,100)]}));
+assert.equal(exactTwo.proof.proven,true);
+assert.equal(exactTwo.proof.lowerBound,2);
+assert.equal(exactTwo.result.bins.length,2);
+const weakArea=certificate(state({kerf:0,trim:0,
+  parts:[certPart(60,60),certPart(60,60)],stocks:[certStock(100,100)]}));
+assert.equal(weakArea.proof.proven,false);
+assert.equal(weakArea.proof.lowerBound,1);
+assert.equal(weakArea.result.bins.length,2);
+const materialGroups=certificate(state({kerf:0,trim:0,
+  parts:[certPart(100,100,'Birch'),certPart(100,100,'Pine')],
+  stocks:[certStock(100,100,5,'Birch'),certStock(100,100,5,'Pine')]}));
+assert.equal(materialGroups.proof.proven,true);
+assert.equal(materialGroups.proof.lowerBound,2);
+const notAllPlaced=certificate(state({kerf:0,trim:0,
+  parts:[certPart(100,100)],stocks:[certStock(20,20)]}));
+assert.equal(notAllPlaced.proof.proven,false);
+assert.equal(notAllPlaced.proof.complete,false);
+assert.equal(notAllPlaced.proof.lowerBound,null);
+window.__testHooks.showResult(exactTwo.input,exactTwo.result);
+assert.ok(node('optimalityRow').textContent.includes('kanıtlandı'));
+const certificatePdf=window.__testHooks.makePdfDocument();
+assert.ok(certificatePdf.content.some(x=>String(x.text||'').includes('STOK SAYISI KANITI')));
+assert.equal(window.__testHooks.productionFile(),true);
+assert.ok(node('printCollection').innerHTML.includes('Minimum stok sayısı kanıtlandı'));
+window.__testHooks.showResult(weakArea.input,weakArea.result);
+assert.ok(node('optimalityRow').textContent.includes('henüz kanıtlanmadı'));
+tests+=11;
+console.log('Stock-count certificate checks: 1-stock, 2-stock, weak area bound, distinct materials, incomplete and PDF labeling.');
+
 console.log('Beythaus Cut: '+tests+' checks passed; invalid plans rejected and unknown prices preserved.');
