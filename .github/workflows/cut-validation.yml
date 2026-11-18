@@ -1,0 +1,29 @@
+name: Beythaus Cut Geometry Tests
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'docs/index.html'
+      - 'tests/**'
+      - '.github/workflows/cut-validation.yml'
+  pull_request:
+    paths:
+      - 'docs/index.html'
+      - 'tests/**'
+      - '.github/workflows/cut-validation.yml'
+permissions:
+  contents: read
+jobs:
+  regression:
+    name: Independent geometry and pricing checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run regression suite
+        run: node tests/cut-validation.test.cjs
