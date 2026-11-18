@@ -31,7 +31,24 @@ Bu testler *aynı matematiksel model* karşılaştırılacak şekilde yapılır:
 
 Serbest yerleşimde, malzeme grupları ayrı çözülebilir. Bu aşamada her malzeme grubu için en fazla 8 parça, 3 stok türü, 4 kullanılan stok; proje genelinde en fazla 4 malzeme grubu ve 24 parça sınırı vardır. Ortak zaman bütçesi yaklaşık 175 ms, her arama için işlem bütçesi 25.000 düğümdür. Bu sınırlar kesin çözümün tamamlandığı garantisi değildir: yalnızca tamamlanan aramalarda optimumluk kanıtı kullanılır.
 
-Düz (giyotin) kesim, damar yönü, CNC araç yolu, kullanılabilir artıkların ekonomik değeri, en az maliyet ve minimum fire optimumluğu **bu kesin aramanın kanıt kapsamı dışında** kalır. Geometrik planın ayrıca üretim makinesinde kontrol edilmesi gerekir.
+## Sabit minimum stok sayısıyla minimum brüt fire
+
+Beythaus Cut, **minimum stok sayısı matematiksel olarak kanıtlanmışsa**, aynı stok sayısını koruyarak farklı boyuttaki stok türlerinin olası birleşimlerini (adet kısıtlarına uyarak) tarayabilir. Her daha düşük alanlı aday birleşimin gerçekten parçaları sığdırıp sığdıramadığı bağımsız geometrik doğrulama ve kesin çözüm motoruyla kontrol edilir. Bütün daha küçük kombinasyonlar elendiğinde, çözüm **minimum brüt alan kaybı** sertifikası alır. Arama tamamlanamıyorsa sertifika verilmez.
+
+Sabit parçalar için matematiksel amaç:
+
+```
+Brüt kullanılmayan alan (mm²) = Σ(kullanılan stok boyu × stok eni) − Σ(parça boyu × parça eni)
+```
+
+Bu ifade testere talaşını, temizleme payını, küçük kırpıntıları ve yeniden kullanılabilir boş alanları **birlikte** içerir. Bunların ekonomik değerini ya da kesilme kolaylığını ayrıştırmaz.
+
+- Aynı boyut ve sayıda stok kullanılıyorsa bu **brüt fire alanı sabittir**; yalnızca artıkların ölçüsü, şekli ve yeniden kullanılabilirliği yerleşimle değişebilir.
+- Minimum brüt fire, minimum **maliyet** değildir. Daha küçük stoklar daha pahalıysa uygulama stok maliyetinin artmasına rağmen brüt alan kaybını azaltabilir; fiyat farkı raporlanır.
+- Bu aşama yalnızca **serbest yerleşim**, kanıtlanmış minimum stok sayısı ve küçük gruplar için geçerlidir: malzeme başına en çok 8 parça, 3 stok türü, 4 kullanılan stok; toplamda en fazla 4 malzeme grubu ve 24 parça. Alan araması yaklaşık 120 ms ve her geometrik deneme 20.000 işlem düğümüyle sınırlandırılmıştır.
+- Testlerde daha küçük alanlı stok türü bileşimleri, ayrı bir tamsayı-koordinat tam tarama uygulamasıyla kontrol edilir; normal regresyon paketi bu testleri de içerir.
+
+Düz (giyotin) kesim, damar yönü, CNC araç yolu, kullanılabilir artıkların ekonomik değeri, **en az maliyet** ve **kullanılabilir artık şekillerinin optimumluğu** kesin kanıt kapsamı dışındadır. Geometrik planın ayrıca üretim makinesinde kontrol edilmesi gerekir.
 
 ## Genişletme notu
 
