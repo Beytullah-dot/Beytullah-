@@ -113,4 +113,36 @@ for(let i=0;i<180;i++){
     stocks:[{l:L,w:W,t:'',qty:15,material:'Wood',price:100}]
   }));
 }
+
+// Compare the second-pass search against the unchanged baseline on a deterministic case.
+// The advanced solution is permitted only when it is strictly better and geometrically sound.
+assert.equal(typeof app.optimizeBaseline,'function','Baseline optimizer must remain available for regression');
+let benchmarkSeed=18857;
+function sample(){benchmarkSeed=(Math.imul(1664525,benchmarkSeed)+1013904223)>>>0;return benchmarkSeed/4294967296}
+let benchmarkCase=null;
+for(let i=0;i<=104;i++){
+  const L=70+Math.floor(sample()*100),W=35+Math.floor(sample()*80),count=4+Math.floor(sample()*35),pieces=[];
+  for(let j=0;j<count;j++)pieces.push({
+    l:9+Math.floor(sample()*L*.47),w:7+Math.floor(sample()*W*.55),
+    t:'',qty:1,material:'Wood',label:'P'+j,rotate:sample()>.22
+  });
+  const kerf=[0,1,2,3][Math.floor(sample()*4)],trim=[0,1,2][Math.floor(sample()*3)];
+  benchmarkCase=state({unit:'mm',mode:i%2?'nest':'guillotine',kerf,trim,parts:pieces,
+    stocks:[{l:L,w:W,t:'',qty:20,material:'Wood',price:100}]});
+}
+app.setState(benchmarkCase);
+const benchmarkInput=app.normalize();
+const baseline=app.optimizeBaseline(benchmarkInput);
+const enhanced=app.optimize(benchmarkInput);
+assert.equal(app.auditCutPlan(baseline,benchmarkInput).ok,true,'Baseline must pass independent audit');
+assert.equal(app.auditCutPlan(enhanced,benchmarkInput).ok,true,'Refined plan must pass independent audit');
+assert.equal(benchmarkInput.errors.length,0);
+assert.equal(enhanced.unplaced.length,baseline.unplaced.length,'Refined plan must not leave additional parts');
+assert.ok(enhanced.bins.length<=baseline.bins.length,'Advanced search cannot use more panels on benchmark');
+assert.ok(enhanced.cost===null||baseline.cost===null||enhanced.cost<=baseline.cost,'Advanced search cannot be more expensive');
+assert.ok(enhanced.search?.refinementAttempts>0,'Improvement pass must be exercised');
+assert.ok(enhanced.bins.length<baseline.bins.length,'Benchmark must demonstrate an actual panel reduction');
+tests+=6;
+console.log('Advanced optimization benchmark: '+baseline.bins.length+' → '+enhanced.bins.length+' panels; '+enhanced.search.refinementAttempts+' bounded repack attempts.');
+
 console.log('Beythaus Cut: '+tests+' checks passed; invalid plans rejected and unknown prices preserved.');
