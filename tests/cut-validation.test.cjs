@@ -485,4 +485,126 @@ for(const b of academic.examples){
 console.log('2DPackLib CLASS external benchmarks: '+academicValidated+' geometry-validated instances across 6 classes; '+
  academicMatched+' match externally reported optimum; '+academicProven+' internally certified among those with a known reference.');
 
+
+// MINIMUM GROSS WASTE: minimum total physical stock area at PROVEN
+// minimum board count. This is NOT minimum cutting cost or recovery optimum.
+function areaCase(parts,stocks,extras={}){
+ return multiCase(parts,stocks,{mode:'nest',unit:'mm',kerf:0,trim:0,...extras});
+}
+const areaSmall=verify(areaCase([[60,60],[60,60]],
+ [[100,100,2,'Wood',1],[65,65,2,'Wood',50]]));
+assert.equal(app.optimizeBaseline(areaSmall.input).stockArea,20000);
+assert.equal(areaSmall.result.bins.length,2);
+assert.equal(areaSmall.result.stockArea,8450);
+assert.equal(areaSmall.result.areaProof.proven,true);
+assert.equal(areaSmall.result.areaProof.areaSaved,11550);
+assert.ok(areaSmall.result.cost>app.optimizeBaseline(areaSmall.input).cost,
+ 'Less gross waste can cost MORE; never conflate the objectives');
+tests+=6;
+
+const areaSingle=verify(areaCase([[60,60],[60,60]],
+ [[200,200,2,'Wood',1],[120,60,2,'Wood',100]]));
+assert.equal(areaSingle.result.bins.length,1);
+assert.equal(areaSingle.result.stockArea,7200);
+assert.equal(areaSingle.result.areaProof.proven,true);
+tests+=3;
+const uniformLoss=verify(areaCase([[60,60],[60,60]],[[100,100,2,'Wood',1]]));
+assert.equal(uniformLoss.result.stockArea,20000);
+assert.equal(uniformLoss.result.areaProof.proven,true);
+assert.equal(uniformLoss.result.areaProof.checked,0,
+ 'Same stock count and dimensions imply fixed gross unused area without a placement search');
+tests+=3;
+
+const groupLoss=verify(areaCase([[60,60,'Birch'],[60,60,'Pine']],
+ [[200,200,1,'Birch',1],[65,65,2,'Birch',50],
+  [200,200,1,'Pine',1],[65,65,2,'Pine',50]]));
+assert.equal(groupLoss.result.bins.length,2);
+assert.equal(groupLoss.result.stockArea,8450);
+assert.equal(groupLoss.result.areaProof.groups.length,2);
+assert.equal(groupLoss.result.areaProof.proven,true);
+tests+=4;
+
+// A physically smaller stock choice can be infeasible because of dimensions.
+const shapeReject=verify(areaCase([[90,20]],[[90,30,2,'Wood',1],[10,200,2,'Wood',50]]));
+assert.equal(shapeReject.result.stockArea,2700);
+assert.equal(shapeReject.result.areaProof.proven,true);
+assert.ok(shapeReject.result.areaProof.checked>=1);
+tests+=3;
+
+// Existing project scope still applies. No extrapolated certificate.
+const unprovenArea=verify(areaCase([[60,60],[60,60]],
+ [[100,100,2,'Wood',1],[65,65,2,'Wood',50],
+  [66,66,2,'Wood',50],[67,67,2,'Wood',50]]));
+assert.equal(unprovenArea.result.areaProof.proven,false);
+assert.ok(['stock-count-unproven','scope-limited'].includes(unprovenArea.result.areaProof.status));
+tests+=2;
+window.__testHooks.showResult(areaSmall.input,areaSmall.result);
+assert.ok(node('grossWasteProofRow').textContent.includes('Minimum brüt alan kaybı kanıtlandı'));
+assert.ok(window.__testHooks.makePdfDocument().content.some(x=>String(x.text||'').includes('BRÜT FİRE KANITI')));
+assert.equal(window.__testHooks.productionFile(),true);
+assert.ok(node('printCollection').innerHTML.includes('Minimum brüt alan kaybı kanıtlandı'));
+tests+=4;
+
+// Independent integer-grid enumeration of possible board multisets. The
+// independent oracle deliberately does not use the exact engine's area
+// enumerator, CP geometry constraints, or proof flags.
+function bruteMinAreaAtK(rects,stocks,K,kerf=0,trim=0){
+ let best=Infinity;
+ function choose(i,left,selection,area){
+  if(i===stocks.length){
+   if(left===0&&area<best&&gridVariableOracle(rects,selection,K,kerf,trim))
+    best=area;
+   return
+  }
+  const stock=stocks[i];
+  for(let n=0;n<=Math.min(left,stock.qty);n++){
+   const opts=n?[...selection,{...stock,qty:n}]:selection;
+   choose(i+1,left-n,opts,area+n*stock.l*stock.w)
+  }
+ }
+ choose(0,K,[],0);
+ return best
+}
+let grossSeed=944121;
+const grossRand=()=>((grossSeed=(Math.imul(grossSeed,1664525)+1013904223)>>>0)/4294967296);
+let grossOracleCases=0,grossCertificates=0;
+for(let i=0;i<65;i++){
+ const types=Array.from({length:2},(_,j)=>({
+  id:'g'+j,l:4+Math.floor(grossRand()*5),w:4+Math.floor(grossRand()*5),
+  qty:1+Math.floor(grossRand()*2),material:'Wood',t:null,price:j?90:1
+ }));
+ const rects=Array.from({length:2+Math.floor(grossRand()*2)},(_,j)=>({
+  id:'gPart'+j,l:1+Math.floor(grossRand()*6),w:1+Math.floor(grossRand()*6),
+  material:'Wood',t:null,rotate:grossRand()>.5
+ }));
+ const kerf=Math.floor(grossRand()*2),trim=Math.floor(grossRand()*2);
+ const data=areaCase(rects.map(p=>[p.l,p.w,'Wood',p.rotate]),
+  types.map(t=>[t.l,t.w,t.qty,t.material,t.price]),{kerf,trim});
+ app.setState(data);
+ const input=app.normalize(),result=app.optimize(input),audited=app.auditCutPlan(result,input);
+ assert.ok(audited.ok,'Random area test geometry must be valid '+i);
+ if(result.unplaced.length)continue;
+ const minStock=app.certifyStockCount(result,input,audited);
+ // The oracle certifies the true minimum K independent of the app.
+ let oracleK=null;
+ for(let k=1;k<=result.bins.length;k++){
+  if(Number.isFinite(bruteMinAreaAtK(input.parts,input.stocks,k,kerf,trim))){
+   oracleK=k;break
+  }
+ }
+ assert.ok(oracleK!==null,'Oracle must find a placement for app valid packing');
+ if(minStock.proven)assert.equal(result.bins.length,oracleK,'Incorrect minimum stock certificate '+i);
+ if(result.areaProof?.proven){
+  assert.equal(minStock.proven,true);
+  const exactArea=bruteMinAreaAtK(input.parts,input.stocks,oracleK,kerf,trim);
+  assert.equal(result.stockArea,exactArea,'Area certificate must match independent exhaustive grid oracle '+i);
+  grossCertificates++;
+ }
+ grossOracleCases++;tests++;
+}
+assert.ok(grossCertificates>=8,'Random suite should cover a meaningful set of area certificates');
+tests+=2;
+console.log('Gross waste: independent grid-oracle comparisons '+grossOracleCases+
+ ' cases, '+grossCertificates+' rigorous area certificates; UI/PDF and pricing distinctions passed.');
+
 console.log('Beythaus Cut: '+tests+' checks passed; invalid plans rejected and unknown prices preserved.');
