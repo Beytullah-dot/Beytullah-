@@ -106,6 +106,8 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
 .offcut-table{border-collapse:collapse;font-size:11px;width:100%;min-width:370px}
 .offcut-table th,.offcut-table td{padding:7px 9px;text-align:left;border-bottom:1px solid #e5ece4}
 .offcut-table th{color:#688475;font-weight:700;background:#f2f6f1}
+.optimality-row{font-size:11px;line-height:1.5;color:#667b6d;padding-top:9px}
+.optimality-row.is-proven{color:#2e6949;font-weight:600}
 </style>
 </head>
 <body>
@@ -136,7 +138,7 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
 <main class="main-area" id="results">
   <section class="card hero"><div class="eyebrow">PROJE ANALİZİ</div><h1 id="resultTitle">Kesim planı</h1><div class="hero-sub" id="summarySub">Parçalar ve stok hazır.</div>
     <div class="metrics"><div class="metric feature"><strong id="mSheets">—</strong><span>Gerekli stok</span></div><div class="metric"><strong id="mYield">—</strong><span>Verimlilik</span></div><div class="metric"><strong id="mCost">—</strong><span>Malzeme maliyeti</span></div><div class="metric"><strong id="mParts">—</strong><span>Yerleşen parça</span></div></div>
-    <div class="status-line" id="status"><span class="status-dot"></span><span>Hesaplamak için düğmeye basın.</span></div>
+    <div class="status-line" id="status"><span class="status-dot"></span><span>Hesaplamak için düğmeye basın.</span></div><div class="optimality-row" id="optimalityRow">Minimum stok sayısı: hesaplama bekleniyor.</div>
   </section>
   <section class="card" id="planCard"><div class="plans-head"><div><div class="card-title">Kesim yerleşimi</div><div class="card-sub" id="planSub">Stok başına plan</div></div><div class="card-actions"><button class="btn small plan-backup-icon" id="icloudBackupBtn" type="button" title="Bu projeyi iCloud Drive’a yedekle" aria-label="Bu projeyi yedekle">☁</button><button class="btn small" id="zoomBtn" disabled>⤢ Büyüt</button><button class="hidden" id="printBtn" disabled aria-hidden="true" tabindex="-1">PDF</button></div></div>
     <div class="plan-tabs" id="planTabs"></div><div id="planBody" class="empty-state"><div class="empty-icon">▤</div><strong>Kesim planı burada görünecek</strong><p>Parça ve stok ölçülerini girip yerleşimi hesaplayın. Kalınlık isteğe bağlıdır.</p></div>
@@ -201,7 +203,7 @@ byId('partCount').textContent=fmt(state.parts.reduce((s,p)=>s+(Number(val(p.qty)
 function syncThicknessVisibility(){for(const [flag,cardId,buttonId] of [['partsThicknessEnabled','partsCard','partsThicknessToggle'],['stocksThicknessEnabled','stocksCard','stocksThicknessToggle']]){const on=state[flag]!==false,btn=byId(buttonId);byId(cardId).classList.toggle('thickness-off',!on);btn.setAttribute('aria-pressed',String(on));btn.textContent='Kalınlık '+(on?'✓':'＋');btn.classList.toggle('thickness-on',on)}}
 for(const [flag,buttonId] of [['partsThicknessEnabled','partsThicknessToggle'],['stocksThicknessEnabled','stocksThicknessToggle']])byId(buttonId).onclick=()=>{state[flag]=!state[flag];syncThicknessVisibility();changed()};
 function syncSettings(){syncThicknessVisibility();byId('unitSelect').value=state.unit;byId('kerfInput').value=state.kerf;byId('trimInput').value=state.trim;byId('projectName').value=state.project;byId('m3Input').value=state.m3Price;byId('offcutEdgeInput').value=state.offcutMinEdgeMm;byId('offcutAreaInput').value=state.offcutMinAreaCm2;for(const b of qsa('#modeSegment button'))b.classList.toggle('active',b.dataset.mode===state.mode);for(const b of qsa('#priceSegment button'))b.classList.toggle('active',b.dataset.price===state.priceMode);byId('m3Field').classList.toggle('hidden',state.priceMode==='panel');byId('priceHelp').textContent=state.priceMode==='m3'?'Toplam maliyet, kullanılan tam stokların hacmine göre hesaplanır.':'Her stok satırının ₺ / Panel fiyatı kullanılır.';byId('modeHelp').textContent=state.mode==='nest'?'Serbest yerleşim: daha sıkı dizilim; CNC ve uygun içten kesim yöntemleri için.':'Düz kesim: her adımda kenardan kenara tam kesim yapılabilecek yerleşim.';byId('resultTitle').textContent=state.project||'Kesim planı'}
-function changed(){dirty=true;lastAudit=null;invalidateCachedPdf();save();if(solution){for(const id of ['zoomBtn','downloadPdfTopBtn','printBtn'])byId(id).disabled=true;byId('status').className='status-line warning';byId('status').innerHTML='<span class="status-dot"></span><span>Girdiler değişti. Yeni plan için tekrar hesaplayın.</span>'}}
+function changed(){dirty=true;lastAudit=null;byId('optimalityRow').textContent='Girdiler değişti. Optimumluk yeniden hesaplanmalı.';byId('optimalityRow').classList.remove('is-proven');invalidateCachedPdf();save();if(solution){for(const id of ['zoomBtn','downloadPdfTopBtn','printBtn'])byId(id).disabled=true;byId('status').className='status-line warning';byId('status').innerHTML='<span class="status-dot"></span><span>Girdiler değişti. Yeni plan için tekrar hesaplayın.</span>'}}
 function toast(msg){const el=byId('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove('show'),2800)}
 function bindTable(id,key){const root=byId(id);root.addEventListener('input',e=>{const t=e.target,field=t.dataset.k,row=t.closest('tr');if(!field||!row)return;const obj=state[key].find(x=>x.id===row.dataset.id);if(!obj)return;obj[field]=t.type==='checkbox'?t.checked:t.value;changed();if(field==='qty')byId('partCount').textContent=fmt(state.parts.reduce((a,p)=>a+(Number(val(p.qty))||0),0),0)});root.addEventListener('focusout',e=>{const t=e.target,row=t.closest('tr');if(key!=='parts'||t.dataset.k!=='label'||!row||String(t.value??'').trim())return;const obj=state.parts.find(p=>p.id===row.dataset.id);if(!obj)return;obj.label=nextPartLabel(state.parts);t.value=obj.label;changed()});root.addEventListener('change',e=>{const t=e.target;if(t.type!=='checkbox')return;const obj=state[key].find(x=>x.id===t.closest('tr').dataset.id);if(obj){obj[t.dataset.k]=t.checked;changed()}});root.addEventListener('click',e=>{if(e.target.dataset.action!=='delete')return;state[key]=state[key].filter(x=>x.id!==e.target.closest('tr').dataset.id);renderRows();changed()})}
 bindTable('partRows','parts');bindTable('stockRows','stocks');
@@ -415,6 +417,65 @@ const refined=enhanced?improveGroupPacking(best,group,cfg):{solution:best,attemp
 search.refinementAttempts+=refined.attempts;search.refinementSteps+=refined.improvements;
 search.savedStockCount+=best.bins.length-refined.solution.bins.length;
 best=refined.solution;result.bins.push(...best.bins);result.unplaced.push(...best.unplaced);result.unknownCostBins+=best.unknownCostBins;if(best.cost!==null)result.cost+=best.cost;result.stockArea+=best.stockArea;result.partArea+=best.partArea;result.placedCount+=best.placedCount}if(result.unknownCostBins)result.cost=null;result.search=search;return result}
+
+// Rigorous, intentionally optimistic lower bound on required board COUNT.
+// Each material is independent. Ignore shape, thickness and kerf to NEVER overstate
+// the minimum possible number: only part area and usable stock area constrain it.
+// A valid complete packing with exactly this many boards proves count optimality.
+// If the plan needs more boards, the gap does NOT prove that a better layout exists.
+function minStockCountLowerBound(data){
+ const byMaterial=new Map(),available=new Map(),details=[];
+ for(const part of data.parts){
+  const key=mkey(part.material),arr=byMaterial.get(key)||[];
+  arr.push(part);byMaterial.set(key,arr);
+ }
+ for(const board of data.stocks){
+  const key=mkey(board.material),arr=available.get(key)||[];
+  arr.push(board);available.set(key,arr);
+ }
+ let lowerBound=0;
+ for(const [material,parts]of byMaterial){
+  const required=parts.reduce((sum,p)=>sum+p.l*p.w,0);
+  if(!Number.isFinite(required)||required<0)return {lowerBound:null,method:'area',reason:'Geçersiz alan verisi',details};
+  const tolerance=Math.max(1e-6,required*1e-11);
+  const capacities=(available.get(material)||[]).filter(b=>b.qty>0).map(b=>({
+   area:Math.max(0,b.l-2*data.trim)*Math.max(0,b.w-2*data.trim),
+   qty:b.qty
+  })).filter(b=>Number.isFinite(b.area)&&b.area>0).sort((a,b)=>b.area-a.area);
+  let remaining=required,needed=0;
+  for(const b of capacities){
+   if(remaining<=tolerance)break;
+   const count=Math.min(b.qty,Math.ceil(Math.max(0,remaining-tolerance)/b.area));
+   needed+=count;remaining-=count*b.area;
+  }
+  if(remaining>tolerance)return {
+   lowerBound:null,method:'area',reason:'Stok alanı tüm parçalar için yetersiz',details
+  };
+  lowerBound+=needed;
+  details.push({material,requiredArea:required,lowerBound:needed});
+ }
+ return {lowerBound,method:'area',reason:null,details};
+}
+function certifyStockCount(plan,data,audit){
+ const bound=minStockCountLowerBound(data),complete=!!audit?.ok&&plan.unplaced.length===0&&plan.placedCount===data.parts.length;
+ const count=plan.bins.length;
+ const proven=complete&&bound.lowerBound!==null&&count===bound.lowerBound;
+ return {goal:'minimum-stock-count',proven,complete,
+  usedStockCount:count,lowerBound:bound.lowerBound,method:bound.method,
+  gap:complete&&bound.lowerBound!==null?Math.max(0,count-bound.lowerBound):null,
+  reason:!complete?'Tüm parçalar yerleşmedi veya geometri doğrulanmadı.':bound.reason||
+   (proven?'Alan alt sınırına ulaşıldı.':'Alt sınırın üzerindeki çözümlerde optimumluk henüz kanıtlanmadı.'),
+  details:bound.details}
+}
+function stockProofDescription(proof){
+ if(!proof?.complete)return 'Optimumluk: Tüm parçalar yerleşmeden stok sayısı kanıtlanamaz.';
+ if(proof.proven)return 'Minimum stok sayısı kanıtlandı: '+proof.usedStockCount+
+  ' stok kullanıldı; alan alt sınırı da '+proof.lowerBound+' stok. Bu kanıt fire veya maliyet optimumluğu değildir.';
+ if(proof.lowerBound===null)return 'Minimum stok sayısı kanıtlanamadı: '+proof.reason;
+ return 'Minimum stok sayısı henüz kanıtlanmadı: kullanılan '+proof.usedStockCount+
+  ', matematiksel alt sınır '+proof.lowerBound+' stok. Daha iyi bir planın varlığı da kanıtlanmış değil.';
+}
+
 function validateLayout(r,cfg){const problems=[];const stockUse={};for(const b of r.bins){stockUse[b.stock.id]=(stockUse[b.stock.id]||0)+1;const eps=1e-5;for(let i=0;i<b.placed.length;i++){const p=b.placed[i];if(p.t!==null&&(b.stock.t===null||Math.abs(p.t-b.stock.t)>1e-6))problems.push('Parça ve stok kalınlığı eşleşmiyor.');if(p.x<cfg.trim-eps||p.y<cfg.trim-eps||p.x+p.w>b.stock.l-cfg.trim+eps||p.y+p.h>b.stock.w-cfg.trim+eps)problems.push('Parça stok sınırının dışında.');for(let j=i+1;j<b.placed.length;j++){const v=b.placed[j],gap=cfg.kerf-1e-6;if(p.x<v.x+v.w+gap&&p.x+p.w+gap>v.x&&p.y<v.y+v.h+gap&&p.y+p.h+gap>v.y){ // Only reject if overlap in both axes after kerf inflation: for diagonal corners, a shared kerf rectangle is not always required.
 const dx=Math.min(p.x+p.w,v.x+v.w)-Math.max(p.x,v.x),dy=Math.min(p.y+p.h,v.y+v.h)-Math.max(p.y,v.y);if(dx>eps&&dy>-gap||dy>eps&&dx>-gap||dx>eps&&dy>eps)problems.push('Parçalar arasında testere payı eksik.')}}}}for(const b of r.bins)if(stockUse[b.stock.id]>b.stock.qty)problems.push('Stok miktarı aşıldı.');return[...new Set(problems)]}
 
@@ -503,10 +564,10 @@ function planHtml(bin){
  '<p>Net mesafe, kesilecek alt parçanın sol veya üst kenarından ölçülür; testere kalınlığı ayrıca hesaba katılmıştır. Bağlama ve kesme güvenliği operatör tarafından doğrulanmalıdır.</p></div></details>';
  return base+'<div class="offcut-panels">'+offcutPanel+stepsPanel+'</div>';
 }
-function showEmpty(){dirty=true;lastAudit=null;invalidateCachedPdf();byId('mSheets').textContent='—';byId('mYield').textContent='—';byId('mCost').textContent='—';byId('mParts').textContent='—';byId('summarySub').textContent='Parçalar ve stok hazır.';byId('status').className='status-line';byId('status').innerHTML='<span class="status-dot"></span><span>Hesaplamak için düğmeye basın.</span>';byId('planTabs').innerHTML='';byId('planBody').className='empty-state';byId('planBody').innerHTML='<div class="empty-icon">▤</div><strong>Kesim planı burada görünecek</strong><p>Parça ve stok ölçülerini girip yerleşimi hesaplayın. Kalınlık isteğe bağlıdır.</p>';byId('costDetails').innerHTML='<p style="color:#8a968d;font-size:12px">Hesaplama bekleniyor.</p>';byId('cutDetails').innerHTML='<p style="color:#8a968d;font-size:12px">Hesaplama bekleniyor.</p>';for(const id of ['zoomBtn','downloadPdfTopBtn','printBtn'])byId(id).disabled=true}
+function showEmpty(){dirty=true;lastAudit=null;byId('optimalityRow').textContent='Minimum stok sayısı: hesaplama bekleniyor.';byId('optimalityRow').classList.remove('is-proven');invalidateCachedPdf();byId('mSheets').textContent='—';byId('mYield').textContent='—';byId('mCost').textContent='—';byId('mParts').textContent='—';byId('summarySub').textContent='Parçalar ve stok hazır.';byId('status').className='status-line';byId('status').innerHTML='<span class="status-dot"></span><span>Hesaplamak için düğmeye basın.</span>';byId('planTabs').innerHTML='';byId('planBody').className='empty-state';byId('planBody').innerHTML='<div class="empty-icon">▤</div><strong>Kesim planı burada görünecek</strong><p>Parça ve stok ölçülerini girip yerleşimi hesaplayın. Kalınlık isteğe bağlıdır.</p>';byId('costDetails').innerHTML='<p style="color:#8a968d;font-size:12px">Hesaplama bekleniyor.</p>';byId('cutDetails').innerHTML='<p style="color:#8a968d;font-size:12px">Hesaplama bekleniyor.</p>';for(const id of ['zoomBtn','downloadPdfTopBtn','printBtn'])byId(id).disabled=true}
 function kv(k,v){return`<div class="kv"><span>${esc(k)}</span><strong>${v}</strong></div>`}
 let lastAudit=null;
-function showResult(data,sol){const audit=auditCutPlan(sol,data);if(!audit.ok)throw Error('Kesim doğrulaması başarısız: '+audit.issues.slice(0,2).join(' · '));lastAudit=audit;solution=sol;dirty=false;activeSheet=0;
+function showResult(data,sol){const audit=auditCutPlan(sol,data);if(!audit.ok)throw Error('Kesim doğrulaması başarısız: '+audit.issues.slice(0,2).join(' · '));sol.stockProof=certifyStockCount(sol,data,audit);lastAudit=audit;solution=sol;dirty=false;activeSheet=0;byId('optimalityRow').textContent=stockProofDescription(sol.stockProof);byId('optimalityRow').classList.toggle('is-proven',sol.stockProof.proven);
 const completeThickness=sol.bins.length>0&&sol.bins.every(b=>b.stock.t!==null);
 const m3Stock=completeThickness?sol.bins.reduce((a,b)=>a+b.stock.l*b.stock.w*b.stock.t,0)/1e9:null;
 const m3Parts=completeThickness?sol.bins.reduce((a,b)=>a+b.placed.reduce((sum,p)=>sum+p.w*p.h*b.stock.t,0),0)/1e9:null;
@@ -517,7 +578,7 @@ const missingThicknessCost=state.priceMode==='m3'&&!completeThickness&&sol.bins.
 byId('mSheets').textContent=fmt(sol.bins.length,0);byId('mYield').textContent='%'+fmt(yieldPct,1);byId('mCost').textContent=priceKnown?money(sol.cost):'—';byId('mParts').textContent=sol.placedCount+'/'+data.parts.length;
 byId('summarySub').textContent=fmt(data.parts.length,0)+' parça · '+fmt(data.stocks.length,0)+' stok türü · '+(state.mode==='nest'?'Serbest yerleşim':'Düz kesim');
 byId('status').className=all&&!missingThicknessCost?'status-line':'status-line warning';
-byId('status').innerHTML='<span class="status-dot"></span><span>'+(all?'Tüm parçalar yerleştirildi.':'Yerleşmeyen '+fmt(sol.unplaced.length,0)+' parça var. Stok ve ölçüleri kontrol edin.')+(missingThicknessCost?' m³ maliyeti için stok kalınlığı girilmeli.':'')+(sol.search?.savedStockCount?' Gelişmiş arama '+sol.search.savedStockCount+' stok tasarrufu buldu.':'')+' Geometri doğrulandı; en iyi çözüm garantisi yok.</span>';
+byId('status').innerHTML='<span class="status-dot"></span><span>'+(all?'Tüm parçalar yerleştirildi.':'Yerleşmeyen '+fmt(sol.unplaced.length,0)+' parça var. Stok ve ölçüleri kontrol edin.')+(missingThicknessCost?' m³ maliyeti için stok kalınlığı girilmeli.':'')+(sol.search?.savedStockCount?' Gelişmiş arama '+sol.search.savedStockCount+' stok tasarrufu buldu.':'')+' Geometri kontrolü geçti.</span>';
 byId('planSub').textContent=sol.bins.length?fmt(sol.bins.length,0)+' stok üzerinde '+fmt(sol.placedCount,0)+' parça':'Uygun stok bulunamadı';
 const unresolved=sol.unplaced.length?`<div class="warning-box"><b>Yerleşmeyen ${fmt(sol.unplaced.length,0)} parça:</b><div class="parts-pill">${Object.entries(sol.unplaced.reduce((o,p)=>(o[`${p.label} · ${fmt(p.l/dimFactor(),2)}×${fmt(p.w/dimFactor(),2)} ${state.unit} · ${thicknessText(p.t)}`]=(o[`${p.label} · ${fmt(p.l/dimFactor(),2)}×${fmt(p.w/dimFactor(),2)} ${state.unit} · ${thicknessText(p.t)}`]||0)+1,o),{})).map(([key,n])=>`<span class="pill">${esc(key)} × ${n}</span>`).join('')}</div></div>`:'';
 byId('cutDetails').innerHTML=kv('Toplam parça',fmt(data.parts.length,0))+kv('Yerleşen',fmt(sol.placedCount,0))+kv('Yerleşmeyen',sol.unplaced.length?`<span style="color:#a65d38">${fmt(sol.unplaced.length,0)}</span>`:'0')+kv('Kullanılan alan',fmt(sol.partArea/1e6,3)+' m²')+kv('Stok alanı',fmt(sol.stockArea/1e6,3)+' m²')+kv('Alan farkı',fmt((sol.stockArea-sol.partArea)/1e6,3)+' m²')+(state.mode==='guillotine'?kv('Kullanılabilir artık',fmt(sol.bins.reduce((n,b)=>n+collectOffcuts(b).count,0),0)+' adet · '+fmt(sol.bins.reduce((n,b)=>n+collectOffcuts(b).area,0)/1e6,3)+' m²')+kv('Kesim sırası',fmt(sol.bins.reduce((n,b)=>n+b.cuts.length,0),0)+' adım'):kv('Artık ölçüleri','Yalnız düz kesim modunda'));
@@ -543,13 +604,14 @@ function productionFile(){
  const stocks=[...stockMap.values()].map(({stock,count})=>'<tr><td>'+esc(stock.material)+'</td><td>'+measured(stock.l)+' × '+measured(stock.w)+'</td><td>'+thick(stock.t)+'</td><td>'+count+'</td></tr>').join('');
  const pct=sol.stockArea?100*sol.partArea/sol.stockArea:0;
  const extra=sol.unplaced.length?'<div class="doc-caution"><b>EKSİK YERLEŞİM:</b> '+sol.unplaced.length+' parça kesim planında bulunmuyor. İmalattan önce gözden geçirin.</div>':'';
+ const proofInfo=stockProofDescription(sol.stockProof);
  const cover='<section class="print-sheet">'+brand('PROJE ÖZETİ')+
  '<div class="doc-hero"><span>ÜRETİM DOSYASI</span><h1>'+esc(state.project||'Kesim projesi')+'</h1><p>'+esc(date)+' · '+esc(code)+'</p></div>'+
  '<div class="doc-statgrid">'+cell('PARÇA',String(d.parts.length)+' adet')+cell('STOK',String(bins.length)+' adet')+cell('YERLEŞİM VERİMİ','%'+n(pct))+cell('YÖNTEM',state.mode==='nest'?'Serbest yerleşim':'Düz kesim')+'</div>'+
  '<div class="doc-columns"><div><h2>01 / Parça listesi</h2><table class="doc-table"><thead><tr><th>Etiket</th><th>Malzeme</th><th>Net ölçü</th><th>Kalınlık</th><th>Adet</th><th>Yön</th></tr></thead><tbody>'+parts+'</tbody></table></div>'+
  '<div><h2>02 / Kullanılan stoklar</h2><table class="doc-table"><thead><tr><th>Malzeme</th><th>Panel ölçüsü</th><th>Kalınlık</th><th>Adet</th></tr></thead><tbody>'+stocks+'</tbody></table>'+
  '<div class="doc-info"><b>Kesim parametreleri</b><div>Testere payı: '+mm(val(state.kerf))+'</div><div>Kenar fire payı: '+mm(val(state.trim))+' / kenar</div><div>Kesim türü: '+(state.mode==='nest'?'Serbest yerleşim':'Düz kesim')+'</div></div></div></div>'+
- extra+'<div class="doc-caution doc-quiet">'+esc(warning)+'</div>'+foot('Özet')+'</section>';
+ extra+'<div class="doc-caution doc-quiet">'+esc(proofInfo)+'</div><div class="doc-caution doc-quiet">'+esc(warning)+'</div>'+foot('Özet')+'</section>';
  const pages=bins.map((b,i)=>{
  const groups=new Map();
  for(const p of b.placed){const key=[p.label,p.w,p.h,p.t,p.rotated].join('|'),row=groups.get(key)||{...p,count:0};row.count++;groups.set(key,row)}
@@ -625,6 +687,7 @@ function makePdfDocument(){
   table(['Malzeme','Panel ölçüsü','Kalınlık','Adet'],stocks,[110,170,110,'*']),
   heading('03 / ÜRETİM PARAMETRELERİ'),
   {text:'Testere payı: '+fmt(val(state.kerf),1)+' mm     |     Kenar payı: '+fmt(val(state.trim),1)+' mm/kenar     |     Yöntem: '+(state.mode==='nest'?'Serbest yerleşim':'Düz kesim'),fontSize:9,color:'#465F4C',margin:[0,2,0,8]},
+  {text:'STOK SAYISI KANITI: '+stockProofDescription(sol.stockProof),fontSize:9,bold:!!sol.stockProof?.proven,color:'#42634C',margin:[0,7,0,7]},
   {text:notice,fontSize:9,color:'#7A573E',margin:[0,3,0,8]}
  ];
  if(sol.unplaced.length)content.push({text:'UYARI: '+sol.unplaced.length+' parça yerleştirilemedi.',bold:true,color:'#AE4E44',fontSize:10,margin:[0,4,0,6]});
@@ -727,7 +790,7 @@ function closeModal(){byId('modal').classList.add('hidden');document.body.classL
 let processing=false;function run(){if(processing)return;const data=normalize();if(data.errors.length){toast(data.errors[0]);return}processing=true;byId('runBtn').textContent='Hesaplanıyor…';byId('mobileRunBtn').textContent='Hesaplanıyor…';requestAnimationFrame(()=>setTimeout(()=>{try{const sol=optimize(data),errors=validateLayout(sol,{kerf:data.kerf,trim:data.trim});if(errors.length)throw Error(errors.join(' '));showResult(data,sol);byId('results').scrollIntoView({behavior:'smooth',block:'start'});if(sol.unplaced.length)toast(sol.unplaced.length+' parça yerleştirilemedi.')}catch(err){console.error(err);toast('Hesaplama hatası: '+err.message)}finally{processing=false;byId('runBtn').textContent='▣  Yerleşimi hesapla';byId('mobileRunBtn').textContent='▣  Yerleşimi hesapla'}},15))}
 byId('runBtn').onclick=run;byId('mobileRunBtn').onclick=run;
 renderRows();syncSettings();showEmpty();renderProjects();
-window.BeythausCut={normalize,optimize,optimizeBaseline:data=>optimize(data,false),validateLayout,auditCutPlan,auditGuillotineCuts,collectOffcuts,defaultData,getLastAudit:()=>lastAudit,getState:()=>state,setState:o=>{state=sanitize(o);renderRows();syncSettings();save();showEmpty()},run};
+window.BeythausCut={normalize,optimize,optimizeBaseline:data=>optimize(data,false),minStockCountLowerBound,certifyStockCount,stockProofDescription,validateLayout,auditCutPlan,auditGuillotineCuts,collectOffcuts,defaultData,getLastAudit:()=>lastAudit,getState:()=>state,setState:o=>{state=sanitize(o);renderRows();syncSettings();save();showEmpty()},run};
 })();
 </script>
 <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))}</script>
