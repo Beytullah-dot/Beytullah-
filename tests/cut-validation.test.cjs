@@ -1108,4 +1108,136 @@ assert.ok(fs.readFileSync(path.join(__dirname,'../docs/sw.js'),'utf8').includes(
 tests+=2;
 console.log('Physical QR labels: real QR encode/decode round trip, 2 rendered labels, 13+ URL/security checks, filtered print and offline files passed.');
 
+
+// LOCAL STOCK MOVEMENT HISTORY — same storage transaction as stock updates.
+// Historical v1 records cannot be retroactively reconstructed.
+assert.equal(typeof app.remnantMovements,'function');
+assert.equal(typeof app.cleanRemnantEvent,'function');
+assert.ok(html.includes('id="remnantHistoryOverlay"'));
+assert.ok(html.includes('id="remnantHistoryBtn"'));
+assert.ok(html.includes('id="remnantEditStatusAction"'));
+assert.ok(html.includes('src="./remnant-history.js"'));
+assert.ok(html.includes('href="./remnant-history.css"'));
+tests+=7;
+const historyDB=app.getRemnantDB();
+assert.ok(Array.isArray(historyDB.movements));
+assert.ok(historyDB.movements.length>=10,'Earlier physical operations must be recorded');
+const firstProduction=historyDB.movements.filter(e=>e.type==='created'&&e.projectName==='Batch A');
+assert.equal(firstProduction.length,2);
+assert.ok(firstProduction.every(e=>e.source==='production'&&e.batchId&&e.before===null&&e.after?.status==='available'));
+const secondConsumption=app.remnantMovements({pieceId:originalId,type:'consumed'});
+assert.equal(secondConsumption.some(e=>e.source==='production'&&e.batchId),true);
+assert.ok(app.remnantMovements({pieceId:shelfId,type:'corrected'}).length>=1);
+assert.ok(app.remnantMovements({pieceId:changedPiece.id,type:'moved'}).length>=1);
+assert.ok(app.remnantMovements({pieceId:shelfId,type:'imported'}).length>=1);
+const sortedHistory=app.remnantMovements();
+assert.ok(sortedHistory.every((e,i)=>!i||sortedHistory[i-1].at>=e.at));
+tests+=8;
+
+const historySrc=fs.readFileSync(path.join(__dirname,'../docs/remnant-history.js'),'utf8');
+vm.runInNewContext(historySrc,sandbox,{filename:'docs/remnant-history.js',timeout:10000});
+const historyUI=window.BeythausHistory;
+assert.equal(typeof historyUI.openFor,'function');
+assert.equal(typeof historyUI.csvContent,'function');
+assert.equal(typeof historyUI.records,'function');
+historyUI.openFor(shelfId);
+assert.equal(historyUI.records().every(e=>e.pieceId===shelfId),true);
+assert.ok(node('remnantHistorySummary').textContent.includes('Parça: '+shelfId));
+assert.ok(node('remnantHistoryList').innerHTML.includes('Bilgisi düzeltildi'));
+assert.ok(node('remnantHistoryList').innerHTML.includes('&lt;img'));
+assert.ok(!node('remnantHistoryList').innerHTML.includes('<img src=x'));
+const historyCsv=historyUI.csvContent();
+assert.ok(historyCsv.startsWith('\uFEFF'));
+assert.ok(historyCsv.includes('Tarih'));
+assert.ok(historyCsv.includes(shelfId));
+assert.ok(historyCsv.includes('Bilgisi düzeltildi'));
+tests+=11;
+
+// QR scan is a LOOKUP, not a stock movement; the explicit follow-up action
+// is attributed to QR. Scan-only access must not change piece state or journal.
+const priorQRCount=app.getRemnantDB().movements.length;
+assert.equal(qrModule.open(deepLink),true);
+assert.equal(app.getRemnantDB().movements.length,priorQRCount);
+const priorQrPiece=app.getRemnantDB().pieces.find(p=>p.id===qrRecord.id);
+assert.equal(priorQrPiece.status,'available');
+node('remnantEditStatusAction').onclick();
+assert.equal(app.getRemnantDB().pieces.find(p=>p.id===qrRecord.id).status,'used');
+const qrConsume=app.remnantMovements({pieceId:qrRecord.id,type:'consumed'})[0];
+assert.equal(qrConsume.source,'qr');
+assert.equal(qrConsume.before.status,'available');
+assert.equal(qrConsume.after.status,'used');
+assert.equal(app.normalize().stocks.some(p=>p.remnantId===qrRecord.id),false);
+assert.equal(app.setRemnantStatus(qrRecord.id,'available'),true);
+assert.equal(app.remnantMovements({pieceId:qrRecord.id,type:'restored'})[0].source,'manual');
+tests+=10;
+
+// Explicit QR-origin shelf relocation is recorded as a distinct movement.
+qrModule.open(deepLink);
+node('remnantEditLocation').value='Raf QR 12';
+node('remnantEditLength').value=String(qrRecord.l);
+node('remnantEditWidth').value=String(qrRecord.w);
+node('remnantEditThickness').value=qrRecord.t===null?'':String(qrRecord.t);
+node('remnantEditMaterial').value=qrRecord.material;
+node('remnantEditNotes').value=qrRecord.notes;
+assert.equal(node('remnantEditForm').onsubmit({preventDefault(){}}),true);
+const qrRelocation=app.remnantMovements({pieceId:qrRecord.id,type:'moved'})[0];
+assert.equal(qrRelocation.source,'qr');
+assert.equal(qrRelocation.before.location,'Raf X / Göz 9');
+assert.equal(qrRelocation.after.location,'Raf QR 12');
+tests+=4;
+
+// Deletions leave a historical tombstone even when the physical record is gone.
+const deleteId='shelf-location-backup-copy';
+const beforeDeletion=app.remnantMovements().length;
+const deleteButton=node('remnantList').onclick;
+assert.equal(typeof deleteButton,'function');
+deleteButton({target:{closest(){return {dataset:{remnantAction:'delete',remnantId:deleteId}}}}});
+assert.equal(app.getRemnantDB().pieces.some(p=>p.id===deleteId),false);
+assert.equal(app.remnantMovements({pieceId:deleteId,type:'deleted'}).length,1);
+assert.equal(app.remnantMovements({pieceId:deleteId,type:'deleted'})[0].after,null);
+assert.equal(app.remnantMovements().length,beforeDeletion+1);
+historyUI.openFor(deleteId);
+assert.ok(node('remnantHistoryList').innerHTML.includes('Kayıt silindi'));
+assert.ok(node('remnantHistoryList').innerHTML.includes('artık envanterde değil'));
+tests+=7;
+
+// Backup carries chronological events; repeated import does not duplicate IDs.
+const historicalBackup=app.getRemnantDB();
+const priorCount=historicalBackup.movements.length;
+const sameBackup={kind:'beythaus-cut-remnant-backup',version:1,pieces:historicalBackup.pieces,
+ batches:historicalBackup.batches,defaultLocation:historicalBackup.defaultLocation,movements:historicalBackup.movements};
+assert.equal(app.mergeRemnantBackup(sameBackup),0);
+assert.equal(app.getRemnantDB().movements.length,priorCount);
+const externalEvent={id:'EV-external-import-unique',at:Date.now()-1000,
+ type:'moved',source:'backup',pieceId:'removed-but-known',projectName:'External',
+ batchId:'',before:{location:'Raf A'},after:{location:'Raf B'}};
+assert.equal(app.mergeRemnantBackup({...sameBackup,movements:[externalEvent]}),0);
+assert.equal(app.remnantMovements({pieceId:'removed-but-known'}).length,1);
+assert.equal(app.mergeRemnantBackup({...sameBackup,movements:[externalEvent]}),0);
+assert.equal(app.remnantMovements({pieceId:'removed-but-known'}).length,1);
+tests+=6;
+
+// A failed storage write must not produce a phantom movement or status change.
+const savedSetItem=localStorage.setItem;
+const targetForQuota=app.getRemnantDB().pieces.find(p=>p.status==='available');
+const beforeFailed=app.getRemnantDB();
+localStorage.setItem=()=>{throw Error('QuotaExceededError')};
+assert.equal(app.setRemnantStatus(targetForQuota.id,'used'),false);
+localStorage.setItem=savedSetItem;
+assert.equal(app.getRemnantDB().movements.length,beforeFailed.movements.length);
+assert.equal(app.getRemnantDB().pieces.find(p=>p.id===targetForQuota.id).status,'available');
+tests+=3;
+
+assert.equal(app.cleanRemnantEvent({id:'bad',at:0,type:'created'}),null);
+assert.equal(app.cleanRemnantEvent({id:'bad',at:Date.now(),type:'arbitrary'}),null);
+assert.equal(app.cleanRemnantEvent({id:'good',at:Date.now(),type:'moved',pieceId:'x',source:'qr'}).source,'qr');
+assert.ok(fs.readFileSync(path.join(__dirname,'../docs/sw.js'),'utf8').includes('./remnant-history.js'));
+assert.ok(fs.readFileSync(path.join(__dirname,'../docs/sw.js'),'utf8').includes('./remnant-history.css'));
+tests+=5;
+
+const legacyMovements=oldWindow.BeythausCut.getRemnantDB();
+assert.deepEqual(Array.from(legacyMovements.movements),[]);
+tests++;
+console.log('Stock movement history: production, QR attribution, before/after, deletion tombstones, import idempotency, CSV and failed-write atomicity passed.');
+
 console.log('Beythaus Cut: '+tests+' checks passed; invalid plans rejected and unknown prices preserved.');
