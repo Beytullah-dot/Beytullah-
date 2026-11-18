@@ -11,7 +11,9 @@ if(!storage)storage={getItem(){return null},setItem(){},removeItem(){}};
 const read=(store,key)=>{try{return JSON.parse(store.getItem(key)||'null')}catch{return null}};
 const save=(store,key,value)=>{try{store.setItem(key,JSON.stringify(value))}catch{}};
 const uuid=()=>window.crypto?.randomUUID?.();
-let config=read(localStorage,KEY)||{},session=read(storage,SESSION),
+// Public browser-safe project URL and publishable key, never a secret/service_role.
+const DEFAULT_CLOUD_CONFIG={url:"https://pdqgpupdqgrxejvjpdzs.supabase.co",key:"sb_publishable_g9p81j1QltETxGBQmhHTxA_VLktGLm_"};
+let config={...DEFAULT_CLOUD_CONFIG,...(read(localStorage,KEY)||{})},session=read(storage,SESSION),
  workspace='',active=false,busy=false,poll=null,syncing=false,fingerprint='';
 function normalizeConfig(url,key){
  const base=String(url||'').trim().replace(/\/+$/,''),k=String(key||'').trim();
