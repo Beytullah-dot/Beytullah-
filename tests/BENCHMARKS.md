@@ -66,6 +66,23 @@ Arama bir malzeme grubu için en fazla 65 parça ve 6 kullanılan stokla çalı�
 
 **Bu bir optimumluk kanıtı değildir.** En iyi artık düzenini bulma garantisi vermez. Toplam kullanılabilir alan öncelikli olduğundan, bazı projelerde daha çok kullanılabilir toplam alan elde edilirken en büyük tek artık parça küçülebilir. Çıktıda toplam kullanılabilir alan ve en büyük artık alanı ayrı gösterilir. Minimum brüt fire ile yeniden kullanılabilir artıklar farklı amaçlardır; testere talaşı veya ekonomik stok değeriyle karıştırılmamalıdır.
 
+## Fiziksel artık stok envanteri — projeler arası malzeme döngüsü
+
+Üretimden çıkan kullanılabilir artıkları yeniden kullanmak için uygulamaya ayrı bir **cihaz içi stok kayıt defteri** eklendi. Modül, geometri doğrulaması başarılı, tüm parçaları yerleştirilmiş **düz kesim** planlarının fiziksel üretim onayından sonra envantere parça ekler.
+
+- Her artık **tek bir fiziksel parça** olarak milimetre ölçüleri, malzeme türü, varsa kalınlığı ve kaynak üretim partisiyle ayrı kaydedilir.
+- Yeni projelerde **mevcut** artıklar, "Artıkları otomatik değerlendir" açık olduğunda manuel stoklarla beraber değerlendirilir. Manuel stok satırı gerekli değildir.
+- **Plan oluşturmak stoktan düşmez.** Kullanıcı "Üretimi onayla · artıkları kaydet" eylemiyle fiziksel kesimi doğruladığında, planda kullanılan eski artıklar aynı işlemde "kullanıldı" statüsüne geçirilir; oluşan yeni kullanılabilir artıklar kaydedilir.
+- **Kullanıldı / Geri al / Sil** elle yönetilebilir. Envanter yedekleri kayıt kimliği ve kaynak anahtarıyla birleştirilir, aynı fiziksel kayıt ikinci kez eklenmez.
+- Her projenin envanteri kullanma tercihi proje dosyasında saklanır; fiziksel stok envanteri ise **projeden bağımsızdır** ve ayrı JSON yedeğine sahiptir. Yedekleme üretim parti geçmişini de içerir.
+- Artık stokların **ek edinim maliyeti sıfır** kabul edilir. Bu, ekonomik değerlerinin veya fırsat maliyetlerinin sıfır olduğu anlamına gelmez. Kesim PDF'sinde "Artık stok" kaynağı belirtilir.
+- Fiziksel kalınlık korunur; 2B modda kalınlık kısıtı devre dışı bırakılırsa gerçek üretimde ayrıca doğrulanmalıdır.
+- Kayıtlar tarayıcıda tutulur: **bulut eşitlemesi ve çok cihazlı eşzamanlı stok kilitlemesi yoktur**. Cihazlar arasında stok tüketimi otomatik paylaşılmaz.
+- Aynı planın tekrar fiziksel üretiminde ayrı parti için ilave teyit gerekir. Daha önce tüketilmiş artık aynı anda iki üretimde kullanılamaz.
+- Envantere kaydedilen parça ölçüleri, kesim ağacının kalan yapraklarına ve kullanıcının kısa kenar/alan eşiklerine dayanır. Malzeme kusurları ve damar yönü değerlendirilmez.
+
+**Güvence sınırı:** Envanter, bir tarayıcıda stok hareketlerinin tutarlı takibini sağlar; fiziksel depo sayımı ve kalite kontrolün yerine geçmez. Otomatik testlerde üretim onayı, ikinci nesil artık üretimi, eski parçanın tüketilmesi, yeni projeye aktarım, PDF kaynak açıklaması ve yedek birleştirme kuralları kontrol edilir.
+
 ## Genişletme notu
 
 2DPackLib'de çok daha fazla örnek ve farklı matematiksel problem sınıfları bulunmaktadır. Bu projeye eklenmiş **11 örneğin tamamının** 2DPackLib'in bütün koleksiyonunda başarı göstermeyi temsil ettiği iddia edilmez. Sonraki aşama, bütün standart örnekleri dönüştüren ayrı bir içe aktarıcı ve resmi sonuç dosyalarıyla performans kıyaslamasıdır.
