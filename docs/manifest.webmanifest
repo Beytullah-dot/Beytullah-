@@ -1,0 +1,25 @@
+{
+  "name": "Beythaus Cut — Kesim Planlayıcı",
+  "short_name": "Beythaus Cut",
+  "description": "Kalınlık ve maliyet destekli kesim optimizasyonu",
+  "id": "./",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f6f4",
+  "theme_color": "#335c50",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
