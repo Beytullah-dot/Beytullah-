@@ -251,4 +251,101 @@ assert.ok(node('optimalityRow').textContent.includes('henüz kanıtlanmadı'));
 tests+=11;
 console.log('Stock-count certificate checks: 1-stock, 2-stock, weak area bound, distinct materials, incomplete and PDF labeling.');
 
+
+// Exhaustive disjunctive solver vs a SEPARATE integer-grid brute-force oracle.
+// For these integer-mm fixtures, any axis-aligned feasible solution can be shifted
+// to bottom/left contacts at integer coordinates, hence integer-grid enumeration is
+// exhaustive. The independent oracle knows nothing about difference-constraint edges.
+function gridOracle(parts,W,H,kerf,trim,K){
+  const bins=Array.from({length:K},()=>[]);
+  const interiorW=W-2*trim,interiorH=H-2*trim;
+  const ordered=parts.slice().sort((a,b)=>b.l*b.w-a.l*a.w);
+  function place(i){
+    if(i===ordered.length)return true;
+    const p=ordered[i],turns=p.rotate&&p.l!==p.w?[[p.l,p.w],[p.w,p.l]]:[[p.l,p.w]];
+    for(const [w,h]of turns)for(let b=0;b<K;b++){
+      for(let y=0;y<=interiorH-h;y++)for(let x=0;x<=interiorW-w;x++){
+        if(bins[b].some(q=>!(x+w+kerf<=q.x||q.x+q.w+kerf<=x||
+                                   y+h+kerf<=q.y||q.y+q.h+kerf<=y)))continue;
+        bins[b].push({x,y,w,h});
+        if(place(i+1))return true;
+        bins[b].pop();
+      }
+    }
+    return false;
+  }
+  return place(0);
+}
+const newSearchFixtures=[
+  {W:100,H:100,kerf:0,trim:0,K:1,parts:[[60,60,false],[60,60,false]],feasible:false},
+  {W:70,H:88,kerf:2,trim:0,K:1,parts:[[32,40,false],[26,49,false],[14,17,true],[15,34,false],[51,22,true]],feasible:true}
+];
+for(const x of newSearchFixtures){
+  const p=x.parts.map(([l,w,rotate],i)=>({l,w,rotate,id:'exact'+i,material:'Wood',label:'E'+i,t:null}));
+  const result=app.exactUniformFeasibility(p,{l:x.W,w:x.H},x.K,{kerf:x.kerf,trim:x.trim},
+    {maxNodes:250000,deadline:Date.now()+3000});
+  assert.equal(result.status,x.feasible?'feasible':'infeasible',
+    'Expected exhaustive feasibility outcome');
+  tests++;
+}
+const cutoff=app.exactUniformFeasibility(
+  [{l:60,w:60,rotate:false},{l:60,w:60,rotate:false}],
+  {l:100,w:100},1,{kerf:0,trim:0},{maxNodes:1,deadline:Date.now()+5000});
+assert.equal(cutoff.status,'limit','Search-budget exhaustion cannot imply infeasibility');
+tests++;
+const improvedCase=state({
+  project:'Exact benchmark',unit:'mm',mode:'nest',kerf:2,trim:0,
+  parts:[[32,40,false],[26,49,false],[14,17,true],[15,34,false],[51,22,true]]
+    .map(([l,w,rotate],i)=>({l,w,rotate,t:'',qty:1,material:'Wood',label:'E'+i})),
+  stocks:[{l:70,w:88,t:'',qty:5,material:'Wood',price:100}]
+});
+app.setState(improvedCase);
+const improvedInput=app.normalize();
+const oldResult=app.optimizeBaseline(improvedInput),newResult=app.optimize(improvedInput);
+assert.equal(oldResult.bins.length,2);
+assert.equal(newResult.bins.length,1);
+assert.equal(newResult.unplaced.length,0);
+assert.equal(app.auditCutPlan(newResult,improvedInput).ok,true);
+const improvedProof=app.certifyStockCount(newResult,improvedInput,app.auditCutPlan(newResult,improvedInput));
+assert.equal(improvedProof.proven,true);
+assert.equal(improvedProof.method,'area');
+assert.equal(newResult.exact.status,'improved');
+tests+=7;
+const geometricProof=state({
+  project:'Geometry proof',unit:'mm',mode:'nest',kerf:0,trim:0,
+  parts:[{l:60,w:60,t:'',qty:2,material:'Wood',label:'S',rotate:false}],
+  stocks:[{l:100,w:100,t:'',qty:5,material:'Wood',price:100}]
+});
+app.setState(geometricProof);
+const gpIn=app.normalize(),gpPlan=app.optimize(gpIn);
+const gpCert=app.certifyStockCount(gpPlan,gpIn,app.auditCutPlan(gpPlan,gpIn));
+assert.equal(gpCert.lowerBound,1);
+assert.equal(gpCert.usedStockCount,2);
+assert.equal(gpCert.method,'exhaustive-geometry');
+assert.equal(gpCert.proven,true);
+window.__testHooks.showResult(gpIn,gpPlan);
+assert.ok(node('optimalityRow').textContent.includes('Kesin geometrik arama'));
+assert.ok(window.__testHooks.makePdfDocument().content.some(x=>String(x.text||'').includes('Kesin geometrik arama')));
+tests+=7;
+
+let oracleSeed=91501;
+const oracleRand=()=>((oracleSeed=(Math.imul(1664525,oracleSeed)+1013904223)>>>0)/4294967296);
+for(let j=0;j<90;j++){
+  const W=4+Math.floor(oracleRand()*5),H=4+Math.floor(oracleRand()*5),
+    count=2+Math.floor(oracleRand()*2),kerf=Math.floor(oracleRand()*2),
+    trim=Math.floor(oracleRand()*2),K=1+Math.floor(oracleRand()*2);
+  const parts=Array.from({length:count},(_,i)=>({
+    l:1+Math.floor(oracleRand()*W),w:1+Math.floor(oracleRand()*H),
+    rotate:oracleRand()>.5,id:'small'+i,material:'Wood',label:'G'+i,t:null
+  }));
+  const oracle=gridOracle(parts,W,H,kerf,trim,K);
+  const result=app.exactUniformFeasibility(parts,{l:W,w:H},K,{kerf,trim},
+    {maxNodes:300000,deadline:Date.now()+3000});
+  assert.notEqual(result.status,'limit','Tiny oracle fixtures must terminate completely');
+  assert.equal(result.status==='feasible',oracle,
+    'Exact solver must match independently enumerated integer placements '+j);
+  tests++;
+}
+console.log('Exact engine: improvement 2→1, impossible 1-board proof, timeout guard, and 90 independent grid-oracle fixtures passed.');
+
 console.log('Beythaus Cut: '+tests+' checks passed; invalid plans rejected and unknown prices preserved.');
