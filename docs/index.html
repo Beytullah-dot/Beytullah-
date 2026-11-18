@@ -92,6 +92,20 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
 .plan-backup-icon{font-size:20px!important;width:34px;height:34px;padding:0!important;flex:none}
 .toolbar .topaction{min-width:41px;min-height:38px;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:5px;flex-shrink:0}.topaction-icon{font-size:20px;font-weight:700;line-height:1;min-width:20px;display:inline-flex;justify-content:center}.toolbar .topaction:disabled{opacity:.53}.toolbar .topaction[aria-busy="true"] .topaction-icon{opacity:.55}
 @media(max-width:580px){.toolbar{gap:5px}.toolbar .topaction{padding:7px 10px;font-size:19px;min-width:37px}.card-actions{gap:5px}.thickness-toggle{font-size:10px!important}}
+
+.offcut-panels{padding:4px 12px 16px;display:grid;gap:9px}
+.offcut-panel{border:1px solid #dce6de;background:#fafcf9;border-radius:10px;overflow:hidden}
+.offcut-panel summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 14px;font-size:12px;font-weight:700;color:#365545}
+.offcut-panel summary::-webkit-details-marker{display:none}
+.offcut-panel summary::before{content:'▸';font-size:12px;color:#88a18e;margin-right:2px}
+.offcut-panel[open] summary::before{content:'▾'}
+.offcut-panel summary b{font-weight:600;font-size:11px;color:#678473;margin-left:auto}
+.offcut-panel-body{padding:0 12px 13px}
+.offcut-panel-body p,.offcut-disclaimer{font-size:11px;color:#799083;line-height:1.6;margin:10px 0 0}
+.offcut-disclaimer{margin:12px 16px 18px}
+.offcut-table{border-collapse:collapse;font-size:11px;width:100%;min-width:370px}
+.offcut-table th,.offcut-table td{padding:7px 9px;text-align:left;border-bottom:1px solid #e5ece4}
+.offcut-table th{color:#688475;font-weight:700;background:#f2f6f1}
 </style>
 </head>
 <body>
@@ -462,7 +476,33 @@ function auditCutPlan(result,data){
 
 const colors=['#cbe0d1','#a8d3ca','#dddcc6','#b9cddc','#e7d7c7','#c5dad5','#d7cbe4','#e2dfbf','#bcd3ae','#e5c7c5'];
 function svgFor(bin,width=1040){const sw=bin.stock.l,sh=bin.stock.w,margin=24,vw=width,vh=Math.max(65,Math.round(width*sh/sw)),viewW=vw+margin*2,viewH=vh+margin*2;let out=`<svg xmlns="http://www.w3.org/2000/svg" class="cut-svg" viewBox="0 0 ${viewW} ${viewH}" role="img" aria-label="Kesim yerleşim planı"><rect x="${margin}" y="${margin}" width="${vw}" height="${vh}" fill="#f2f4ef" stroke="#73877c" stroke-width="1.5" rx="2"/>`;const x=n=>margin+n/sw*vw,y=n=>margin+n/sh*vh;for(let i=0;i<bin.placed.length;i++){const p=bin.placed[i],xx=x(p.x),yy=y(p.y),ww=p.w/sw*vw,hh=p.h/sh*vh,fill=colors[p.order%colors.length],title=`${p.label} · ${fmt(p.w/10,2)} × ${fmt(p.h/10,2)} cm · ${thicknessText(p.t)}`;out+=`<g class="piece"><title>${esc(title)}</title><rect x="${round(xx,3)}" y="${round(yy,3)}" width="${round(ww,3)}" height="${round(hh,3)}" fill="${fill}" stroke="#516c60" stroke-width="1"/><text x="${round(xx+ww/2,2)}" y="${round(yy+hh/2-1.5,2)}" text-anchor="middle" fill="#29473a" font-size="${Math.max(7,Math.min(14,hh*.33,ww/Math.max(p.label.length,3)*1.4))}" font-weight="750">${esc(p.label)}</text>`;if(hh>22&&ww>44)out+=`<text x="${round(xx+ww/2,2)}" y="${round(yy+hh/2+10,2)}" text-anchor="middle" fill="#4b6759" font-size="${Math.max(7,Math.min(11,hh*.23))}">${fmt(p.w/(state.unit==='cm'?10:1),1)}×${fmt(p.h/(state.unit==='cm'?10:1),1)}</text>`;out+='</g>'}if(state.mode==='guillotine')for(const c of bin.cuts)out+=`<line x1="${x(c.x1)}" y1="${y(c.y1)}" x2="${x(c.x2)}" y2="${y(c.y2)}" stroke="#6c8275" stroke-width="1" stroke-dasharray="4 3" opacity=".6"/>`;out+=`<text x="${margin}" y="${margin-8}" fill="#6d8074" font-size="12" font-family="sans-serif">${fmt(sw/(state.unit==='cm'?10:1),2)} ${state.unit}</text><text x="${viewW-margin}" y="${viewH-5}" text-anchor="end" fill="#6d8074" font-size="12" font-family="sans-serif">${fmt(sh/(state.unit==='cm'?10:1),2)} ${state.unit}</text></svg>`;return out}
-function planHtml(bin){const used=bin.placed.reduce((sum,p)=>sum+p.w*p.h,0),pct=used/(bin.stock.l*bin.stock.w)*100;return`<div class="plan-stage"><div class="drawing-wrap"><div class="drawing-inner">${svgFor(bin)}</div></div><div class="plan-meta"><div class="legend"><span><i style="background:#aecfba"></i>Parçalar</span><span><i style="background:#f2f4ef;border:1px solid #ccd8cf"></i>Boş alan</span></div><span>${fmt(bin.stock.l/dimFactor(),2)} × ${fmt(bin.stock.w/dimFactor(),2)} ${state.unit} · ${thicknessText(bin.stock.t)} · ${esc(bin.stock.material)}</span></div></div><div class="details"><div class="detail-card"><div class="detail-label">Bu stokta kesilen</div><div class="detail-value">${bin.placed.length} parça</div></div><div class="detail-card"><div class="detail-label">Alan kullanımı</div><div class="detail-value">%${fmt(pct,1)}</div></div></div>`}
+
+function cutStepRows(bin,unitMode='display'){
+ const f=dimFactor(),mm=n=>fmt(n,1),measure=n=>unitMode==='mm'?mm(n)+' mm':fmt(n/f,2)+' '+state.unit;
+ return (bin.cuts||[]).map(c=>{
+  const vertical=c.axis==='vertical',offset=c.at-(vertical?c.source.x:c.source.y)-val(state.kerf)/2;
+  return {n:c.number,axis:vertical?'Düşey':'Yatay',
+   source:measure(c.source.w)+' × '+measure(c.source.h),
+   position:'X '+mm(c.source.x)+' / Y '+mm(c.source.y)+' mm',
+   offset:measure(offset),label:c.label};
+ })
+}
+function planHtml(bin){
+ const used=bin.placed.reduce((sum,p)=>sum+p.w*p.h,0),pct=used/(bin.stock.l*bin.stock.w)*100;
+ const base='<div class="plan-stage"><div class="drawing-wrap"><div class="drawing-inner">'+svgFor(bin)+'</div></div><div class="plan-meta"><div class="legend"><span><i style="background:#aecfba"></i>Parçalar</span><span><i style="background:#f2f4ef;border:1px solid #ccd8cf"></i>Boş alan</span></div><span>'+
+ fmt(bin.stock.l/dimFactor(),2)+' × '+fmt(bin.stock.w/dimFactor(),2)+' '+state.unit+' · '+thicknessText(bin.stock.t)+' · '+esc(bin.stock.material)+'</span></div></div><div class="details"><div class="detail-card"><div class="detail-label">Bu stokta kesilen</div><div class="detail-value">'+bin.placed.length+' parça</div></div><div class="detail-card"><div class="detail-label">Alan kullanımı</div><div class="detail-value">%'+fmt(pct,1)+'</div></div></div>';
+ if(state.mode!=='guillotine')return base+'<p class="offcut-disclaimer">Kesin artık ölçüleri ve sıralı kesim talimatı, yalnızca Düz kesim modunda oluşturulur.</p>';
+ const info=collectOffcuts(bin),f=dimFactor(),rows=cutStepRows(bin),cutCount=bin.cuts?.length||0;
+ const pieces=info.pieces.map((p,i)=>'<tr><td>A'+String(i+1).padStart(2,'0')+'</td><td>'+fmt(p.w/f,2)+' × '+fmt(p.h/f,2)+' '+state.unit+'</td><td>'+fmt(p.area/1e6,4)+' m²</td></tr>').join('');
+ const steps=rows.map(x=>'<tr><td>'+x.n+'</td><td>'+x.axis+'</td><td>'+x.source+'</td><td>'+x.offset+'</td><td>'+esc(x.label)+'</td></tr>').join('');
+ const offcutPanel='<details class="offcut-panel"><summary>Kullanılabilir artıklar <b>'+info.count+' adet · '+fmt(info.area/1e6,3)+' m²</b></summary><div class="offcut-panel-body">'+
+ (info.count?'<div class="table-wrap"><table class="offcut-table"><thead><tr><th>No</th><th>Ölçü</th><th>Alan</th></tr></thead><tbody>'+pieces+'</tbody></table></div>':'<p>Eşik değerlerini karşılayan artık parça yok.</p>')+
+ '<p>En dar kenar ≥ '+fmt(val(state.offcutMinEdgeMm),1)+' mm ve alan ≥ '+fmt(val(state.offcutMinAreaCm2),1)+' cm². Kenar payı ve testere talaşı kullanılabilir artığa dahil değildir.</p></div></details>';
+ const stepsPanel='<details class="offcut-panel"><summary>Önerilen kesim sırası <b>'+cutCount+' adım</b></summary><div class="offcut-panel-body">'+
+ (rows.length?'<div class="table-wrap"><table class="offcut-table"><thead><tr><th>Adım</th><th>Kesim</th><th>Kaynak parça</th><th>Net mesafe</th><th>Etiket</th></tr></thead><tbody>'+steps+'</tbody></table></div>':'<p>Bu yerleşimde ayrıca kesim gerekmedi.</p>')+
+ '<p>Net mesafe, kesilecek alt parçanın sol veya üst kenarından ölçülür; testere kalınlığı ayrıca hesaba katılmıştır. Bağlama ve kesme güvenliği operatör tarafından doğrulanmalıdır.</p></div></details>';
+ return base+'<div class="offcut-panels">'+offcutPanel+stepsPanel+'</div>';
+}
 function showEmpty(){dirty=true;lastAudit=null;invalidateCachedPdf();byId('mSheets').textContent='—';byId('mYield').textContent='—';byId('mCost').textContent='—';byId('mParts').textContent='—';byId('summarySub').textContent='Parçalar ve stok hazır.';byId('status').className='status-line';byId('status').innerHTML='<span class="status-dot"></span><span>Hesaplamak için düğmeye basın.</span>';byId('planTabs').innerHTML='';byId('planBody').className='empty-state';byId('planBody').innerHTML='<div class="empty-icon">▤</div><strong>Kesim planı burada görünecek</strong><p>Parça ve stok ölçülerini girip yerleşimi hesaplayın. Kalınlık isteğe bağlıdır.</p>';byId('costDetails').innerHTML='<p style="color:#8a968d;font-size:12px">Hesaplama bekleniyor.</p>';byId('cutDetails').innerHTML='<p style="color:#8a968d;font-size:12px">Hesaplama bekleniyor.</p>';for(const id of ['zoomBtn','downloadPdfTopBtn','printBtn'])byId(id).disabled=true}
 function kv(k,v){return`<div class="kv"><span>${esc(k)}</span><strong>${v}</strong></div>`}
 let lastAudit=null;
@@ -480,7 +520,7 @@ byId('status').className=all&&!missingThicknessCost?'status-line':'status-line w
 byId('status').innerHTML='<span class="status-dot"></span><span>'+(all?'Tüm parçalar yerleştirildi.':'Yerleşmeyen '+fmt(sol.unplaced.length,0)+' parça var. Stok ve ölçüleri kontrol edin.')+(missingThicknessCost?' m³ maliyeti için stok kalınlığı girilmeli.':'')+(sol.search?.savedStockCount?' Gelişmiş arama '+sol.search.savedStockCount+' stok tasarrufu buldu.':'')+' Geometri doğrulandı; en iyi çözüm garantisi yok.</span>';
 byId('planSub').textContent=sol.bins.length?fmt(sol.bins.length,0)+' stok üzerinde '+fmt(sol.placedCount,0)+' parça':'Uygun stok bulunamadı';
 const unresolved=sol.unplaced.length?`<div class="warning-box"><b>Yerleşmeyen ${fmt(sol.unplaced.length,0)} parça:</b><div class="parts-pill">${Object.entries(sol.unplaced.reduce((o,p)=>(o[`${p.label} · ${fmt(p.l/dimFactor(),2)}×${fmt(p.w/dimFactor(),2)} ${state.unit} · ${thicknessText(p.t)}`]=(o[`${p.label} · ${fmt(p.l/dimFactor(),2)}×${fmt(p.w/dimFactor(),2)} ${state.unit} · ${thicknessText(p.t)}`]||0)+1,o),{})).map(([key,n])=>`<span class="pill">${esc(key)} × ${n}</span>`).join('')}</div></div>`:'';
-byId('cutDetails').innerHTML=kv('Toplam parça',fmt(data.parts.length,0))+kv('Yerleşen',fmt(sol.placedCount,0))+kv('Yerleşmeyen',sol.unplaced.length?`<span style="color:#a65d38">${fmt(sol.unplaced.length,0)}</span>`:'0')+kv('Kullanılan alan',fmt(sol.partArea/1e6,3)+' m²')+kv('Stok alanı',fmt(sol.stockArea/1e6,3)+' m²')+kv('Alan farkı',fmt((sol.stockArea-sol.partArea)/1e6,3)+' m²');
+byId('cutDetails').innerHTML=kv('Toplam parça',fmt(data.parts.length,0))+kv('Yerleşen',fmt(sol.placedCount,0))+kv('Yerleşmeyen',sol.unplaced.length?`<span style="color:#a65d38">${fmt(sol.unplaced.length,0)}</span>`:'0')+kv('Kullanılan alan',fmt(sol.partArea/1e6,3)+' m²')+kv('Stok alanı',fmt(sol.stockArea/1e6,3)+' m²')+kv('Alan farkı',fmt((sol.stockArea-sol.partArea)/1e6,3)+' m²')+(state.mode==='guillotine'?kv('Kullanılabilir artık',fmt(sol.bins.reduce((n,b)=>n+collectOffcuts(b).count,0),0)+' adet · '+fmt(sol.bins.reduce((n,b)=>n+collectOffcuts(b).area,0)/1e6,3)+' m²')+kv('Kesim sırası',fmt(sol.bins.reduce((n,b)=>n+b.cuts.length,0),0)+' adım'):kv('Artık ölçüleri','Yalnız düz kesim modunda'));
 const validPrice=priceKnown;byId('costDetails').innerHTML=kv('Maliyet yöntemi',state.priceMode==='m3'?'Hacim (m³)':'Tam panel')+kv('Stok hacmi',fmt(m3Stock,5)+' m³')+kv('Parça hacmi',fmt(m3Parts,5)+' m³')+kv('Ham malzeme alımı',validPrice?money(sol.cost):'<span style="color:#a65d38">'+(missingThicknessCost?'Stok kalınlığı gerekli':'Fiyat girilmedi')+'</span>')+kv('Parçaların teorik payı',validPrice?money(netCost):'—')+kv('Fireye düşen değer',validPrice?money(sol.cost-netCost):'—')+'<div style="font-size:11px;color:#98a69a;padding-top:12px">İşçilik, kenar bantlama, nakliye ve vergi hariçtir.</div>';
 window._unresolved=unresolved;drawActive();for(const id of ['zoomBtn','printBtn'])byId(id).disabled=!sol.bins.length;prepareCachedPdf()}
 function drawActive(){const s=solution;if(!s||!s.bins.length){byId('planTabs').innerHTML='';byId('planBody').className='empty-state';byId('planBody').innerHTML='<div class="empty-icon">▤</div><strong>Yerleşim oluşturulamadı</strong><p>Bu ölçü, malzeme veya belirtilmiş kalınlığa uygun stok bulunamadı.</p>';return}
