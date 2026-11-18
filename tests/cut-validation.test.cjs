@@ -1060,8 +1060,10 @@ assert.equal(model.id,qrRecord.id);
 assert.ok(model.dimensions.includes('mm'));
 assert.equal(model.location,'Raf X / Göz 9');
 // The regression suite's DOM stubs need appendChild for the REAL QRCode.js canvas renderer.
-node('qr-preview-0').appendChild=()=>{};
-node('qr-print-0').appendChild=()=>{};
+for(const id of ['qr-preview-0','qr-print-0']){
+ node(id).appendChild=()=>{};
+ node(id).childNodes=[{offsetWidth:112,offsetHeight:112,style:{}}];
+}
 assert.equal(qrModule.labelSingle(qrRecord.id),true,qrRenderingError||'QR label generator unexpectedly rejected fixture');
 assert.equal(trackedQR.length,2,'Every label must render preview and A4-print QR');
 assert.equal(trackedQR[0].opts.text,deepLink);
