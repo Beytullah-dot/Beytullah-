@@ -250,8 +250,7 @@ begin
    where workspace_id=p_workspace and id=v_id returning * into v_new;
    v_new_json=jsonb_build_object('l',v_new.l,'w',v_new.w,'t',v_new.t,'material',v_new.material,
     'location',v_new.location,'notes',v_new.notes,'status',v_new.status,'projectName',v_new.project_name);
-   v_kind=case when (v_old_json-v_new_json)='{}'::jsonb then 'moved' else 'corrected' end;
-   if v_old_json=v_new_json then v_kind='corrected';end if;
+   v_kind='corrected';
    if v_old.l=v_new.l and v_old.w=v_new.w and v_old.t is not distinct from v_new.t and
      v_old.material=v_new.material and v_old.notes=v_new.notes and v_old.location<>v_new.location then
      v_kind='moved';end if;
@@ -283,7 +282,7 @@ begin
     v_id=v_item->>'id';v_expected=(v_item->>'expectedVersion')::integer;
     select * into v_old from public.beythaus_stock
      where workspace_id=p_workspace and id=v_id for update;
-    if not found or v_old.status<>'available' or v_old.version<>v_expected then
+    if not found or v_expected is null or v_old.status<>'available' or v_old.version<>v_expected then
      raise exception 'Physical stock already consumed or changed; refresh' using errcode='40001';end if;
     update public.beythaus_stock set status='used',version=version+1,
       updated_at=now(),used_at=now() where workspace_id=p_workspace and id=v_id
