@@ -607,4 +607,97 @@ tests+=2;
 console.log('Gross waste: independent grid-oracle comparisons '+grossOracleCases+
  ' cases, '+grossCertificates+' rigorous area certificates; UI/PDF and pricing distinctions passed.');
 
+
+// RECOVERABLE OFFCUT QUALITY. Improvement must preserve purchased stock
+// identity/count, gross waste, material price, part set and guillotine cutting
+// feasibility. The result is a bounded heuristic, NOT an optimality proof.
+assert.equal(typeof app.refineUsableOffcuts,'function');
+assert.equal(typeof app.offcutMetrics,'function');
+const offcutImprove=state({
+ project:'Reuse quality fixture',unit:'mm',mode:'guillotine',
+ kerf:1,trim:0,offcutMinEdgeMm:20,offcutMinAreaCm2:10,
+ parts:[[51,59,true],[19,40,true],[27,23,true],[17,51,true],[14,63,false]]
+   .map(([l,w,rotate],j)=>({l,w,rotate,t:'',qty:1,material:'Wood',label:'RP'+j})),
+ stocks:[{l:121,w:139,t:'',qty:30,material:'Wood',price:100}]
+});
+app.setState(offcutImprove);
+const oi=app.normalize(),originalOffcut=app.optimizeBaseline(oi),improvedOffcut=app.optimize(oi);
+const originalMetrics=app.offcutMetrics(originalOffcut),improvedMetrics=app.offcutMetrics(improvedOffcut);
+assert.equal(originalOffcut.bins.length,1);
+assert.equal(improvedOffcut.bins.length,1);
+assert.equal(improvedOffcut.stockArea,originalOffcut.stockArea);
+assert.equal(improvedOffcut.cost,originalOffcut.cost);
+assert.equal(improvedOffcut.partArea,originalOffcut.partArea);
+assert.equal(originalMetrics.usableArea,9222);
+assert.equal(improvedMetrics.usableArea,10150);
+assert.equal(improvedOffcut.search.offcutAreaGain,928);
+assert.equal(improvedOffcut.search.offcutImprovements>0,true);
+assert.equal(app.auditCutPlan(improvedOffcut,oi).ok,true);
+assert.equal(app.auditGuillotineCuts(improvedOffcut.bins[0],{trim:oi.trim,kerf:oi.kerf}).length,0);
+tests+=11;
+const directPass=app.refineUsableOffcuts(originalOffcut,oi.parts,oi.stocks,
+ {trim:oi.trim,kerf:oi.kerf,mode:'guillotine',priceMode:'panel',m3:oi.m3});
+assert.equal(directPass.info.proof,false,'Usable scrap heuristic MUST NOT emit global optimum certificates');
+assert.equal(directPass.info.before.usableArea,9222);
+assert.equal(directPass.info.after.usableArea,10150);
+assert.equal(directPass.solution.stockArea,originalOffcut.stockArea);
+assert.equal(directPass.solution.bins.length,originalOffcut.bins.length);
+assert.equal(app.auditCutPlan(directPass.solution,oi).ok,true);
+tests+=6;
+window.__testHooks.showResult(oi,improvedOffcut);
+assert.ok(node('cutDetails').innerHTML.includes('Artık araması'));
+assert.ok(node('cutDetails').innerHTML.includes('En büyük kullanılabilir artık'));
+assert.ok(node('cutDetails').innerHTML.includes('ek kazanım')===false);
+const reusePdf=window.__testHooks.makePdfDocument();
+assert.ok(reusePdf.content.some(x=>String(x.text||'').startsWith('ARTIK DEĞERLENDİRMESİ:')));
+assert.ok(reusePdf.content.some(x=>String(x.text||'').includes('optimumluk kanıtı değildir')));
+assert.equal(window.__testHooks.productionFile(),true);
+assert.ok(node('printCollection').innerHTML.includes('sezgisel'));
+tests+=7;
+
+// A stricter threshold must not be interpreted as geometric waste reduction:
+// it changes only which free leaves qualify as reusable.
+const tightThreshold=state({...offcutImprove,offcutMinEdgeMm:120,offcutMinAreaCm2:10});
+const tightened=verify(tightThreshold);
+assert.equal(app.offcutMetrics(tightened.result).usableArea,0);
+assert.equal(app.auditCutPlan(tightened.result,tightened.input).ok,true);
+tests+=2;
+
+// Check quality non-regression under randomized guillotine jobs, using an
+// independent cut-tree audit and the exact fixed-stock allocation.
+let reuseSeed=20543;
+const reuseRand=()=>((reuseSeed=(Math.imul(1664525,reuseSeed)+1013904223)>>>0)/4294967296);
+let checkedReuse=0,positiveReuse=0;
+for(let i=0;i<75;i++){
+ const L=55+Math.floor(reuseRand()*105),W=45+Math.floor(reuseRand()*95),
+       n=3+Math.floor(reuseRand()*12),kerf=[0,1,2,3][Math.floor(reuseRand()*4)],
+       trim=[0,1,2][Math.floor(reuseRand()*3)];
+ const parts=Array.from({length:n},(_,j)=>({
+  l:8+Math.floor(reuseRand()*L*.49),w:8+Math.floor(reuseRand()*W*.5),
+  t:'',qty:1,material:'Wood',label:'R'+j,rotate:reuseRand()>.25
+ }));
+ const config=state({project:'offcut random '+i,unit:'mm',mode:'guillotine',
+  kerf,trim,offcutMinEdgeMm:20,offcutMinAreaCm2:10,parts,
+  stocks:[{l:L,w:W,t:'',qty:20,material:'Wood',price:75}]
+ });
+ app.setState(config);
+ const input=app.normalize(),base=app.optimizeBaseline(input),cfg={mode:'guillotine',
+  kerf:input.kerf,trim:input.trim,m3:input.m3,priceMode:'panel'};
+ const selection=app.refineUsableOffcuts(base,input.parts,input.stocks,cfg,{maxTrials:80,timeLimitMs:300});
+ const oldScore=app.offcutMetrics(base),newScore=app.offcutMetrics(selection.solution);
+ assert.equal(selection.solution.stockArea,base.stockArea);
+ assert.equal(selection.solution.bins.length,base.bins.length);
+ assert.equal(selection.solution.partArea,base.partArea);
+ assert.equal(selection.solution.cost,base.cost);
+ assert.equal(app.auditCutPlan(selection.solution,input).ok,true,'Refined guillotine plan must replay all cuts '+i);
+ assert.equal(app.betterOffcuts(oldScore,newScore),false,'Refinement must not worsen salvage priority '+i);
+ assert.equal(selection.info.proof,false);
+ if(app.betterOffcuts(newScore,oldScore))positiveReuse++;
+ checkedReuse++;tests++;
+}
+assert.ok(positiveReuse>=3,'Random suite must exercise actual recoverable scrap improvements');
+tests++;
+console.log('Usable offcut optimizer: 75 independent cut replays, '+positiveReuse+
+ ' quality improvements; fixed purchased stock, PDF disclosure and no false optimum claim passed.');
+
 console.log('Beythaus Cut: '+tests+' checks passed; invalid plans rejected and unknown prices preserved.');
