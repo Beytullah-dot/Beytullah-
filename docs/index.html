@@ -555,12 +555,23 @@ function productionFile(){
  for(const p of b.placed){const key=[p.label,p.w,p.h,p.t,p.rotated].join('|'),row=groups.get(key)||{...p,count:0};row.count++;groups.set(key,row)}
  const rows=[...groups.values()].map(p=>'<tr><td>'+esc(p.label)+'</td><td>'+measured(p.w)+' × '+measured(p.h)+'</td><td>'+thick(p.t)+'</td><td>'+p.count+'</td><td>'+(p.rotated?'90°':'—')+'</td></tr>').join('');
  const used=b.placed.reduce((total,p)=>total+p.w*p.h,0),use=100*used/(b.stock.l*b.stock.w);
+ const off=collectOffcuts(b),steps=cutStepRows(b,'mm'),mmUnit=x=>fmt(x,1)+' mm';
+ const extras=state.mode==='guillotine'?(
+  '<h2>Kullanılabilir artık parçalar</h2><div class="doc-cutnote">Eşik: en dar kenar '+fmt(val(state.offcutMinEdgeMm),1)+' mm · minimum alan '+fmt(val(state.offcutMinAreaCm2),1)+' cm²</div>'+
+  (off.pieces.length?'<table class="doc-table"><thead><tr><th>No</th><th>Net ölçü</th><th>Alan</th></tr></thead><tbody>'+
+   off.pieces.map((p,k)=>'<tr><td>A'+String(k+1).padStart(2,'0')+'</td><td>'+mmUnit(p.w)+' × '+mmUnit(p.h)+'</td><td>'+fmt(p.area/1e6,4)+' m²</td></tr>').join('')+'</tbody></table>':
+   '<div class="doc-cutnote">Eşik değerlerini sağlayan artık parça bulunamadı.</div>')+
+  '<h2>Önerilen geometrik kesim sırası</h2><div class="doc-cutnote">Kaynak konumu panelin sol üstünden; net mesafe kesilecek alt parçanın sol/üst kenarından ölçülür. Makine ve bağlama koşullarını kontrol edin.</div>'+
+  (steps.length?'<table class="doc-table"><thead><tr><th>#</th><th>Yön</th><th>Kaynak konumu</th><th>Kaynak ölçüsü</th><th>Net mesafe</th><th>Etiket</th></tr></thead><tbody>'+
+   steps.map(x=>'<tr><td>'+x.n+'</td><td>'+x.axis+'</td><td>'+x.position+'</td><td>'+x.source+'</td><td>'+x.offset+'</td><td>'+esc(x.label)+'</td></tr>').join('')+'</tbody></table>':
+   '<div class="doc-cutnote">Ek kesim gerekmiyor.</div>')
+ ):'';
  return '<section class="print-sheet">'+brand('STOK '+(i+1)+' / '+bins.length)+
  '<div class="doc-paneltitle"><div><h1>Stok '+(i+1)+' <span>Kesim yerleşimi</span></h1><p>'+esc(b.stock.material)+' · '+measured(b.stock.l)+' × '+measured(b.stock.w)+' · '+thick(b.stock.t)+'</p></div><div class="doc-paneltag"><b>'+b.placed.length+' parça</b><span>%'+n(use)+' verim</span></div></div>'+
  '<div class="doc-drawing">'+svgFor(b,1600)+'</div>'+
  '<div class="doc-cutnote">Yerleşim çizimi · Testere payı '+mm(val(state.kerf))+' · Kenar payı '+mm(val(state.trim))+' / kenar · '+(state.mode==='nest'?'Serbest yerleşim':'Düz kesim')+'</div>'+
  '<h2>Bu stoktan üretilecek parçalar</h2><table class="doc-table"><thead><tr><th>Etiket</th><th>Net ölçü</th><th>Kalınlık</th><th>Adet</th><th>Dönüş</th></tr></thead><tbody>'+rows+'</tbody></table>'+
- '<div class="doc-caution doc-quiet">'+esc(warning)+'</div>'+foot('Stok '+(i+1))+'</section>'
+ extras+'<div class="doc-caution doc-quiet">'+esc(warning)+'</div>'+foot('Stok '+(i+1))+'</section>'
  }).join('');
  byId('printCollection').innerHTML=cover+pages;
  return true
@@ -634,6 +645,18 @@ function makePdfDocument(){
    table(['Etiket','Net ölçü','Kalınlık','Adet','Dönüş'],rows,[85,170,100,55,'*']),
    {text:notice,fontSize:8,color:'#6D816F',margin:[0,8,0,0]}
   );
+  if(state.mode==='guillotine'){
+   const off=collectOffcuts(b),steps=cutStepRows(b,'mm');
+   content.push(heading('KULLANILABİLİR ARTIKLAR'));
+   content.push({text:'Eşik: kısa kenar '+fmt(val(state.offcutMinEdgeMm),1)+' mm ve alan '+fmt(val(state.offcutMinAreaCm2),1)+' cm². Testere talaşı ve kenar payı dahil değildir.',fontSize:8,color:'#819586',margin:[0,0,0,8]});
+   if(off.pieces.length){
+    content.push(table(['No','Net ölçü (mm)','Alan (m²)'],off.pieces.map((p,k)=>['A'+String(k+1).padStart(2,'0'),fmt(p.w,1)+' × '+fmt(p.h,1),fmt(p.area/1e6,4)]),[70,190,'*']));
+   }else content.push({text:'Eşik değerlerini sağlayan artık parça bulunamadı.',fontSize:9,color:'#809388'});
+   content.push(heading('ÖNERİLEN GEOMETRİK KESİM SIRASI'));
+   content.push({text:'Adımlar sıralıdır. Kaynak konumu panel sol üst köşesine göredir; net mesafe her adımda belirtilen kaynak parçanın sol/üst kenarından alınır. Testere merkezi, net mesafeye testere payının yarısı eklenerek bulunur. Makine ve bağlama uygunluğu operatör tarafından doğrulanmalıdır.',fontSize:8,color:'#7B8E7C',margin:[0,1,0,8]});
+   if(steps.length)content.push(table(['#','Kesim','Kaynak konumu','Kaynak net ölçüsü','Net mesafe','Parça'],steps.map(x=>[x.n,x.axis,x.position,x.source,x.offset,x.label]),[27,65,143,160,98,'*']));
+   else content.push({text:'Bu yerleşimde ilave doğrusal kesim bulunmuyor.',fontSize:9,color:'#819586'});
+  }
  }
  return {pageSize:'A4',pageOrientation:'landscape',pageMargins:[38,34,38,44],content,
   info:{title:(state.project||'Kesim projesi')+' · Beythaus Cut',author:'Beythaus Cut',subject:'Üretim ve kesim planı'},
