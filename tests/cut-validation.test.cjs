@@ -700,4 +700,123 @@ tests++;
 console.log('Usable offcut optimizer: 75 independent cut replays, '+positiveReuse+
  ' quality improvements; fixed purchased stock, PDF disclosure and no false optimum claim passed.');
 
+
+// PHYSICAL REMNANT INVENTORY — creation requires a confirmed, complete,
+// audited guillotine production, never just planning. One item = one piece.
+assert.equal(typeof app.getRemnantDB,'function');
+assert.equal(typeof app.registerRemnantProduction,'function');
+const productionJob=state({
+ project:'Batch A',unit:'mm',mode:'guillotine',priceMode:'panel',
+ kerf:3,trim:0,offcutMinEdgeMm:50,offcutMinAreaCm2:100,
+ parts:[{l:150,w:100,t:'',qty:1,material:'Wood',label:'Cut',rotate:false}],
+ stocks:[{l:300,w:200,t:'',qty:1,material:'Wood',price:250}]
+});
+const production=verify(productionJob);
+assert.equal(app.getRemnantDB().pieces.length,0);
+assert.equal(app.getRemnantDB().batches.length,0);
+tests+=2;
+window.__testHooks.showResult(production.input,production.result);
+assert.equal(node('remnantConfirmProductionBtn').disabled,false);
+assert.equal(app.getRemnantDB().pieces.length,0,'Calculating plans must not mint physical stock');
+assert.equal(app.registerRemnantProduction(),true);
+let ledger=app.getRemnantDB();
+assert.equal(ledger.pieces.length,2);
+assert.equal(ledger.batches.length,1);
+assert.equal(ledger.pieces.every(p=>p.status==='available'),true);
+assert.deepEqual(ledger.pieces.map(p=>[p.l,p.w]).sort((a,b)=>a[0]-b[0]),[[147,200],[150,97]]);
+assert.equal(node('remnantConfirmProductionBtn').disabled,true);
+assert.equal(app.registerRemnantProduction(),false,'Same rendered result cannot be confirmed twice');
+tests+=8;
+
+const nextPart=state({
+ project:'Batch B',unit:'mm',mode:'guillotine',priceMode:'panel',
+ kerf:2,trim:0,offcutMinEdgeMm:20,offcutMinAreaCm2:10,
+ parts:[{l:140,w:80,t:'',qty:1,material:'Wood',label:'NewCut',rotate:false}],
+ stocks:[],useRemnantStock:true
+});
+const reuseJob=verify(nextPart);
+assert.equal(reuseJob.input.stocks.length,2,'Inventory must supply stock without manual stock rows');
+assert.equal(reuseJob.result.bins.length,1);
+assert.equal(reuseJob.result.bins[0].stock.isRemnant,true);
+assert.equal(reuseJob.result.bins[0].stock.price,0);
+assert.equal(reuseJob.result.cost,0,'Already acquired remnants have zero additional acquisition expense');
+const originalId=reuseJob.result.bins[0].stock.remnantId;
+assert.equal(ledger.pieces.find(p=>p.id===originalId).status,'available');
+const reuseProof=app.certifyStockCount(reuseJob.result,reuseJob.input,app.auditCutPlan(reuseJob.result,reuseJob.input));
+assert.equal(reuseProof.complete,true);
+window.__testHooks.showResult(reuseJob.input,reuseJob.result);
+assert.ok(String(node('summarySub').textContent).includes('artık stok'));
+const inventoryPdf=window.__testHooks.makePdfDocument();
+assert.ok(inventoryPdf.content.some(v=>v.table?.body?.some(row=>Array.isArray(row)&&row.some(cell=>String(cell?.text||'').includes('(Artık stok)')))));
+assert.equal(window.__testHooks.productionFile(),true);
+assert.ok(node('printCollection').innerHTML.includes('(Artık stok)'));
+assert.equal(app.registerRemnantProduction(),true);
+ledger=app.getRemnantDB();
+assert.equal(ledger.pieces.find(p=>p.id===originalId).status,'used');
+assert.equal(ledger.batches.length,2);
+assert.ok(ledger.pieces.some(p=>p.status==='available'&&p.projectName==='Batch B'));
+tests+=14;
+
+// Old stock cannot be allocated again after confirmed physical consumption.
+app.setState(nextPart);
+const future=app.normalize();
+assert.equal(future.stocks.some(b=>b.remnantId===originalId),false);
+assert.ok(future.stocks.length>0);
+tests+=2;
+
+// Manual status transitions must affect ONLY future calculations.
+const savedId=ledger.pieces.find(p=>p.status==='available').id;
+assert.equal(app.setRemnantStatus(savedId,'used'),true);
+assert.equal(app.normalize().stocks.some(b=>b.remnantId===savedId),false);
+assert.equal(app.setRemnantStatus(savedId,'available'),true);
+assert.equal(app.normalize().stocks.some(b=>b.remnantId===savedId),true);
+tests+=4;
+
+// Per-project switch turns reuse off without erasing the shared inventory.
+const withoutInventory=state({
+ project:'No reused stock',unit:'mm',stocks:[],
+ parts:[{l:40,w:30,t:'',qty:1,material:'Wood',label:'New',rotate:true}],
+ useRemnantStock:false
+});
+app.setState(withoutInventory);
+assert.equal(app.normalize().stocks.length,0);
+assert.ok(app.normalize().errors.length>0,'No other stock should remain');
+assert.equal(app.getRemnantDB().pieces.length,ledger.pieces.length);
+tests+=3;
+
+// Reject partial runs, nesting plans, and duplicate confirmations. No inventory
+// source can be consumed if it has already been marked used by another project.
+const nestOnly=verify(state({
+ project:'No physical nest',unit:'mm',mode:'nest',
+ parts:[{l:40,w:30,t:'',qty:1,material:'Wood',label:'New',rotate:true}],
+ stocks:[{l:100,w:100,t:'',qty:1,material:'Wood',price:20}],
+ useRemnantStock:false
+}));
+window.__testHooks.showResult(nestOnly.input,nestOnly.result);
+assert.equal(app.registerRemnantProduction(),false);
+assert.equal(app.getRemnantDB().batches.length,2);
+tests+=2;
+
+app.setState(productionJob);
+const repeatedIn=app.normalize(),repeatedPlan=app.optimize(repeatedIn);
+window.__testHooks.showResult(repeatedIn,repeatedPlan);
+const oldConfirm=sandbox.confirm;
+sandbox.confirm=()=>false;
+assert.equal(app.registerRemnantProduction(),false,'Repeated plan confirmation should require explicit second approval');
+assert.equal(app.getRemnantDB().batches.length,2);
+sandbox.confirm=oldConfirm;
+tests+=2;
+
+// Explicit JSON backup merging does not silently duplicate physical pieces.
+const backupDB=app.getRemnantDB();
+const backup={kind:'beythaus-cut-remnant-backup',version:1,pieces:backupDB.pieces,batches:backupDB.batches};
+assert.equal(app.mergeRemnantBackup(backup),0);
+assert.equal(app.getRemnantDB().pieces.length,backupDB.pieces.length);
+assert.throws(()=>app.mergeRemnantBackup({kind:'other',version:1,pieces:[]}));
+const newBackupPiece={...backupDB.pieces[0],id:'imported-sample-1',sourceKey:'imported:unique',status:'available'};
+assert.equal(app.mergeRemnantBackup({...backup,pieces:[newBackupPiece]}),1);
+assert.equal(app.mergeRemnantBackup({...backup,pieces:[newBackupPiece]}),0);
+tests+=5;
+console.log('Remnant inventory: physical production only, project-to-project reuse, consumption, PDF provenance, status, backup and idempotency passed.');
+
 console.log('Beythaus Cut: '+tests+' checks passed; invalid plans rejected and unknown prices preserved.');
