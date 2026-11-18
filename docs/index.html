@@ -514,39 +514,190 @@ function buildExactPlan(layout,stock,items,cfg){
   stockArea:bins.reduce((n,b)=>n+b.stock.l*b.stock.w,0),
   partArea:bins.reduce((n,b)=>n+b.placed.reduce((a,p)=>a+p.w*p.h,0),0)}
 }
-function exactRefinePlan(initial,data,cfg){
- const proof={status:'skipped',proof:false,optimumCount:null,nodes:0,elapsedMs:0,checks:[],scope:'Serbest yerleşim, tek tip stok, 2–8 parça'};
- const done=p=>{p.exact=proof;return p};
- if(state.mode!=='nest'||data.stocks.length!==1||data.parts.length<2||data.parts.length>8||
-    initial.unplaced.length||initial.bins.length<2||initial.bins.length>4)return done(initial);
- const stock=data.stocks[0];
- if(data.parts.some(p=>mkey(p.material)!==mkey(stock.material)||
-   (p.t!==null&&(stock.t===null||Math.abs(p.t-stock.t)>1e-6))))return done(initial);
- const lb=minStockCountLowerBound(data).lowerBound;
- if(!Number.isInteger(lb)||lb<1||lb>=initial.bins.length)return done(initial);
- const deadline=Date.now()+135;
- let result=initial,allLowerExcluded=true;
- proof.status='running';
- for(let n=lb;n<initial.bins.length;n++){
-  if(n>stock.qty){proof.checks.push({boards:n,status:'infeasible'});continue}
-  const attempt=exactUniformFeasibility(data.parts,stock,n,cfg,{deadline,maxNodes:30000});
-  proof.nodes+=attempt.nodes;proof.elapsedMs+=attempt.elapsedMs;
-  proof.checks.push({boards:n,status:attempt.status});
-  if(attempt.status==='infeasible')continue;
-  if(attempt.status==='limit'){proof.status='limit';allLowerExcluded=false;break}
-  if(attempt.status==='feasible'){
-   const proposal=buildExactPlan(attempt.layout,stock,data.parts,cfg);
-   if(auditCutPlan(proposal,data).ok&&proposal.bins.length<result.bins.length){
-    result={...proposal,search:{...initial.search,
-     savedStockCount:(initial.search?.savedStockCount||0)+initial.bins.length-proposal.bins.length}};
-    proof.status='improved'
-   }else{proof.status='invalid-candidate';allLowerExcluded=false}
-   break
-  }
+
+// Exact feasibility for a bounded number of VARIABLE stock types.
+// Unlike the uniform solver, each newly opened board selects a stock type,
+// respects its available quantity and checks material/thickness compatibility.
+// All four disjunctive rectangle separations, allowed rotations and assignments
+// are exhausted unless the shared time/node budget interrupts the search.
+function exactVariableFeasibility(parts,stockTypes,limit,cfg,options={}){
+ const started=Date.now(),deadline=options.deadline??started+145,maxNodes=options.maxNodes??25000;
+ const eps=1e-7,kerf=cfg.kerf;let nodes=0,interrupted=false,layout=null;
+ const finish=status=>({status,nodes,elapsedMs:Date.now()-started,layout});
+ const types=stockTypes.filter(s=>s.qty>0&&s.l>2*cfg.trim&&s.w>2*cfg.trim).map(s=>({
+  stock:s,W:s.l-2*cfg.trim,H:s.w-2*cfg.trim,area:(s.l-2*cfg.trim)*(s.w-2*cfg.trim)
+ }));
+ if(limit<1||!types.length)return finish('infeasible');
+ const canUse=(p,t)=>mkey(p.material)===mkey(t.stock.material)&&
+  (p.t===null||(t.stock.t!==null&&Math.abs(p.t-t.stock.t)<1e-6));
+ if(parts.some(p=>!types.some(t=>canUse(p,t)&&orientationChoices(p).some(([w,h])=>w<=t.W+eps&&h<=t.H+eps))))
+  return finish('infeasible');
+ const need=parts.reduce((sum,p)=>sum+p.l*p.w,0);
+ const stockCapacity=types.flatMap(t=>Array.from({length:Math.min(limit,t.stock.qty)},()=>t.area))
+  .sort((a,b)=>b-a).slice(0,limit).reduce((a,b)=>a+b,0);
+ if(need>stockCapacity+eps)return finish('infeasible');
+ const sorted=parts.map((p,i)=>({...p,_exactOrder:i})).sort((a,b)=>b.l*b.w-a.l*a.w||Math.max(b.l,b.w)-Math.max(a.l,a.w)||a._exactOrder-b._exactOrder);
+ const n=sorted.length,opened=[],usage=types.map(()=>0);
+ function tick(){
+  nodes++;
+  if(nodes>maxNodes||(nodes%128===0&&Date.now()>deadline)){interrupted=true;return false}
+  return true
  }
- if(proof.status==='running')proof.status='proved';
- proof.proof=allLowerExcluded&&(proof.status==='proved'||proof.status==='improved');
- proof.optimumCount=proof.proof?result.bins.length:null;
+ function coordinates(board){
+  const X=new Array(n).fill(0),Y=new Array(n).fill(0),count=board.pieces.length;
+  function relax(edges,coords){
+   let changed=false;
+   for(let pass=0;pass<count;pass++){
+    changed=false;
+    for(const edge of edges){
+     const value=coords[edge.from]+edge.distance;
+     if(value>coords[edge.to]+eps){coords[edge.to]=value;changed=true}
+    }
+    if(!changed)break
+   }
+   return !changed
+  }
+  if(!relax(board.xEdges,X)||!relax(board.yEdges,Y))return null;
+  if(board.pieces.some(p=>X[p.index]+p.w>board.type.W+eps||Y[p.index]+p.h>board.type.H+eps))return null;
+  return {X,Y}
+ }
+ function done(){
+  layout=[];
+  for(const board of opened){
+   const coord=coordinates(board);if(!coord)return false;
+   layout.push({stock:board.type.stock,pieces:board.pieces.map(p=>({
+    ...p.source,x:cfg.trim+coord.X[p.index],y:cfg.trim+coord.Y[p.index],
+    w:p.w,h:p.h,rotated:p.rotated
+   }))})
+  }
+  return true
+ }
+ function addToBoard(board,piece,i,w,h,rotated){
+  if(board.area+w*h>board.type.area+eps)return false;
+  const prev=board.pieces.slice();
+  board.pieces.push({source:piece,index:i,w,h,rotated});board.area+=w*h;
+  function separate(j){
+   if(!tick())return false;
+   if(j===prev.length)return place(i+1);
+   const old=prev[j],options=[
+    [board.xEdges,{from:old.index,to:i,distance:old.w+kerf}],
+    [board.xEdges,{from:i,to:old.index,distance:w+kerf}],
+    [board.yEdges,{from:old.index,to:i,distance:old.h+kerf}],
+    [board.yEdges,{from:i,to:old.index,distance:h+kerf}]
+   ];
+   for(const [edges,edge]of options){
+    edges.push(edge);
+    const okay=coordinates(board);
+    if(okay&&separate(j+1))return true;
+    edges.pop();
+    if(interrupted)return false
+   }
+   return false
+  }
+  const solved=separate(0);
+  board.pieces.pop();board.area-=w*h;
+  return solved
+ }
+ function place(i){
+  if(!tick())return false;
+  if(i===n)return done();
+  const piece=sorted[i];
+  for(const [w,h,rotated]of orientationChoices(piece)){
+   for(const board of opened){
+    if(interrupted)return false;
+    if(!canUse(piece,board.type)||w>board.type.W+eps||h>board.type.H+eps)continue;
+    if(addToBoard(board,piece,i,w,h,rotated))return true;
+   }
+   if(opened.length>=limit)continue;
+   for(let t=0;t<types.length;t++){
+    if(interrupted)return false;
+    const type=types[t];
+    if(usage[t]>=type.stock.qty||!canUse(piece,type)||w>type.W+eps||h>type.H+eps)continue;
+    const board={type,pieces:[],xEdges:[],yEdges:[],area:0};
+    opened.push(board);usage[t]++;
+    const solved=addToBoard(board,piece,i,w,h,rotated);
+    opened.pop();usage[t]--;
+    if(solved)return true;
+   }
+  }
+  return false
+ }
+ const feasible=place(0);
+ return finish(feasible?'feasible':interrupted?'limit':'infeasible')
+}
+function buildVariableExactPlan(layout,items,cfg){
+ const bins=layout.map(entry=>{
+  const bin=mkBin(entry.stock,cfg.trim);
+  bin.placed=entry.pieces;bin.free=[];
+  return bin
+ });
+ const unknownCostBins=bins.reduce((n,b)=>n+Number(binCost(b.stock,cfg)===null),0);
+ return {bins,unplaced:[],placedCount:items.length,unknownCostBins,
+  cost:unknownCostBins?null:bins.reduce((n,b)=>n+binCost(b.stock,cfg),0),
+  stockArea:bins.reduce((n,b)=>n+b.stock.l*b.stock.w,0),
+  partArea:bins.reduce((n,b)=>n+b.placed.reduce((total,p)=>total+p.w*p.h,0),0)}
+}
+
+function exactRefinePlan(initial,data,cfg){
+ const meta={status:'skipped',proof:false,optimumCount:null,nodes:0,elapsedMs:0,checks:[],
+  scope:'Serbest yerleşim; malzeme bazında ≤8 parça, ≤3 stok türü, ≤4 kullanılan stok',groups:[]};
+ const done=result=>{result.exact=meta;return result};
+ if(state.mode!=='nest'||initial.unplaced.length||!auditCutPlan(initial,data).ok)return done(initial);
+ const partsByMaterial=new Map(),stocksByMaterial=new Map();
+ for(const p of data.parts){const key=mkey(p.material),group=partsByMaterial.get(key)||[];group.push(p);partsByMaterial.set(key,group)}
+ for(const s of data.stocks){const key=mkey(s.material),group=stocksByMaterial.get(key)||[];group.push(s);stocksByMaterial.set(key,group)}
+ if(partsByMaterial.size>4||data.parts.length>24)return done(initial);
+ const deadline=Date.now()+175;
+ let result=initial,allProved=true,anyImproved=false,anyLimited=false,anyChecked=false;
+ const remake=(bins)=>{
+  const missing=bins.filter(b=>binCost(b.stock,cfg)===null).length;
+  return {bins,unplaced:initial.unplaced,placedCount:initial.placedCount,
+   unknownCostBins:missing,cost:missing?null:bins.reduce((n,b)=>n+binCost(b.stock,cfg),0),
+   stockArea:bins.reduce((n,b)=>n+b.stock.l*b.stock.w,0),
+   partArea:bins.reduce((n,b)=>n+b.placed.reduce((v,p)=>v+p.w*p.h,0),0),
+   search:result.search}
+ };
+ for(const [key,parts]of partsByMaterial){
+  const stocks=stocksByMaterial.get(key)||[],currentBins=result.bins.filter(b=>mkey(b.stock.material)===key);
+  const count=currentBins.length,lower=minStockCountLowerBound({
+   parts,stocks,trim:data.trim
+  }).lowerBound;
+  const entry={material:key,parts:parts.length,stockTypes:stocks.length,
+   initialCount:count,finalCount:count,lowerBound:lower,proven:false,status:'skipped',checks:[]};
+  meta.groups.push(entry);
+  if(!Number.isInteger(lower)||!count){allProved=false;continue}
+  if(count===lower||count===1){entry.proven=true;entry.status='area-or-trivial';continue}
+  if(parts.length>8||stocks.length>3||count>4||parts.length<2||Date.now()>=deadline){
+   allProved=false;entry.status=Date.now()>=deadline?'limit':'skipped';
+   if(entry.status==='limit')anyLimited=true;
+   continue
+  }
+  anyChecked=true;entry.status='running';
+  let lowerExcluded=true;
+  for(let target=lower;target<count;target++){
+   const check=exactVariableFeasibility(parts,stocks,target,cfg,{deadline,maxNodes:25000});
+   meta.nodes+=check.nodes;meta.elapsedMs+=check.elapsedMs;
+   const record={material:key,count:target,status:check.status};
+   meta.checks.push(record);entry.checks.push(record);
+   if(check.status==='infeasible')continue;
+   if(check.status==='limit'){anyLimited=true;lowerExcluded=false;entry.status='limit';break}
+   if(check.status==='feasible'){
+    const candidate=buildVariableExactPlan(check.layout,parts,cfg);
+    const others=result.bins.filter(b=>mkey(b.stock.material)!==key);
+    const combined=remake(others.concat(candidate.bins));
+    if(candidate.bins.length<count&&auditCutPlan(combined,data).ok){
+     combined.search={...result.search,savedStockCount:(result.search?.savedStockCount||0)+count-candidate.bins.length};
+     result=combined;entry.finalCount=candidate.bins.length;entry.status='improved';anyImproved=true;
+    }else{entry.status='invalid-candidate';lowerExcluded=false}
+    break
+   }
+  }
+  if(entry.status==='running')entry.status='proved';
+  entry.proven=lowerExcluded&&(entry.status==='proved'||entry.status==='improved');
+  if(!entry.proven)allProved=false
+ }
+ meta.status=anyLimited?'limit':!allProved?'partial':anyImproved?'improved':anyChecked?'proved':'area-or-trivial';
+ meta.proof=allProved;meta.optimumCount=allProved?result.bins.length:null;
  return done(result)
 }
 
@@ -929,7 +1080,7 @@ function closeModal(){byId('modal').classList.add('hidden');document.body.classL
 let processing=false;function run(){if(processing)return;const data=normalize();if(data.errors.length){toast(data.errors[0]);return}processing=true;byId('runBtn').textContent='Hesaplanıyor…';byId('mobileRunBtn').textContent='Hesaplanıyor…';requestAnimationFrame(()=>setTimeout(()=>{try{const sol=optimize(data),errors=validateLayout(sol,{kerf:data.kerf,trim:data.trim});if(errors.length)throw Error(errors.join(' '));showResult(data,sol);byId('results').scrollIntoView({behavior:'smooth',block:'start'});if(sol.unplaced.length)toast(sol.unplaced.length+' parça yerleştirilemedi.')}catch(err){console.error(err);toast('Hesaplama hatası: '+err.message)}finally{processing=false;byId('runBtn').textContent='▣  Yerleşimi hesapla';byId('mobileRunBtn').textContent='▣  Yerleşimi hesapla'}},15))}
 byId('runBtn').onclick=run;byId('mobileRunBtn').onclick=run;
 renderRows();syncSettings();showEmpty();renderProjects();
-window.BeythausCut={normalize,optimize,optimizeBaseline:data=>optimize(data,false),exactUniformFeasibility,exactRefinePlan,minStockCountLowerBound,certifyStockCount,stockProofDescription,validateLayout,auditCutPlan,auditGuillotineCuts,collectOffcuts,defaultData,getLastAudit:()=>lastAudit,getState:()=>state,setState:o=>{state=sanitize(o);renderRows();syncSettings();save();showEmpty()},run};
+window.BeythausCut={normalize,optimize,optimizeBaseline:data=>optimize(data,false),exactUniformFeasibility,exactVariableFeasibility,exactRefinePlan,minStockCountLowerBound,certifyStockCount,stockProofDescription,validateLayout,auditCutPlan,auditGuillotineCuts,collectOffcuts,defaultData,getLastAudit:()=>lastAudit,getState:()=>state,setState:o=>{state=sanitize(o);renderRows();syncSettings();save();showEmpty()},run};
 })();
 </script>
 <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))}</script>
