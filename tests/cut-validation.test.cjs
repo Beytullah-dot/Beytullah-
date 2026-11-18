@@ -731,7 +731,7 @@ tests+=8;
 const nextPart=state({
  project:'Batch B',unit:'mm',mode:'guillotine',priceMode:'panel',
  kerf:2,trim:0,offcutMinEdgeMm:20,offcutMinAreaCm2:10,
- parts:[{l:140,w:80,t:'',qty:1,material:'Wood',label:'NewCut',rotate:false}],
+ parts:[{l:90,w:60,t:'',qty:1,material:'Wood',label:'NewCut',rotate:false}],
  stocks:[],useRemnantStock:true
 });
 const reuseJob=verify(nextPart);
