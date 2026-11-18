@@ -145,6 +145,7 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
 @media(max-width:580px){.remnant-filter-bar{grid-template-columns:repeat(2,minmax(0,1fr));padding:12px}.remnant-filter-field:first-child{grid-column:span 2}.remnant-default-location{padding:12px}.remnant-editor{margin:0 8px 10px;padding:12px}.remnant-edit-grid{grid-template-columns:1fr}.remnant-list-summary{padding:0 12px 10px}}
 </style>
 <link rel="stylesheet" href="./qr-inventory.css">
+<link rel="stylesheet" href="./remnant-history.css">
 </head>
 <body>
 <header class="topbar"><div class="container topbar-inner">
@@ -217,7 +218,7 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
 <div id="remnantOverlay" class="projects-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="remnantHeading">
  <div class="projects-panel">
   <div class="projects-head"><h2 id="remnantHeading">Artık stok envanteri <span class="count" id="remnantModalCount">0</span></h2><button class="btn icononly" id="remnantCloseBtn" aria-label="Kapat" type="button">×</button></div>
-  <div class="projects-tools"><button class="btn" id="remnantExportBtn" type="button">↓ Envanter yedeği</button><button class="btn" id="remnantImportBtn" type="button">↑ Yedek yükle</button><button class="btn" id="remnantScanOpenBtn" type="button">▣ QR tara</button><button class="btn" id="remnantBulkLabelsBtn" type="button">▤ Filtrelenen etiketler</button><input id="remnantImportFile" type="file" accept=".json,application/json" hidden></div>
+  <div class="projects-tools"><button class="btn" id="remnantExportBtn" type="button">↓ Envanter yedeği</button><button class="btn" id="remnantImportBtn" type="button">↑ Yedek yükle</button><button class="btn" id="remnantScanOpenBtn" type="button">▣ QR tara</button><button class="btn" id="remnantBulkLabelsBtn" type="button">▤ Filtrelenen etiketler</button><button class="btn" id="remnantHistoryBtn" type="button">◷ Hareket geçmişi</button><input id="remnantImportFile" type="file" accept=".json,application/json" hidden></div>
 
   <div class="remnant-default-location">
    <label for="remnantDefaultLocation">Yeni üretilen artıkların varsayılan rafı</label>
@@ -244,13 +245,33 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
     <div><label for="remnantEditLocation">Raf / konum</label><input id="remnantEditLocation" type="text" maxlength="80" placeholder="Örn. Raf A / Göz 2"></div>
     <div><label for="remnantEditNotes">Not</label><input id="remnantEditNotes" type="text" maxlength="220" placeholder="Damar yönü, kusur, etiket…"></div>
    </div>
-   <div class="remnant-edit-actions"><button id="remnantEditSave" class="btn primary" type="submit">Kaydet</button><button id="remnantEditCancel" class="btn" type="button">Vazgeç</button></div>
+   <div class="remnant-edit-actions"><button id="remnantEditStatusAction" class="btn" type="button">Kullanıldı işaretle</button><button id="remnantEditSave" class="btn primary" type="submit">Kaydet</button><button id="remnantEditCancel" class="btn" type="button">Vazgeç</button></div>
   </form>
   <div id="remnantList" class="projects-list"></div>
   <div class="projects-bottom"><p class="projects-note">Stok eklemek için doğrulanmış <b>düz kesim planından sonra fiziksel üretimi onaylayın</b>. “Kullanıldı” işaretlenen malzeme sonraki hesaplara katılmaz. Yedek başka cihazda yüklenebilir; otomatik eşitleme yoktur.</p></div>
  </div>
 </div>
 
+
+<div id="remnantHistoryOverlay" class="projects-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="remnantHistoryHeading">
+ <div class="projects-panel remnant-history-panel">
+  <div class="projects-head"><h2 id="remnantHistoryHeading">Envanter hareket geçmişi</h2><button id="remnantHistoryClose" class="btn icononly" type="button" aria-label="Kapat">×</button></div>
+  <div class="remnant-history-controls">
+   <label>Parça / raf / proje ara<input id="remnantHistorySearch" type="search" placeholder="Parça kimliği, raf, üretim…"></label>
+   <label>İşlem türü<select id="remnantHistoryType">
+    <option value="all">Tüm hareketler</option><option value="created">Üretildi</option>
+    <option value="consumed">Kullanıldı</option><option value="restored">Geri alındı</option>
+    <option value="moved">Raf değişti</option><option value="corrected">Bilgi düzeltildi</option>
+    <option value="deleted">Silindi</option><option value="imported">Yedekten eklendi</option>
+   </select></label>
+   <button id="remnantHistoryClear" class="btn" type="button">Filtreleri temizle</button>
+   <button id="remnantHistoryExport" class="btn" type="button">↓ CSV dışa aktar</button>
+  </div>
+  <p id="remnantHistorySummary" class="remnant-history-summary">Kayıtlar yükleniyor…</p>
+  <div id="remnantHistoryList" class="remnant-history-list"></div>
+  <p class="remnant-history-footnote">Bu kayıtlar cihazda saklanır ve envanter JSON yedeğine dahil edilir. Önceki sürümlerin hareketleri geriye dönük oluşturulamaz. Tarayıcı verileri değiştirilebilir veya silinebilir; resmi ve değiştirilemez bir denetim kaydı değildir.</p>
+ </div>
+</div>
 <div id="remnantLabelOverlay" class="projects-overlay qr-label-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="remnantLabelHeading">
  <div class="projects-panel qr-dialog">
   <div class="projects-head"><h2 id="remnantLabelHeading">QR stok etiketleri</h2><button id="remnantLabelCloseBtn" class="btn icononly" type="button" aria-label="Kapat">×</button></div>
@@ -536,7 +557,7 @@ function renderRemnantList(){
   '<small class="remnant-shelf">Raf: '+esc(p.location||'Belirtilmedi')+'</small>'+
   (p.notes?'<small>Not: '+esc(p.notes)+'</small>':'')+
   '<small>'+esc(p.projectName||'Kayıtsız üretim')+' · '+new Date(p.createdAt).toLocaleDateString('tr-TR')+'</small></div>'+
-  '<div class="project-ops"><button class="btn" data-remnant-action="label" data-remnant-id="'+esc(p.id)+'">QR etiket</button><button class="btn" data-remnant-action="edit" data-remnant-id="'+esc(p.id)+'">Düzenle</button>'+
+  '<div class="project-ops"><button class="btn" data-remnant-action="history" data-remnant-id="'+esc(p.id)+'">Geçmiş</button><button class="btn" data-remnant-action="label" data-remnant-id="'+esc(p.id)+'">QR etiket</button><button class="btn" data-remnant-action="edit" data-remnant-id="'+esc(p.id)+'">Düzenle</button>'+
   '<button class="btn" data-remnant-action="toggle" data-remnant-id="'+esc(p.id)+'">'+
   (p.status==='available'?'Kullanıldı':'Geri al')+'</button>'+
   '<button class="btn danger" data-remnant-action="delete" data-remnant-id="'+esc(p.id)+'">Sil</button></div></div>'
@@ -723,6 +744,19 @@ byId('icloudBackupBtn').onclick=async()=>{save();const name=String(state.project
 byId('projectsImportBtn').onclick=()=>byId('fileInput').click();
 
 
+
+byId('remnantHistoryBtn').onclick=()=>window.BeythausHistory?.openFor();
+byId('remnantEditStatusAction').onclick=()=>{
+ const id=selectedRemnantEditId,p=remnantDB.pieces.find(x=>x.id===id);
+ if(!p)return;
+ const next=p.status==='available'?'used':'available';
+ if(next==='used'&&!confirm('Bu fiziksel artık kullanıldı olarak işaretlensin mi?'))return;
+ if(setRemnantStatus(id,next,{source:selectedRemnantEditSource})){
+  byId('remnantEditStatusAction').textContent=next==='used'?'Mevcut yap':'Kullanıldı işaretle';
+  byId('remnantEditIdentity').textContent='Kimlik '+id+' · '+(next==='used'?'Kullanıldı':'Mevcut');
+ }
+};
+
 byId('remnantManageBtn').onclick=()=>{refreshRemnantUI();byId('remnantOverlay').classList.remove('hidden')};
 byId('remnantDefaultSave').onclick=()=>{if(setRemnantDefaultLocation(byId('remnantDefaultLocation').value))toast('Varsayılan raf kaydedildi.')};
 for(const id of ['remnantSearch','remnantMinLength','remnantMinWidth'])byId(id).oninput=renderRemnantList;
@@ -739,7 +773,7 @@ byId('useRemnantStockInput').onchange=()=>{
 byId('remnantList').onclick=e=>{
  const button=e.target.closest('button[data-remnant-action]');if(!button)return;
  const id=button.dataset.remnantId;
- if(button.dataset.remnantAction==='label'){window.BeythausQR?.labelSingle(id)}else if(button.dataset.remnantAction==='edit'){openRemnantEditor(id)}else if(button.dataset.remnantAction==='toggle'){
+ if(button.dataset.remnantAction==='history'){window.BeythausHistory?.openFor(id)}else if(button.dataset.remnantAction==='label'){window.BeythausQR?.labelSingle(id)}else if(button.dataset.remnantAction==='edit'){openRemnantEditor(id)}else if(button.dataset.remnantAction==='toggle'){
   const item=remnantDB.pieces.find(p=>p.id===id);
   if(item)setRemnantStatus(id,item.status==='available'?'used':'available')
  }else if(button.dataset.remnantAction==='delete')deleteRemnant(id)
@@ -1787,5 +1821,6 @@ window.BeythausCut={remnantMovements,cleanRemnantEvent,getRemnantDB:()=>JSON.par
 <script src="./vendor/qrcode.min.js"></script>
 <script src="./vendor/jsQR.js"></script>
 <script src="./qr-inventory.js"></script>
+<script src="./remnant-history.js"></script>
 <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))}</script>
 </body></html>
