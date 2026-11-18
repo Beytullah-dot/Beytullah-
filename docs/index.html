@@ -61,7 +61,7 @@
   </div>
   <div class="card" id="settingsCard"><div class="card-head"><div><div class="card-title">Hesap ayarları</div><div class="card-sub">Kesim ve fiyat</div></div></div>
     <div class="settings-body">
-      <div class="settings-section"><div class="fields"><div class="field"><label for="unitSelect">Boy / en birimi</label><select id="unitSelect"><option value="cm">Santimetre (cm)</option><option value="mm">Milimetre (mm)</option></select></div><div class="field"><label for="kerfInput">Testere payı (mm)</label><input id="kerfInput" inputmode="decimal" type="text" value="3"></div><div class="field"><label for="trimInput">Kenar fire payı (mm / kenar)</label><input id="trimInput" inputmode="decimal" type="text" value="0"></div><div class="field"><label for="projectName">Proje adı</label><input id="projectName" type="text" placeholder="Yeni proje" maxlength="60"></div></div></div>
+      <div class="settings-section"><div class="fields"><div class="field"><label for="unitSelect">Boy / en birimi</label><select id="unitSelect"><option value="cm">Santimetre (cm)</option><option value="mm">Milimetre (mm)</option></select></div><div class="field"><label for="kerfInput">Testere payı (mm)</label><input id="kerfInput" inputmode="decimal" type="text" value="3"></div><div class="field"><label for="trimInput">Kenar fire payı (mm / kenar)</label><input id="trimInput" inputmode="decimal" type="text" value="0"></div><div class="field"><label for="projectName">Proje adı</label><input id="projectName" type="text" placeholder="Yeni proje" maxlength="60"></div></div><div style="margin-top:12px;display:flex;align-items:center;flex-wrap:wrap;gap:8px"><button class="btn" id="icloudBackupBtn" type="button">☁ Bu projeyi iCloud’a yedekle</button><span style="font-size:11px;color:#87968b">Dosyalara Kaydet → iCloud Drive</span></div></div>
       <div class="settings-section"><span class="settings-label">Kesim yöntemi</span><div class="segment" id="modeSegment"><button data-mode="nest" class="active" type="button">Serbest yerleşim</button><button data-mode="guillotine" type="button">Düz kesim</button></div><p class="settings-note" id="modeHelp">Serbest yerleşim: daha sıkı dizilim; CNC ve uygun içten kesim yöntemleri için.</p></div>
       <div class="settings-section"><span class="settings-label">Malzeme fiyatı yöntemi</span><div class="segment" id="priceSegment"><button data-price="m3" class="active" type="button">m³ fiyatı</button><button data-price="panel" type="button">Panel fiyatı</button></div><div class="field" id="m3Field" style="margin-top:11px"><label for="m3Input">1 m³ malzeme fiyatı (₺)</label><input id="m3Input" type="text" inputmode="decimal" value="25000"></div><p class="settings-note" id="priceHelp">Toplam maliyet, kullanılan tam stokların hacmine göre hesaplanır.</p></div>
     </div>
@@ -91,15 +91,14 @@
     <div class="projects-tools">
       <button id="newProjectBtn" class="btn primary">＋ Yeni proje</button>
       <button id="manualSaveProjectBtn" class="btn">✓ Kaydet</button>
-      <input id="projectsSearch" class="projects-search" placeholder="Projelerde ara…" aria-label="Projelerde ara">
+      <button id="projectsSearchToggle" class="btn" type="button" aria-expanded="false">⌕ Ara</button><input id="projectsSearch" class="projects-search hidden" placeholder="Projelerde ara…" aria-label="Projelerde ara">
     </div>
     <div id="projectsList" class="projects-list"></div>
     <div class="projects-bottom">
       <div class="actions">
-        <button id="icloudBackupBtn" class="btn">☁ iCloud Drive'a yedekle</button>
         <button id="projectsImportBtn" class="btn">⤴ Yedek yükle</button>
       </div>
-      <p class="projects-note">Projeler bu cihazda otomatik saklanır. iCloud Drive'a yedekleme dosya üzerinden yapılır; farklı cihazlar arasında henüz otomatik eşitleme yoktur.</p>
+      <p class="projects-note">Projeler bu cihazda otomatik saklanır. Açık projeyi ayarlardan iCloud Drive’a yedekleyebilirsin. Otomatik cihaz eşitlemesi henüz yoktur.</p>
     </div>
   </div>
 </div>
@@ -160,11 +159,12 @@ function persistProjectArchive(){try{localStorage.setItem('beythaus-cut-project-
 function openSavedProject(id){const p=projectLibrary.find(x=>x.id===id);if(!p)return;activeProjectId=id;state=sanitize(p.data);solution=null;dirty=true;renderRows();syncSettings();save();showEmpty();persistProjectArchive();closeProjects();toast('Proje açıldı.')}
 function createProject(data,name){const x=sanitize(data);x.project=String(name||'Yeni proje').slice(0,60);const id=uid()+Date.now().toString(36);projectLibrary.unshift({id:id,name:x.project,updatedAt:Date.now(),data:x});activeProjectId=id;state=x;solution=null;dirty=true;renderRows();syncSettings();save();showEmpty();persistProjectArchive();renderProjects();return id}
 function renderProjects(){const q=(byId('projectsSearch').value||'').toLocaleLowerCase('tr-TR').trim();const rows=projectLibrary.slice().sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).filter(p=>String(p.name||'').toLocaleLowerCase('tr-TR').includes(q));byId('projectsCount').textContent=String(projectLibrary.length);byId('projectsList').innerHTML=rows.length?rows.map(p=>{const n=(p.data.parts||[]).reduce((a,x)=>a+(parseInt(x.qty,10)||0),0);const dt=new Date(p.updatedAt||Date.now()).toLocaleString('tr-TR',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});return '<div class="project-entry '+(p.id===activeProjectId?'current':'')+'"><div class="project-symbol">▦</div><div class="project-detail"><strong>'+esc(p.name||'İsimsiz proje')+(p.id===activeProjectId?' · Açık':'')+'</strong><small>'+esc(dt)+' · '+n+' parça</small></div><div class="project-ops"><button class="btn" data-project-action="open" data-project-id="'+esc(p.id)+'">Aç</button><button class="btn" data-project-action="copy" data-project-id="'+esc(p.id)+'">Kopyala</button><button class="btn" data-project-action="rename" data-project-id="'+esc(p.id)+'">Adlandır</button><button class="btn danger" data-project-action="delete" data-project-id="'+esc(p.id)+'">Sil</button></div></div>'}).join(''):'<div class="empty-state" style="min-height:120px"><strong>Proje bulunamadı.</strong></div>'}
-function showProjects(){renderProjects();byId('projectsOverlay').classList.remove('hidden');byId('projectsSearch').focus()}
+function showProjects(){renderProjects();byId('projectsOverlay').classList.remove('hidden');byId('projectsSearch').value='';byId('projectsSearch').classList.add('hidden');byId('projectsSearchToggle').setAttribute('aria-expanded','false')}
 function closeProjects(){byId('projectsOverlay').classList.add('hidden')}
 byId('projectsBtn').onclick=showProjects;byId('projectsClose').onclick=closeProjects;
 byId('projectsOverlay').onclick=e=>{if(e.target===byId('projectsOverlay'))closeProjects()};
 byId('projectsSearch').oninput=renderProjects;
+byId('projectsSearchToggle').onclick=()=>{const inp=byId('projectsSearch'),open=inp.classList.toggle('hidden')===false;byId('projectsSearchToggle').setAttribute('aria-expanded',String(open));if(open)inp.focus();else{inp.value='';renderProjects()}};
 byId('newProjectBtn').onclick=()=>{const d=defaultData();d.parts=[];d.project='Yeni proje';createProject(d,d.project);closeProjects();toast('Yeni proje oluşturuldu.')};
 byId('manualSaveProjectBtn').onclick=()=>{save();renderProjects();toast('Proje kaydedildi.')};
 byId('projectsList').onclick=e=>{const b=e.target.closest('button[data-project-action]');if(!b)return;const id=b.dataset.projectId,p=projectLibrary.find(x=>x.id===id);if(!p)return;const act=b.dataset.projectAction;
@@ -173,8 +173,7 @@ byId('projectsList').onclick=e=>{const b=e.target.closest('button[data-project-a
   if(act==='rename'){const name=prompt('Yeni proje adı:',p.name);if(name===null)return;const newName=name.trim().slice(0,60);if(!newName){toast('Proje adı boş olamaz.');return}p.name=newName;p.data.project=newName;p.updatedAt=Date.now();if(p.id===activeProjectId){state.project=newName;syncSettings();save()}persistProjectArchive();renderProjects()}
   if(act==='delete'){if(!confirm('"'+p.name+'" projesi silinsin mi? Bu işlem geri alınamaz.'))return;projectLibrary=projectLibrary.filter(x=>x.id!==id);if(!projectLibrary.length){const d=defaultData();d.parts=[];createProject(d,'Yeni proje')}else if(id===activeProjectId){openSavedProject(projectLibrary[0].id)}persistProjectArchive();renderProjects();toast('Proje silindi.')}
 };
-function archivePayload(){save();return {kind:'beythaus-cut-project-archive',version:1,createdAt:new Date().toISOString(),projects:projectLibrary.map(p=>({id:p.id,name:p.name,updatedAt:p.updatedAt,data:p.data}))}}
-byId('icloudBackupBtn').onclick=async()=>{const payload=archivePayload(),filename='Beythaus-Cut-Projelerim-'+new Date().toISOString().slice(0,10)+'.json',txt=JSON.stringify(payload,null,2),file=new File([txt],filename,{type:'application/json'});try{if(navigator.canShare&&navigator.canShare({files:[file]})&&navigator.share){await navigator.share({files:[file],title:'Beythaus Cut proje yedeği'});return}}catch(err){if(err.name==='AbortError')return}download(new Blob([txt],{type:'application/json'}),filename);toast('Yedek indirildi. Dosyalar uygulamasından iCloud Drive’a taşıyın.')};
+byId('icloudBackupBtn').onclick=async()=>{save();const name=String(state.project||'Yeni proje').trim();const slug=name.replace(/[^\p{L}\p{N}._-]+/gu,'-').slice(0,48)||'Kesim-Projesi';const filename='Beythaus-Cut-'+slug+'-'+new Date().toISOString().slice(0,10)+'.json';const txt=JSON.stringify(state,null,2);const file=new File([txt],filename,{type:'application/json'});try{if(navigator.canShare&&navigator.canShare({files:[file]})&&navigator.share){await navigator.share({files:[file],title:name+' · Beythaus Cut'});return}}catch(err){if(err.name==='AbortError')return}download(new Blob([txt],{type:'application/json;charset=utf-8'}),filename);toast('Proje yedeği indirildi. iCloud Drive’a kaydedebilirsin.')};
 byId('projectsImportBtn').onclick=()=>byId('fileInput').click();
 
 byId('mobileSettings').onclick=()=>byId('settingsCard').scrollIntoView({behavior:'smooth',block:'start'});
