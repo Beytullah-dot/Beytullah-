@@ -388,6 +388,62 @@ function repackFixedBoards(items,boards,cfg,trial){
   stockArea:used.reduce((n,b)=>n+b.stock.l*b.stock.w,0),
   partArea:used.reduce((n,b)=>n+b.placed.reduce((a,p)=>a+p.w*p.h,0),0)};
 }
+
+// Usable offcut optimization: bounded local search within EXACTLY the same
+// occupied stock panels. Does not change the material purchase, panel count,
+// physical stock area, or the part demand. It never claims global optimality.
+// Guillotine leaves are verified by replaying all cuts independently.
+function offcutMetrics(result){
+ let usableArea=0,largestArea=0,pieceCount=0;
+ for(const bin of result.bins){
+  const offcut=collectOffcuts(bin);
+  usableArea+=offcut.area;pieceCount+=offcut.count;
+  for(const piece of offcut.pieces)largestArea=Math.max(largestArea,piece.area);
+ }
+ return {usableArea,largestArea,pieceCount}
+}
+function betterOffcuts(a,b){
+ if(a.usableArea>b.usableArea+1e-5)return true;
+ if(a.usableArea<b.usableArea-1e-5)return false;
+ if(a.largestArea>b.largestArea+1e-5)return true;
+ if(a.largestArea<b.largestArea-1e-5)return false;
+ return a.pieceCount<b.pieceCount
+}
+function refineUsableOffcuts(initial,items,originalStocks,cfg,options={}){
+ const before=offcutMetrics(initial),info={status:'skipped',proof:false,attempts:0,
+  improvements:0,before,after:before,timeLimitMs:options.timeLimitMs??95};
+ if(state.mode!=='guillotine'||initial.unplaced.length||!initial.bins.length||
+    initial.bins.length>6||items.length>65)return {solution:initial,info};
+ const deadline=Date.now()+info.timeLimitMs,boardList=initial.bins.map(b=>b.stock);
+ const maxTrials=options.maxTrials??(items.length<=25?160:items.length<=45?96:48);
+ let best=initial,metrics=before;info.status='completed';
+ for(let trial=0;trial<maxTrials;trial++){
+  if(trial%4===0&&Date.now()>deadline){info.status='time-limit';break}
+  const candidate=repackFixedBoards(items,boardList,cfg,trial+1);
+  info.attempts++;
+  if(!candidate||candidate.unplaced.length||candidate.bins.length!==boardList.length||
+     Math.abs(candidate.stockArea-initial.stockArea)>1e-5)continue;
+  const candidateMetrics=offcutMetrics(candidate);
+  if(!betterOffcuts(candidateMetrics,metrics))continue;
+  if(!auditCutPlan(candidate,{parts:items,stocks:originalStocks,trim:cfg.trim,kerf:cfg.kerf}).ok)
+   continue;
+  best=candidate;metrics=candidateMetrics;info.improvements++;
+ }
+ info.after=metrics;
+ return {solution:best,info}
+}
+function offcutOptimizationDescription(result){
+ if(state.mode!=='guillotine')return 'Kullanılabilir artık araması yalnız düz kesim modundadır.';
+ const search=result.search;
+ if(!search||!search.offcutAttempts)return 'Kullanılabilir artıklar hesaplandı; yeniden yerleştirme araması bu projede çalışmadı.';
+ const gain=search.offcutAreaGain||0;
+ return gain>1e-5?
+  'Aynı stoklarla yeniden yerleştirme '+fmt(gain/1e6,4)+' m² ek kullanılabilir artık sağladı ('+
+    search.offcutAttempts+' deneme). Bu sezgisel bir iyileştirmedir, optimumluk kanıtı değildir.':
+  'Kullanılabilir artıklar için '+search.offcutAttempts+
+    ' alternatif yerleşim denendi. Daha iyi sonuç bulunamadı; optimumluk kanıtı yok.';
+}
+
 function improveGroupPacking(initial,items,cfg){
  if(initial.unplaced.length||initial.bins.length<2||initial.bins.length>8||items.length>70)
   return {solution:initial,attempts:0,improvements:0};
@@ -701,11 +757,20 @@ function exactRefinePlan(initial,data,cfg){
  return done(result)
 }
 
-function optimize(data,enhanced=true){const groups=new Map(),stockgroups=new Map();for(const p of data.parts){const key=mkey(p.material,p.t);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(p)}for(const s of data.stocks){const key=mkey(s.material,s.t);if(!stockgroups.has(key))stockgroups.set(key,[]);stockgroups.get(key).push(s)}let result={bins:[],unplaced:[],partArea:0,stockArea:0,cost:0,unknownCostBins:0,placedCount:0},search={baselineStockCount:0,savedStockCount:0,refinementAttempts:0,refinementSteps:0},cfg={kerf:data.kerf,trim:data.trim,m3:data.m3,mode:state.mode,priceMode:state.priceMode};for(const [key,group]of groups){const stock=stockgroups.get(key)||[];let best=null;const trials=group.length<=35?144:group.length<=120?90:group.length<=400?40:14;for(let tr=0;tr<trials;tr++){const r=packAttempt(group,stock,cfg,tr);if(compare(r,best)<0)best=r;if(best?.unplaced.length===0&&best?.bins.length===1&&best.stockArea<=group.reduce((a,p)=>a+p.l*p.w,0)*1.005)break}search.baselineStockCount+=best.bins.length;
+function optimize(data,enhanced=true){const groups=new Map(),stockgroups=new Map();for(const p of data.parts){const key=mkey(p.material,p.t);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(p)}for(const s of data.stocks){const key=mkey(s.material,s.t);if(!stockgroups.has(key))stockgroups.set(key,[]);stockgroups.get(key).push(s)}let result={bins:[],unplaced:[],partArea:0,stockArea:0,cost:0,unknownCostBins:0,placedCount:0},search={baselineStockCount:0,savedStockCount:0,refinementAttempts:0,refinementSteps:0,offcutAttempts:0,offcutImprovements:0,offcutAreaGain:0,offcutTimeLimited:false},cfg={kerf:data.kerf,trim:data.trim,m3:data.m3,mode:state.mode,priceMode:state.priceMode};for(const [key,group]of groups){const stock=stockgroups.get(key)||[];let best=null;const trials=group.length<=35?144:group.length<=120?90:group.length<=400?40:14;for(let tr=0;tr<trials;tr++){const r=packAttempt(group,stock,cfg,tr);if(compare(r,best)<0)best=r;if(best?.unplaced.length===0&&best?.bins.length===1&&best.stockArea<=group.reduce((a,p)=>a+p.l*p.w,0)*1.005)break}search.baselineStockCount+=best.bins.length;
 const refined=enhanced?improveGroupPacking(best,group,cfg):{solution:best,attempts:0,improvements:0};
 search.refinementAttempts+=refined.attempts;search.refinementSteps+=refined.improvements;
 search.savedStockCount+=best.bins.length-refined.solution.bins.length;
-best=refined.solution;result.bins.push(...best.bins);result.unplaced.push(...best.unplaced);result.unknownCostBins+=best.unknownCostBins;if(best.cost!==null)result.cost+=best.cost;result.stockArea+=best.stockArea;result.partArea+=best.partArea;result.placedCount+=best.placedCount}if(result.unknownCostBins)result.cost=null;result.search=search;if(enhanced){result=exactRefinePlan(result,data,cfg);result=exactGrossAreaRefine(result,data,cfg)}return result}
+best=refined.solution;
+if(enhanced&&state.mode==='guillotine'){
+ const offcutPass=refineUsableOffcuts(best,group,stock,cfg);
+ best=offcutPass.solution;
+ search.offcutAttempts+=offcutPass.info.attempts;
+ search.offcutImprovements+=offcutPass.info.improvements;
+ search.offcutAreaGain+=offcutPass.info.after.usableArea-offcutPass.info.before.usableArea;
+ if(offcutPass.info.status==='time-limit')search.offcutTimeLimited=true;
+}
+result.bins.push(...best.bins);result.unplaced.push(...best.unplaced);result.unknownCostBins+=best.unknownCostBins;if(best.cost!==null)result.cost+=best.cost;result.stockArea+=best.stockArea;result.partArea+=best.partArea;result.placedCount+=best.placedCount}if(result.unknownCostBins)result.cost=null;result.search=search;if(enhanced){result=exactRefinePlan(result,data,cfg);result=exactGrossAreaRefine(result,data,cfg)}return result}
 
 // Rigorous, intentionally optimistic lower bound on required board COUNT.
 // Each material is independent. Ignore shape, thickness and kerf to NEVER overstate
@@ -983,7 +1048,13 @@ byId('status').className=all&&!missingThicknessCost?'status-line':'status-line w
 byId('status').innerHTML='<span class="status-dot"></span><span>'+(all?'Tüm parçalar yerleştirildi.':'Yerleşmeyen '+fmt(sol.unplaced.length,0)+' parça var. Stok ve ölçüleri kontrol edin.')+(missingThicknessCost?' m³ maliyeti için stok kalınlığı girilmeli.':'')+(sol.search?.savedStockCount?' Gelişmiş arama '+sol.search.savedStockCount+' stok tasarrufu buldu.':'')+' Geometri kontrolü geçti.</span>';
 byId('planSub').textContent=sol.bins.length?fmt(sol.bins.length,0)+' stok üzerinde '+fmt(sol.placedCount,0)+' parça':'Uygun stok bulunamadı';
 const unresolved=sol.unplaced.length?`<div class="warning-box"><b>Yerleşmeyen ${fmt(sol.unplaced.length,0)} parça:</b><div class="parts-pill">${Object.entries(sol.unplaced.reduce((o,p)=>(o[`${p.label} · ${fmt(p.l/dimFactor(),2)}×${fmt(p.w/dimFactor(),2)} ${state.unit} · ${thicknessText(p.t)}`]=(o[`${p.label} · ${fmt(p.l/dimFactor(),2)}×${fmt(p.w/dimFactor(),2)} ${state.unit} · ${thicknessText(p.t)}`]||0)+1,o),{})).map(([key,n])=>`<span class="pill">${esc(key)} × ${n}</span>`).join('')}</div></div>`:'';
-byId('cutDetails').innerHTML=kv('Toplam parça',fmt(data.parts.length,0))+kv('Yerleşen',fmt(sol.placedCount,0))+kv('Yerleşmeyen',sol.unplaced.length?`<span style="color:#a65d38">${fmt(sol.unplaced.length,0)}</span>`:'0')+kv('Kullanılan alan',fmt(sol.partArea/1e6,3)+' m²')+kv('Stok alanı',fmt(sol.stockArea/1e6,3)+' m²')+kv('Alan farkı',fmt((sol.stockArea-sol.partArea)/1e6,3)+' m²')+(sol.areaProof?.areaSaved>1e-5?kv('Brüt stok alanı tasarrufu',fmt(sol.areaProof.areaSaved/1e6,4)+' m²'):'')+(state.mode==='guillotine'?kv('Kullanılabilir artık',fmt(sol.bins.reduce((n,b)=>n+collectOffcuts(b).count,0),0)+' adet · '+fmt(sol.bins.reduce((n,b)=>n+collectOffcuts(b).area,0)/1e6,3)+' m²')+kv('Kesim sırası',fmt(sol.bins.reduce((n,b)=>n+b.cuts.length,0),0)+' adım'):kv('Artık ölçüleri','Yalnız düz kesim modunda'));
+byId('cutDetails').innerHTML=kv('Toplam parça',fmt(data.parts.length,0))+kv('Yerleşen',fmt(sol.placedCount,0))+kv('Yerleşmeyen',sol.unplaced.length?`<span style="color:#a65d38">${fmt(sol.unplaced.length,0)}</span>`:'0')+kv('Kullanılan alan',fmt(sol.partArea/1e6,3)+' m²')+kv('Stok alanı',fmt(sol.stockArea/1e6,3)+' m²')+kv('Alan farkı',fmt((sol.stockArea-sol.partArea)/1e6,3)+' m²')+(sol.areaProof?.areaSaved>1e-5?kv('Brüt stok alanı tasarrufu',fmt(sol.areaProof.areaSaved/1e6,4)+' m²'):'')+(state.mode==='guillotine'?kv('Kullanılabilir artık',fmt(sol.bins.reduce((n,b)=>n+collectOffcuts(b).count,0),0)+' adet · '+fmt(sol.bins.reduce((n,b)=>n+collectOffcuts(b).area,0)/1e6,3)+' m²')+
+ kv('En büyük kullanılabilir artık',fmt(sol.bins.reduce((largest,b)=>{
+  const data=collectOffcuts(b);return Math.max(largest,...data.pieces.map(p=>p.area),0)
+ },0)/1e6,4)+' m²')+
+ (sol.search?.offcutAttempts?kv('Artık araması',String(sol.search.offcutAttempts)+' deneme'+
+  (sol.search.offcutAreaGain>1e-5?' · +'+fmt(sol.search.offcutAreaGain/1e6,4)+' m²':' · ek kazanım yok')):'')+
+ kv('Kesim sırası',fmt(sol.bins.reduce((n,b)=>n+b.cuts.length,0),0)+' adım'):kv('Artık ölçüleri','Yalnız düz kesim modunda'));
 const validPrice=priceKnown;byId('costDetails').innerHTML=kv('Maliyet yöntemi',state.priceMode==='m3'?'Hacim (m³)':'Tam panel')+kv('Stok hacmi',fmt(m3Stock,5)+' m³')+kv('Parça hacmi',fmt(m3Parts,5)+' m³')+kv('Ham malzeme alımı',validPrice?money(sol.cost):'<span style="color:#a65d38">'+(missingThicknessCost?'Stok kalınlığı gerekli':'Fiyat girilmedi')+'</span>')+kv('Parçaların teorik payı',validPrice?money(netCost):'—')+kv('Fireye düşen değer',validPrice?money(sol.cost-netCost):'—')+(sol.areaProof?.areaSaved>1e-5?kv('Düşük fire için stok maliyeti farkı',sol.areaProof.purchaseCostDelta===null?'—':(sol.areaProof.purchaseCostDelta>0?'+':'')+money(sol.areaProof.purchaseCostDelta)):'')+'<div style="font-size:11px;color:#98a69a;padding-top:12px">İşçilik, kenar bantlama, nakliye ve vergi hariçtir. Alan optimumluğu, en ucuz stok seçimi değildir.</div>';
 window._unresolved=unresolved;drawActive();for(const id of ['zoomBtn','printBtn'])byId(id).disabled=!sol.bins.length;prepareCachedPdf()}
 function drawActive(){const s=solution;if(!s||!s.bins.length){byId('planTabs').innerHTML='';byId('planBody').className='empty-state';byId('planBody').innerHTML='<div class="empty-icon">▤</div><strong>Yerleşim oluşturulamadı</strong><p>Bu ölçü, malzeme veya belirtilmiş kalınlığa uygun stok bulunamadı.</p>';return}
@@ -1013,7 +1084,7 @@ function productionFile(){
  '<div class="doc-columns"><div><h2>01 / Parça listesi</h2><table class="doc-table"><thead><tr><th>Etiket</th><th>Malzeme</th><th>Net ölçü</th><th>Kalınlık</th><th>Adet</th><th>Yön</th></tr></thead><tbody>'+parts+'</tbody></table></div>'+
  '<div><h2>02 / Kullanılan stoklar</h2><table class="doc-table"><thead><tr><th>Malzeme</th><th>Panel ölçüsü</th><th>Kalınlık</th><th>Adet</th></tr></thead><tbody>'+stocks+'</tbody></table>'+
  '<div class="doc-info"><b>Kesim parametreleri</b><div>Testere payı: '+mm(val(state.kerf))+'</div><div>Kenar fire payı: '+mm(val(state.trim))+' / kenar</div><div>Kesim türü: '+(state.mode==='nest'?'Serbest yerleşim':'Düz kesim')+'</div></div></div></div>'+
- extra+'<div class="doc-caution doc-quiet">'+esc(proofInfo)+'</div><div class="doc-caution doc-quiet">'+esc(grossWasteProofDescription(sol))+'</div><div class="doc-caution doc-quiet">'+esc(warning)+'</div>'+foot('Özet')+'</section>';
+ extra+'<div class="doc-caution doc-quiet">'+esc(proofInfo)+'</div><div class="doc-caution doc-quiet">'+esc(grossWasteProofDescription(sol))+'</div><div class="doc-caution doc-quiet">'+esc(offcutOptimizationDescription(sol))+'</div><div class="doc-caution doc-quiet">'+esc(warning)+'</div>'+foot('Özet')+'</section>';
  const pages=bins.map((b,i)=>{
  const groups=new Map();
  for(const p of b.placed){const key=[p.label,p.w,p.h,p.t,p.rotated].join('|'),row=groups.get(key)||{...p,count:0};row.count++;groups.set(key,row)}
@@ -1091,6 +1162,7 @@ function makePdfDocument(){
   {text:'Testere payı: '+fmt(val(state.kerf),1)+' mm     |     Kenar payı: '+fmt(val(state.trim),1)+' mm/kenar     |     Yöntem: '+(state.mode==='nest'?'Serbest yerleşim':'Düz kesim'),fontSize:9,color:'#465F4C',margin:[0,2,0,8]},
   {text:'STOK SAYISI KANITI: '+stockProofDescription(sol.stockProof),fontSize:9,bold:!!sol.stockProof?.proven,color:'#42634C',margin:[0,7,0,7]},
   {text:'BRÜT FİRE KANITI: '+grossWasteProofDescription(sol),fontSize:9,bold:!!sol.areaProof?.proven,color:'#42634C',margin:[0,4,0,8]},
+  {text:'ARTIK DEĞERLENDİRMESİ: '+offcutOptimizationDescription(sol),fontSize:9,color:'#577260',margin:[0,4,0,8]},
   {text:notice,fontSize:9,color:'#7A573E',margin:[0,3,0,8]}
  ];
  if(sol.unplaced.length)content.push({text:'UYARI: '+sol.unplaced.length+' parça yerleştirilemedi.',bold:true,color:'#AE4E44',fontSize:10,margin:[0,4,0,6]});
@@ -1193,7 +1265,7 @@ function closeModal(){byId('modal').classList.add('hidden');document.body.classL
 let processing=false;function run(){if(processing)return;const data=normalize();if(data.errors.length){toast(data.errors[0]);return}processing=true;byId('runBtn').textContent='Hesaplanıyor…';byId('mobileRunBtn').textContent='Hesaplanıyor…';requestAnimationFrame(()=>setTimeout(()=>{try{const sol=optimize(data),errors=validateLayout(sol,{kerf:data.kerf,trim:data.trim});if(errors.length)throw Error(errors.join(' '));showResult(data,sol);byId('results').scrollIntoView({behavior:'smooth',block:'start'});if(sol.unplaced.length)toast(sol.unplaced.length+' parça yerleştirilemedi.')}catch(err){console.error(err);toast('Hesaplama hatası: '+err.message)}finally{processing=false;byId('runBtn').textContent='▣  Yerleşimi hesapla';byId('mobileRunBtn').textContent='▣  Yerleşimi hesapla'}},15))}
 byId('runBtn').onclick=run;byId('mobileRunBtn').onclick=run;
 renderRows();syncSettings();showEmpty();renderProjects();
-window.BeythausCut={normalize,optimize,optimizeBaseline:data=>optimize(data,false),enumerateBoardMultisets,exactGrossAreaRefine,grossWasteProofDescription,exactUniformFeasibility,exactVariableFeasibility,exactRefinePlan,minStockCountLowerBound,certifyStockCount,stockProofDescription,validateLayout,auditCutPlan,auditGuillotineCuts,collectOffcuts,defaultData,getLastAudit:()=>lastAudit,getState:()=>state,setState:o=>{state=sanitize(o);renderRows();syncSettings();save();showEmpty()},run};
+window.BeythausCut={normalize,optimize,optimizeBaseline:data=>optimize(data,false),refineUsableOffcuts,offcutMetrics,betterOffcuts,offcutOptimizationDescription,enumerateBoardMultisets,exactGrossAreaRefine,grossWasteProofDescription,exactUniformFeasibility,exactVariableFeasibility,exactRefinePlan,minStockCountLowerBound,certifyStockCount,stockProofDescription,validateLayout,auditCutPlan,auditGuillotineCuts,collectOffcuts,defaultData,getLastAudit:()=>lastAudit,getState:()=>state,setState:o=>{state=sanitize(o);renderRows();syncSettings();save();showEmpty()},run};
 })();
 </script>
 <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))}</script>
