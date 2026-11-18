@@ -1150,9 +1150,10 @@ assert.ok(!node('remnantHistoryList').innerHTML.includes('<img src=x'));
 const historyCsv=historyUI.csvContent();
 assert.ok(historyCsv.startsWith('\uFEFF'));
 assert.ok(historyCsv.includes('Tarih'));
+assert.ok(historyCsv.includes('Olay kimliği'));
 assert.ok(historyCsv.includes(shelfId));
 assert.ok(historyCsv.includes('Bilgisi düzeltildi'));
-tests+=11;
+tests+=12;
 
 // QR scan is a LOOKUP, not a stock movement; the explicit follow-up action
 // is attributed to QR. Scan-only access must not change piece state or journal.
@@ -1165,12 +1166,14 @@ node('remnantEditStatusAction').onclick();
 assert.equal(app.getRemnantDB().pieces.find(p=>p.id===qrRecord.id).status,'used');
 const qrConsume=app.remnantMovements({pieceId:qrRecord.id,type:'consumed'})[0];
 assert.equal(qrConsume.source,'qr');
+assert.ok(historyUI.csvContent().includes('Olay kimliği'));
+assert.ok(historyUI.csvContent().includes('QR üzerinden'));
 assert.equal(qrConsume.before.status,'available');
 assert.equal(qrConsume.after.status,'used');
 assert.equal(app.normalize().stocks.some(p=>p.remnantId===qrRecord.id),false);
 assert.equal(app.setRemnantStatus(qrRecord.id,'available'),true);
 assert.equal(app.remnantMovements({pieceId:qrRecord.id,type:'restored'})[0].source,'manual');
-tests+=10;
+tests+=12;
 
 // Explicit QR-origin shelf relocation is recorded as a distinct movement.
 qrModule.open(deepLink);
