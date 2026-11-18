@@ -1245,4 +1245,59 @@ assert.deepEqual(Array.from(legacyMovements.movements),[]);
 tests++;
 console.log('Stock movement history: production, QR attribution, before/after, deletion tombstones, import idempotency, CSV and failed-write atomicity passed.');
 
+
+// Cloud integration in the REAL shipped optimizer, not only in the mock
+// transport: local storage is never overwritten by cloud stock snapshots,
+// and production cannot be committed through the old local path.
+assert.equal(typeof app.enterCloudInventory,'function');
+assert.equal(typeof app.exitCloudInventory,'function');
+assert.equal(typeof app.cloudProductionPayload,'function');
+assert.equal(app.isCloudInventory(),false);
+const beforeCloudLedger=JSON.stringify(app.getRemnantDB());
+const originalLocalBytes=localStorage.getItem('beythaus-cut-remnant-library-v1');
+const remotePhysical={id:'REMOTE-STOCK-001',l:300,w:200,t:18,version:7,
+ material:'Wood',location:'Ortak Raf',notes:'Server record',status:'available',
+ sourceKey:'remote:one',projectName:'Ortak Atölye',createdAt:1730000000000};
+const remoteSnapshot={workspace:{id:'workspace-1',name:'Beythaus',defaultLocation:'Ortak Raf'},
+ pieces:[remotePhysical],batches:[],movements:[]};
+app.setState(state({project:'Cloud-only stock',mode:'guillotine',unit:'mm',
+ parts:[{l:150,w:100,t:'',qty:1,material:'Wood',label:'CloudPart',rotate:false}],
+ stocks:[],useRemnantStock:true,kerf:3,trim:0,offcutMinEdgeMm:50,offcutMinAreaCm2:100}));
+assert.equal(app.enterCloudInventory(remoteSnapshot),true);
+assert.equal(app.isCloudInventory(),true);
+assert.equal(app.getRemnantDB().pieces[0].version,7);
+assert.equal(app.normalize().stocks.length,1);
+assert.equal(app.normalize().stocks[0].version,7);
+assert.equal(app.setRemnantStatus('REMOTE-STOCK-001','used'),false,
+ 'Cloud stock changes must be denied by the localStorage commit path');
+assert.equal(app.getRemnantDB().pieces[0].status,'available');
+assert.equal(localStorage.getItem('beythaus-cut-remnant-library-v1'),originalLocalBytes);
+tests+=11;
+window.crypto={randomUUID:()=>{
+ window.__cloudSerial=(window.__cloudSerial||0)+1;
+ return '00000000-0000-4000-8000-'+String(window.__cloudSerial).padStart(12,'0')
+}};
+const cloudInput=app.normalize(),cloudPlan=app.optimize(cloudInput);
+assert.equal(app.auditCutPlan(cloudPlan,cloudInput).ok,true);
+window.__testHooks.showResult(cloudInput,cloudPlan);
+const cloudRequest=app.cloudProductionPayload();
+assert.ok(cloudRequest);
+assert.equal(cloudRequest.kind,'production');
+assert.equal(cloudRequest.payload.consumed.length,1);
+assert.equal(cloudRequest.payload.consumed[0].id,'REMOTE-STOCK-001');
+assert.equal(cloudRequest.payload.consumed[0].expectedVersion,7);
+assert.ok(cloudRequest.payload.created.length>=1);
+assert.equal(app.cloudProductionPayload().operationId,cloudRequest.operationId,
+ 'Retries of a physical production must reuse the same idempotency key');
+assert.equal(app.registerRemnantProduction(),false,
+ 'Local physical production approval must not bypass cloud RPC');
+assert.equal(app.getRemnantDB().pieces.length,1);
+tests+=10;
+assert.equal(app.exitCloudInventory(),true);
+assert.equal(app.isCloudInventory(),false);
+assert.equal(JSON.stringify(app.getRemnantDB()),beforeCloudLedger);
+assert.equal(localStorage.getItem('beythaus-cut-remnant-library-v1'),originalLocalBytes);
+tests+=4;
+console.log('Real app cloud guard: local inventory isolated, stale local writes refused, stock version 7 preserved and production RPC payload verified.');
+
 console.log('Beythaus Cut: '+tests+' checks passed; invalid plans rejected and unknown prices preserved.');
