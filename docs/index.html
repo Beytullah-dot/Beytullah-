@@ -186,7 +186,7 @@ byId('partCount').textContent=fmt(state.parts.reduce((s,p)=>s+(Number(val(p.qty)
 function syncThicknessVisibility(){for(const [flag,cardId,buttonId] of [['partsThicknessEnabled','partsCard','partsThicknessToggle'],['stocksThicknessEnabled','stocksCard','stocksThicknessToggle']]){const on=state[flag]!==false,btn=byId(buttonId);byId(cardId).classList.toggle('thickness-off',!on);btn.setAttribute('aria-pressed',String(on));btn.textContent='Kalınlık '+(on?'✓':'＋');btn.classList.toggle('thickness-on',on)}}
 for(const [flag,buttonId] of [['partsThicknessEnabled','partsThicknessToggle'],['stocksThicknessEnabled','stocksThicknessToggle']])byId(buttonId).onclick=()=>{state[flag]=!state[flag];syncThicknessVisibility();changed()};
 function syncSettings(){syncThicknessVisibility();byId('unitSelect').value=state.unit;byId('kerfInput').value=state.kerf;byId('trimInput').value=state.trim;byId('projectName').value=state.project;byId('m3Input').value=state.m3Price;for(const b of qsa('#modeSegment button'))b.classList.toggle('active',b.dataset.mode===state.mode);for(const b of qsa('#priceSegment button'))b.classList.toggle('active',b.dataset.price===state.priceMode);byId('m3Field').classList.toggle('hidden',state.priceMode==='panel');byId('priceHelp').textContent=state.priceMode==='m3'?'Toplam maliyet, kullanılan tam stokların hacmine göre hesaplanır.':'Her stok satırının ₺ / Panel fiyatı kullanılır.';byId('modeHelp').textContent=state.mode==='nest'?'Serbest yerleşim: daha sıkı dizilim; CNC ve uygun içten kesim yöntemleri için.':'Düz kesim: her adımda kenardan kenara tam kesim yapılabilecek yerleşim.';byId('resultTitle').textContent=state.project||'Kesim planı'}
-function changed(){dirty=true;invalidateCachedPdf();save();if(solution){for(const id of ['zoomBtn','downloadPdfTopBtn','printBtn'])byId(id).disabled=true;byId('status').className='status-line warning';byId('status').innerHTML='<span class="status-dot"></span><span>Girdiler değişti. Yeni plan için tekrar hesaplayın.</span>'}}
+function changed(){dirty=true;lastAudit=null;invalidateCachedPdf();save();if(solution){for(const id of ['zoomBtn','downloadPdfTopBtn','printBtn'])byId(id).disabled=true;byId('status').className='status-line warning';byId('status').innerHTML='<span class="status-dot"></span><span>Girdiler değişti. Yeni plan için tekrar hesaplayın.</span>'}}
 function toast(msg){const el=byId('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove('show'),2800)}
 function bindTable(id,key){const root=byId(id);root.addEventListener('input',e=>{const t=e.target,field=t.dataset.k,row=t.closest('tr');if(!field||!row)return;const obj=state[key].find(x=>x.id===row.dataset.id);if(!obj)return;obj[field]=t.type==='checkbox'?t.checked:t.value;changed();if(field==='qty')byId('partCount').textContent=fmt(state.parts.reduce((a,p)=>a+(Number(val(p.qty))||0),0),0)});root.addEventListener('focusout',e=>{const t=e.target,row=t.closest('tr');if(key!=='parts'||t.dataset.k!=='label'||!row||String(t.value??'').trim())return;const obj=state.parts.find(p=>p.id===row.dataset.id);if(!obj)return;obj.label=nextPartLabel(state.parts);t.value=obj.label;changed()});root.addEventListener('change',e=>{const t=e.target;if(t.type!=='checkbox')return;const obj=state[key].find(x=>x.id===t.closest('tr').dataset.id);if(obj){obj[t.dataset.k]=t.checked;changed()}});root.addEventListener('click',e=>{if(e.target.dataset.action!=='delete')return;state[key]=state[key].filter(x=>x.id!==e.target.closest('tr').dataset.id);renderRows();changed()})}
 bindTable('partRows','parts');bindTable('stockRows','stocks');
@@ -271,12 +271,69 @@ return a.bins.reduce((s,x)=>s+x.free.length,0)-b.bins.reduce((s,x)=>s+x.free.len
 function optimize(data){const groups=new Map(),stockgroups=new Map();for(const p of data.parts){const key=mkey(p.material,p.t);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(p)}for(const s of data.stocks){const key=mkey(s.material,s.t);if(!stockgroups.has(key))stockgroups.set(key,[]);stockgroups.get(key).push(s)}let result={bins:[],unplaced:[],partArea:0,stockArea:0,cost:0,unknownCostBins:0,placedCount:0},cfg={kerf:data.kerf,trim:data.trim,m3:data.m3,mode:state.mode,priceMode:state.priceMode};for(const [key,group]of groups){const stock=stockgroups.get(key)||[];let best=null;const trials=group.length<=35?144:group.length<=120?90:group.length<=400?40:14;for(let tr=0;tr<trials;tr++){const r=packAttempt(group,stock,cfg,tr);if(compare(r,best)<0)best=r;if(best?.unplaced.length===0&&best?.bins.length===1&&best.stockArea<=group.reduce((a,p)=>a+p.l*p.w,0)*1.005)break}result.bins.push(...best.bins);result.unplaced.push(...best.unplaced);result.unknownCostBins+=best.unknownCostBins;if(best.cost!==null)result.cost+=best.cost;result.stockArea+=best.stockArea;result.partArea+=best.partArea;result.placedCount+=best.placedCount}if(result.unknownCostBins)result.cost=null;return result}
 function validateLayout(r,cfg){const problems=[];const stockUse={};for(const b of r.bins){stockUse[b.stock.id]=(stockUse[b.stock.id]||0)+1;const eps=1e-5;for(let i=0;i<b.placed.length;i++){const p=b.placed[i];if(p.t!==null&&(b.stock.t===null||Math.abs(p.t-b.stock.t)>1e-6))problems.push('Parça ve stok kalınlığı eşleşmiyor.');if(p.x<cfg.trim-eps||p.y<cfg.trim-eps||p.x+p.w>b.stock.l-cfg.trim+eps||p.y+p.h>b.stock.w-cfg.trim+eps)problems.push('Parça stok sınırının dışında.');for(let j=i+1;j<b.placed.length;j++){const v=b.placed[j],gap=cfg.kerf-1e-6;if(p.x<v.x+v.w+gap&&p.x+p.w+gap>v.x&&p.y<v.y+v.h+gap&&p.y+p.h+gap>v.y){ // Only reject if overlap in both axes after kerf inflation: for diagonal corners, a shared kerf rectangle is not always required.
 const dx=Math.min(p.x+p.w,v.x+v.w)-Math.max(p.x,v.x),dy=Math.min(p.y+p.h,v.y+v.h)-Math.max(p.y,v.y);if(dx>eps&&dy>-gap||dy>eps&&dx>-gap||dx>eps&&dy>eps)problems.push('Parçalar arasında testere payı eksik.')}}}}for(const b of r.bins)if(stockUse[b.stock.id]>b.stock.qty)problems.push('Stok miktarı aşıldı.');return[...new Set(problems)]}
+
+// Independent cut-plan verification. Never relies on the packer's free rectangles.
+function auditCutPlan(result,data){
+ const issues=[],parts=new Map(),stocks=new Map(),seen=new Set(),usage=new Map(),eps=1e-5;
+ const eq=(a,b)=>Number.isFinite(a)&&Number.isFinite(b)&&Math.abs(a-b)<=Math.max(eps,1e-9*Math.max(Math.abs(a),Math.abs(b)));
+ const error=m=>{if(issues.length<25)issues.push(m)};
+ for(const p of data.parts){if(parts.has(p.id))error('Kaynak parça kimliği tekrar ediyor.');parts.set(p.id,p)}
+ for(const stock of data.stocks){if(stocks.has(stock.id))error('Stok kimliği tekrar ediyor.');stocks.set(stock.id,stock)}
+ if(!result||!Array.isArray(result.bins)||!Array.isArray(result.unplaced)){
+  error('Yerleşim sonucu eksik.');return {ok:false,issues,checkedParts:0}
+ }
+ let count=0,area=0,totalStockArea=0;
+ for(let index=0;index<result.bins.length;index++){
+  const bin=result.bins[index],board=bin?.stock,stock=stocks.get(board?.id);
+  if(!stock){error('Stok '+(index+1)+' kaynak listesinde yok.');continue}
+  usage.set(stock.id,(usage.get(stock.id)||0)+1);totalStockArea+=stock.l*stock.w;
+  if(!Array.isArray(bin.placed)||!bin.placed.length){error('Boş stok yerleşimi.');continue}
+  if(!eq(board.l,stock.l)||!eq(board.w,stock.w)||mkey(board.material)!==mkey(stock.material)||
+   (board.t===null)!==(stock.t===null)||(board.t!==null&&!eq(board.t,stock.t)))error('Stok boyutları değişmiş.');
+  for(const piece of bin.placed){
+   count++;
+   const original=parts.get(piece.id);
+   if(!original){error('Bilinmeyen parça: '+piece.id);continue}
+   if(seen.has(piece.id))error('Parça tekrarlanıyor: '+piece.label);
+   seen.add(piece.id);
+   if([piece.x,piece.y,piece.w,piece.h].some(v=>!Number.isFinite(v))||!(piece.w>0&&piece.h>0)){error('Geçersiz parça koordinatı: '+piece.label);continue}
+   area+=piece.w*piece.h;
+   const straight=eq(piece.w,original.l)&&eq(piece.h,original.w);
+   const rotated=original.rotate&&eq(piece.w,original.w)&&eq(piece.h,original.l);
+   if(!((!piece.rotated&&straight)||(piece.rotated&&rotated)))error('Parça ölçüsü veya dönüşü değişmiş: '+piece.label);
+   if(mkey(piece.material)!==mkey(original.material)||mkey(piece.material)!==mkey(stock.material))error('Malzeme eşleşmiyor: '+piece.label);
+   if((original.t===null)!==(piece.t===null)||(original.t!==null&&!eq(original.t,piece.t)))error('Parça kalınlığı değişmiş: '+piece.label);
+   if(original.t!==null&&(stock.t===null||!eq(original.t,stock.t)))error('Stok kalınlığı eşleşmiyor: '+piece.label);
+   if(piece.x<data.trim-eps||piece.y<data.trim-eps||piece.x+piece.w>stock.l-data.trim+eps||piece.y+piece.h>stock.w-data.trim+eps)error('Kenar veya stok sınırı ihlali: '+piece.label);
+  }
+  // Exact kerf-clearance condition for axis-aligned rectangular placements.
+  for(let i=0;i<bin.placed.length;i++)for(let j=i+1;j<bin.placed.length;j++){
+   const a=bin.placed[i],b=bin.placed[j],k=data.kerf;
+   if([a.x,a.y,a.w,a.h,b.x,b.y,b.w,b.h].some(v=>!Number.isFinite(v)))continue;
+   const separated=a.x+a.w+k<=b.x+eps||b.x+b.w+k<=a.x+eps||a.y+a.h+k<=b.y+eps||b.y+b.h+k<=a.y+eps;
+   if(!separated)error('Parçalar çakışıyor / testere payı eksik: '+a.label+' / '+b.label)
+  }
+ }
+ for(const piece of result.unplaced){
+  if(!parts.has(piece.id)){error('Yerleşmeyen parça tanımsız.');continue}
+  if(seen.has(piece.id))error('Parça hem yerleşmiş hem yerleşmemiş: '+piece.label);
+  seen.add(piece.id)
+ }
+ for(const [id,stock]of stocks)if((usage.get(id)||0)>stock.qty)error('Stok adedi aşıldı: '+stock.material);
+ if(seen.size!==parts.size)error('Eksik veya kaybolan parça var.');
+ if(result.placedCount!==count)error('Parça sayısı tutarsız.');
+ if(!eq(result.partArea,area))error('Parça alanı tutarsız.');
+ if(!eq(result.stockArea,totalStockArea))error('Stok alanı tutarsız.');
+ return {ok:issues.length===0,issues,checkedParts:count,checkedStocks:result.bins.length,costComplete:result.unknownCostBins===0}
+}
+
 const colors=['#cbe0d1','#a8d3ca','#dddcc6','#b9cddc','#e7d7c7','#c5dad5','#d7cbe4','#e2dfbf','#bcd3ae','#e5c7c5'];
 function svgFor(bin,width=1040){const sw=bin.stock.l,sh=bin.stock.w,margin=24,vw=width,vh=Math.max(65,Math.round(width*sh/sw)),viewW=vw+margin*2,viewH=vh+margin*2;let out=`<svg xmlns="http://www.w3.org/2000/svg" class="cut-svg" viewBox="0 0 ${viewW} ${viewH}" role="img" aria-label="Kesim yerleşim planı"><rect x="${margin}" y="${margin}" width="${vw}" height="${vh}" fill="#f2f4ef" stroke="#73877c" stroke-width="1.5" rx="2"/>`;const x=n=>margin+n/sw*vw,y=n=>margin+n/sh*vh;for(let i=0;i<bin.placed.length;i++){const p=bin.placed[i],xx=x(p.x),yy=y(p.y),ww=p.w/sw*vw,hh=p.h/sh*vh,fill=colors[p.order%colors.length],title=`${p.label} · ${fmt(p.w/10,2)} × ${fmt(p.h/10,2)} cm · ${thicknessText(p.t)}`;out+=`<g class="piece"><title>${esc(title)}</title><rect x="${round(xx,3)}" y="${round(yy,3)}" width="${round(ww,3)}" height="${round(hh,3)}" fill="${fill}" stroke="#516c60" stroke-width="1"/><text x="${round(xx+ww/2,2)}" y="${round(yy+hh/2-1.5,2)}" text-anchor="middle" fill="#29473a" font-size="${Math.max(7,Math.min(14,hh*.33,ww/Math.max(p.label.length,3)*1.4))}" font-weight="750">${esc(p.label)}</text>`;if(hh>22&&ww>44)out+=`<text x="${round(xx+ww/2,2)}" y="${round(yy+hh/2+10,2)}" text-anchor="middle" fill="#4b6759" font-size="${Math.max(7,Math.min(11,hh*.23))}">${fmt(p.w/(state.unit==='cm'?10:1),1)}×${fmt(p.h/(state.unit==='cm'?10:1),1)}</text>`;out+='</g>'}if(state.mode==='guillotine')for(const c of bin.cuts)out+=`<line x1="${x(c.x1)}" y1="${y(c.y1)}" x2="${x(c.x2)}" y2="${y(c.y2)}" stroke="#6c8275" stroke-width="1" stroke-dasharray="4 3" opacity=".6"/>`;out+=`<text x="${margin}" y="${margin-8}" fill="#6d8074" font-size="12" font-family="sans-serif">${fmt(sw/(state.unit==='cm'?10:1),2)} ${state.unit}</text><text x="${viewW-margin}" y="${viewH-5}" text-anchor="end" fill="#6d8074" font-size="12" font-family="sans-serif">${fmt(sh/(state.unit==='cm'?10:1),2)} ${state.unit}</text></svg>`;return out}
 function planHtml(bin){const used=bin.placed.reduce((sum,p)=>sum+p.w*p.h,0),pct=used/(bin.stock.l*bin.stock.w)*100;return`<div class="plan-stage"><div class="drawing-wrap"><div class="drawing-inner">${svgFor(bin)}</div></div><div class="plan-meta"><div class="legend"><span><i style="background:#aecfba"></i>Parçalar</span><span><i style="background:#f2f4ef;border:1px solid #ccd8cf"></i>Boş alan</span></div><span>${fmt(bin.stock.l/dimFactor(),2)} × ${fmt(bin.stock.w/dimFactor(),2)} ${state.unit} · ${thicknessText(bin.stock.t)} · ${esc(bin.stock.material)}</span></div></div><div class="details"><div class="detail-card"><div class="detail-label">Bu stokta kesilen</div><div class="detail-value">${bin.placed.length} parça</div></div><div class="detail-card"><div class="detail-label">Alan kullanımı</div><div class="detail-value">%${fmt(pct,1)}</div></div></div>`}
-function showEmpty(){dirty=true;invalidateCachedPdf();byId('mSheets').textContent='—';byId('mYield').textContent='—';byId('mCost').textContent='—';byId('mParts').textContent='—';byId('summarySub').textContent='Parçalar ve stok hazır.';byId('status').className='status-line';byId('status').innerHTML='<span class="status-dot"></span><span>Hesaplamak için düğmeye basın.</span>';byId('planTabs').innerHTML='';byId('planBody').className='empty-state';byId('planBody').innerHTML='<div class="empty-icon">▤</div><strong>Kesim planı burada görünecek</strong><p>Parça ve stok ölçülerini girip yerleşimi hesaplayın. Kalınlık isteğe bağlıdır.</p>';byId('costDetails').innerHTML='<p style="color:#8a968d;font-size:12px">Hesaplama bekleniyor.</p>';byId('cutDetails').innerHTML='<p style="color:#8a968d;font-size:12px">Hesaplama bekleniyor.</p>';for(const id of ['zoomBtn','downloadPdfTopBtn','printBtn'])byId(id).disabled=true}
+function showEmpty(){dirty=true;lastAudit=null;invalidateCachedPdf();byId('mSheets').textContent='—';byId('mYield').textContent='—';byId('mCost').textContent='—';byId('mParts').textContent='—';byId('summarySub').textContent='Parçalar ve stok hazır.';byId('status').className='status-line';byId('status').innerHTML='<span class="status-dot"></span><span>Hesaplamak için düğmeye basın.</span>';byId('planTabs').innerHTML='';byId('planBody').className='empty-state';byId('planBody').innerHTML='<div class="empty-icon">▤</div><strong>Kesim planı burada görünecek</strong><p>Parça ve stok ölçülerini girip yerleşimi hesaplayın. Kalınlık isteğe bağlıdır.</p>';byId('costDetails').innerHTML='<p style="color:#8a968d;font-size:12px">Hesaplama bekleniyor.</p>';byId('cutDetails').innerHTML='<p style="color:#8a968d;font-size:12px">Hesaplama bekleniyor.</p>';for(const id of ['zoomBtn','downloadPdfTopBtn','printBtn'])byId(id).disabled=true}
 function kv(k,v){return`<div class="kv"><span>${esc(k)}</span><strong>${v}</strong></div>`}
-function showResult(data,sol){solution=sol;dirty=false;activeSheet=0;
+let lastAudit=null;
+function showResult(data,sol){const audit=auditCutPlan(sol,data);if(!audit.ok)throw Error('Kesim doğrulaması başarısız: '+audit.issues.slice(0,2).join(' · '));lastAudit=audit;solution=sol;dirty=false;activeSheet=0;
 const completeThickness=sol.bins.length>0&&sol.bins.every(b=>b.stock.t!==null);
 const m3Stock=completeThickness?sol.bins.reduce((a,b)=>a+b.stock.l*b.stock.w*b.stock.t,0)/1e9:null;
 const m3Parts=completeThickness?sol.bins.reduce((a,b)=>a+b.placed.reduce((sum,p)=>sum+p.w*p.h*b.stock.t,0),0)/1e9:null;
@@ -287,7 +344,7 @@ const missingThicknessCost=state.priceMode==='m3'&&!completeThickness&&sol.bins.
 byId('mSheets').textContent=fmt(sol.bins.length,0);byId('mYield').textContent='%'+fmt(yieldPct,1);byId('mCost').textContent=priceKnown?money(sol.cost):'—';byId('mParts').textContent=sol.placedCount+'/'+data.parts.length;
 byId('summarySub').textContent=fmt(data.parts.length,0)+' parça · '+fmt(data.stocks.length,0)+' stok türü · '+(state.mode==='nest'?'Serbest yerleşim':'Düz kesim');
 byId('status').className=all&&!missingThicknessCost?'status-line':'status-line warning';
-byId('status').innerHTML='<span class="status-dot"></span><span>'+(all?'Tüm parçalar yerleştirildi.':'Yerleşmeyen '+fmt(sol.unplaced.length,0)+' parça var. Stok ve ölçüleri kontrol edin.')+(missingThicknessCost?' m³ maliyeti için stok kalınlığı girilmeli.':'')+'</span>';
+byId('status').innerHTML='<span class="status-dot"></span><span>'+(all?'Tüm parçalar yerleştirildi.':'Yerleşmeyen '+fmt(sol.unplaced.length,0)+' parça var. Stok ve ölçüleri kontrol edin.')+(missingThicknessCost?' m³ maliyeti için stok kalınlığı girilmeli.':'')+' Geometri doğrulandı; en iyi çözüm garantisi yok.</span>';
 byId('planSub').textContent=sol.bins.length?fmt(sol.bins.length,0)+' stok üzerinde '+fmt(sol.placedCount,0)+' parça':'Uygun stok bulunamadı';
 const unresolved=sol.unplaced.length?`<div class="warning-box"><b>Yerleşmeyen ${fmt(sol.unplaced.length,0)} parça:</b><div class="parts-pill">${Object.entries(sol.unplaced.reduce((o,p)=>(o[`${p.label} · ${fmt(p.l/dimFactor(),2)}×${fmt(p.w/dimFactor(),2)} ${state.unit} · ${thicknessText(p.t)}`]=(o[`${p.label} · ${fmt(p.l/dimFactor(),2)}×${fmt(p.w/dimFactor(),2)} ${state.unit} · ${thicknessText(p.t)}`]||0)+1,o),{})).map(([key,n])=>`<span class="pill">${esc(key)} × ${n}</span>`).join('')}</div></div>`:'';
 byId('cutDetails').innerHTML=kv('Toplam parça',fmt(data.parts.length,0))+kv('Yerleşen',fmt(sol.placedCount,0))+kv('Yerleşmeyen',sol.unplaced.length?`<span style="color:#a65d38">${fmt(sol.unplaced.length,0)}</span>`:'0')+kv('Kullanılan alan',fmt(sol.partArea/1e6,3)+' m²')+kv('Stok alanı',fmt(sol.stockArea/1e6,3)+' m²')+kv('Alan farkı',fmt((sol.stockArea-sol.partArea)/1e6,3)+' m²');
@@ -297,6 +354,7 @@ function drawActive(){const s=solution;if(!s||!s.bins.length){byId('planTabs').i
 byId('planTabs').innerHTML=s.bins.map((b,i)=>`<button class="sheet-tab ${i===activeSheet?'active':''}" data-i="${i}">Stok ${i+1} <span style="opacity:.65">· ${thicknessText(b.stock.t)}</span></button>`).join('');byId('planBody').className='';byId('planBody').innerHTML=planHtml(s.bins[activeSheet])+(window._unresolved||'')}
 byId('planTabs').onclick=e=>{const b=e.target.closest('button[data-i]');if(!b)return;activeSheet=Number(b.dataset.i);drawActive()};
 function productionFile(){
+ if(!lastAudit?.ok){toast('Üretim dosyası için doğrulanmış plan gerekli.');return false}
  if(!solution||dirty||!solution.bins.length){toast('Güncel kesim planını hesaplayın.');return false}
  const d=normalize(),sol=solution,bins=sol.bins,u=state.unit,f=dimFactor();
  const n=x=>fmt(x,2), measured=x=>n(x/f)+' '+u, mm=x=>n(x)+' mm', thick=x=>thicknessText(x);
@@ -356,6 +414,7 @@ function loadPDFEngine(){
  return pdfLoader;
 }
 function makePdfDocument(){
+ if(!lastAudit?.ok)throw Error('Kesim yerleşimi doğrulanmadı.');
  const d=normalize(),sol=solution;
  const unit=state.unit,f=dimFactor(),m=x=>fmt(x/f,2)+' '+unit,thick=x=>thicknessText(x);
  const issue=new Date().toLocaleDateString('tr-TR',{day:'2-digit',month:'long',year:'numeric'});
@@ -424,7 +483,7 @@ function pdfFilename(){
 function prepareCachedPdf(){
  const rev=++pdfRenderGeneration;cachedPdf=null;pdfFailure=null;pdfExportState='preparing';
  const b=byId('downloadPdfTopBtn');b.disabled=true;b.title='PDF hazırlanıyor';b.setAttribute('aria-busy','true');
- if(!solution?.bins.length||dirty){pdfExportState='idle';b.removeAttribute('aria-busy');return}
+ if(!solution?.bins.length||dirty||!lastAudit?.ok){pdfExportState='idle';b.removeAttribute('aria-busy');return}
  Promise.resolve().then(async()=>{
   const engine=await loadPDFEngine();
   if(rev!==pdfRenderGeneration||dirty)return;
@@ -472,7 +531,7 @@ function closeModal(){byId('modal').classList.add('hidden');document.body.classL
 let processing=false;function run(){if(processing)return;const data=normalize();if(data.errors.length){toast(data.errors[0]);return}processing=true;byId('runBtn').textContent='Hesaplanıyor…';byId('mobileRunBtn').textContent='Hesaplanıyor…';requestAnimationFrame(()=>setTimeout(()=>{try{const sol=optimize(data),errors=validateLayout(sol,{kerf:data.kerf,trim:data.trim});if(errors.length)throw Error(errors.join(' '));showResult(data,sol);byId('results').scrollIntoView({behavior:'smooth',block:'start'});if(sol.unplaced.length)toast(sol.unplaced.length+' parça yerleştirilemedi.')}catch(err){console.error(err);toast('Hesaplama hatası: '+err.message)}finally{processing=false;byId('runBtn').textContent='▣  Yerleşimi hesapla';byId('mobileRunBtn').textContent='▣  Yerleşimi hesapla'}},15))}
 byId('runBtn').onclick=run;byId('mobileRunBtn').onclick=run;
 renderRows();syncSettings();showEmpty();renderProjects();
-window.BeythausCut={normalize,optimize,validateLayout,defaultData,getState:()=>state,setState:o=>{state=sanitize(o);renderRows();syncSettings();save();showEmpty()},run};
+window.BeythausCut={normalize,optimize,validateLayout,auditCutPlan,defaultData,getLastAudit:()=>lastAudit,getState:()=>state,setState:o=>{state=sanitize(o);renderRows();syncSettings();save();showEmpty()},run};
 })();
 </script>
 <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))}</script>
