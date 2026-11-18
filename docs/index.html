@@ -268,7 +268,60 @@ if(a.cost!==null&&b.cost!==null&&Math.abs(a.cost-b.cost)>.01)return a.cost-b.cos
 if(a.bins.length!==b.bins.length)return a.bins.length-b.bins.length;
 if(Math.abs(a.stockArea-b.stockArea)>1e-5)return a.stockArea-b.stockArea;
 return a.bins.reduce((s,x)=>s+x.free.length,0)-b.bins.reduce((s,x)=>s+x.free.length,0)}
-function optimize(data){const groups=new Map(),stockgroups=new Map();for(const p of data.parts){const key=mkey(p.material,p.t);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(p)}for(const s of data.stocks){const key=mkey(s.material,s.t);if(!stockgroups.has(key))stockgroups.set(key,[]);stockgroups.get(key).push(s)}let result={bins:[],unplaced:[],partArea:0,stockArea:0,cost:0,unknownCostBins:0,placedCount:0},cfg={kerf:data.kerf,trim:data.trim,m3:data.m3,mode:state.mode,priceMode:state.priceMode};for(const [key,group]of groups){const stock=stockgroups.get(key)||[];let best=null;const trials=group.length<=35?144:group.length<=120?90:group.length<=400?40:14;for(let tr=0;tr<trials;tr++){const r=packAttempt(group,stock,cfg,tr);if(compare(r,best)<0)best=r;if(best?.unplaced.length===0&&best?.bins.length===1&&best.stockArea<=group.reduce((a,p)=>a+p.l*p.w,0)*1.005)break}result.bins.push(...best.bins);result.unplaced.push(...best.unplaced);result.unknownCostBins+=best.unknownCostBins;if(best.cost!==null)result.cost+=best.cost;result.stockArea+=best.stockArea;result.partArea+=best.partArea;result.placedCount+=best.placedCount}if(result.unknownCostBins)result.cost=null;return result}
+
+// Bounded second-pass optimization: try to eliminate underused boards without changing the baseline.
+function repackFixedBoards(items,boards,cfg,trial){
+ const bins=boards.map(stock=>mkBin(stock,cfg.trim));
+ if(trial%3===1)bins.sort((a,b)=>a.stock.l*a.stock.w-b.stock.l*b.stock.w);
+ else if(trial%3===2)bins.sort((a,b)=>b.stock.l*b.stock.w-a.stock.l*a.stock.w);
+ const ordered=orderParts(items,trial+1537);
+ for(const item of ordered){
+  let selected=null;
+  for(const bin of bins){
+   const fit=findFit(bin,item,Math.floor(trial/3)%5);
+   if(!fit)continue;
+   const score=fit.score+(bin.placed.length?0:0.00000001);
+   if(!selected||score<selected.score)selected={bin,fit,score};
+  }
+  if(!selected)return null;
+  applyFit(selected.bin,item,selected.fit,cfg,Math.floor(trial/15)%4);
+ }
+ const used=bins.filter(b=>b.placed.length);
+ const unknownCostBins=used.filter(b=>binCost(b.stock,cfg)===null).length;
+ return {bins:used,unplaced:[],placedCount:items.length,unknownCostBins,
+  cost:unknownCostBins?null:used.reduce((n,b)=>n+binCost(b.stock,cfg),0),
+  stockArea:used.reduce((n,b)=>n+b.stock.l*b.stock.w,0),
+  partArea:used.reduce((n,b)=>n+b.placed.reduce((a,p)=>a+p.w*p.h,0),0)};
+}
+function improveGroupPacking(initial,items,cfg){
+ if(initial.unplaced.length||initial.bins.length<2||initial.bins.length>8||items.length>70)
+  return {solution:initial,attempts:0,improvements:0};
+ let best=initial,attempts=0,improvements=0;
+ for(let pass=0;pass<3;pass++){
+  let changed=false;
+  const candidates=best.bins.map((b,i)=>({i,area:b.placed.reduce((n,p)=>n+p.w*p.h,0)}))
+   .sort((a,b)=>a.area-b.area);
+  for(const {i}of candidates.slice(0,Math.min(5,candidates.length))){
+   const boards=best.bins.filter((_,j)=>j!==i).map(b=>b.stock);
+   const capacity=boards.reduce((n,b)=>n+Math.max(0,b.l-2*cfg.trim)*Math.max(0,b.w-2*cfg.trim),0);
+   if(capacity+1e-3<best.partArea)continue;
+   for(let trial=0;trial<30;trial++){
+    attempts++;
+    const repacked=repackFixedBoards(items,boards,cfg,trial);
+    if(repacked&&compare(repacked,best)<0){best=repacked;changed=true;improvements++;break}
+   }
+   if(changed)break;
+  }
+  if(!changed||best.bins.length<2)break;
+ }
+ return {solution:best,attempts,improvements};
+}
+
+function optimize(data,enhanced=true){const groups=new Map(),stockgroups=new Map();for(const p of data.parts){const key=mkey(p.material,p.t);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(p)}for(const s of data.stocks){const key=mkey(s.material,s.t);if(!stockgroups.has(key))stockgroups.set(key,[]);stockgroups.get(key).push(s)}let result={bins:[],unplaced:[],partArea:0,stockArea:0,cost:0,unknownCostBins:0,placedCount:0},search={baselineStockCount:0,savedStockCount:0,refinementAttempts:0,refinementSteps:0},cfg={kerf:data.kerf,trim:data.trim,m3:data.m3,mode:state.mode,priceMode:state.priceMode};for(const [key,group]of groups){const stock=stockgroups.get(key)||[];let best=null;const trials=group.length<=35?144:group.length<=120?90:group.length<=400?40:14;for(let tr=0;tr<trials;tr++){const r=packAttempt(group,stock,cfg,tr);if(compare(r,best)<0)best=r;if(best?.unplaced.length===0&&best?.bins.length===1&&best.stockArea<=group.reduce((a,p)=>a+p.l*p.w,0)*1.005)break}search.baselineStockCount+=best.bins.length;
+const refined=enhanced?improveGroupPacking(best,group,cfg):{solution:best,attempts:0,improvements:0};
+search.refinementAttempts+=refined.attempts;search.refinementSteps+=refined.improvements;
+search.savedStockCount+=best.bins.length-refined.solution.bins.length;
+best=refined.solution;result.bins.push(...best.bins);result.unplaced.push(...best.unplaced);result.unknownCostBins+=best.unknownCostBins;if(best.cost!==null)result.cost+=best.cost;result.stockArea+=best.stockArea;result.partArea+=best.partArea;result.placedCount+=best.placedCount}if(result.unknownCostBins)result.cost=null;result.search=search;return result}
 function validateLayout(r,cfg){const problems=[];const stockUse={};for(const b of r.bins){stockUse[b.stock.id]=(stockUse[b.stock.id]||0)+1;const eps=1e-5;for(let i=0;i<b.placed.length;i++){const p=b.placed[i];if(p.t!==null&&(b.stock.t===null||Math.abs(p.t-b.stock.t)>1e-6))problems.push('Parça ve stok kalınlığı eşleşmiyor.');if(p.x<cfg.trim-eps||p.y<cfg.trim-eps||p.x+p.w>b.stock.l-cfg.trim+eps||p.y+p.h>b.stock.w-cfg.trim+eps)problems.push('Parça stok sınırının dışında.');for(let j=i+1;j<b.placed.length;j++){const v=b.placed[j],gap=cfg.kerf-1e-6;if(p.x<v.x+v.w+gap&&p.x+p.w+gap>v.x&&p.y<v.y+v.h+gap&&p.y+p.h+gap>v.y){ // Only reject if overlap in both axes after kerf inflation: for diagonal corners, a shared kerf rectangle is not always required.
 const dx=Math.min(p.x+p.w,v.x+v.w)-Math.max(p.x,v.x),dy=Math.min(p.y+p.h,v.y+v.h)-Math.max(p.y,v.y);if(dx>eps&&dy>-gap||dy>eps&&dx>-gap||dx>eps&&dy>eps)problems.push('Parçalar arasında testere payı eksik.')}}}}for(const b of r.bins)if(stockUse[b.stock.id]>b.stock.qty)problems.push('Stok miktarı aşıldı.');return[...new Set(problems)]}
 
@@ -344,7 +397,7 @@ const missingThicknessCost=state.priceMode==='m3'&&!completeThickness&&sol.bins.
 byId('mSheets').textContent=fmt(sol.bins.length,0);byId('mYield').textContent='%'+fmt(yieldPct,1);byId('mCost').textContent=priceKnown?money(sol.cost):'—';byId('mParts').textContent=sol.placedCount+'/'+data.parts.length;
 byId('summarySub').textContent=fmt(data.parts.length,0)+' parça · '+fmt(data.stocks.length,0)+' stok türü · '+(state.mode==='nest'?'Serbest yerleşim':'Düz kesim');
 byId('status').className=all&&!missingThicknessCost?'status-line':'status-line warning';
-byId('status').innerHTML='<span class="status-dot"></span><span>'+(all?'Tüm parçalar yerleştirildi.':'Yerleşmeyen '+fmt(sol.unplaced.length,0)+' parça var. Stok ve ölçüleri kontrol edin.')+(missingThicknessCost?' m³ maliyeti için stok kalınlığı girilmeli.':'')+' Geometri doğrulandı; en iyi çözüm garantisi yok.</span>';
+byId('status').innerHTML='<span class="status-dot"></span><span>'+(all?'Tüm parçalar yerleştirildi.':'Yerleşmeyen '+fmt(sol.unplaced.length,0)+' parça var. Stok ve ölçüleri kontrol edin.')+(missingThicknessCost?' m³ maliyeti için stok kalınlığı girilmeli.':'')+(sol.search?.savedStockCount?' Gelişmiş arama '+sol.search.savedStockCount+' stok tasarrufu buldu.':'')+' Geometri doğrulandı; en iyi çözüm garantisi yok.</span>';
 byId('planSub').textContent=sol.bins.length?fmt(sol.bins.length,0)+' stok üzerinde '+fmt(sol.placedCount,0)+' parça':'Uygun stok bulunamadı';
 const unresolved=sol.unplaced.length?`<div class="warning-box"><b>Yerleşmeyen ${fmt(sol.unplaced.length,0)} parça:</b><div class="parts-pill">${Object.entries(sol.unplaced.reduce((o,p)=>(o[`${p.label} · ${fmt(p.l/dimFactor(),2)}×${fmt(p.w/dimFactor(),2)} ${state.unit} · ${thicknessText(p.t)}`]=(o[`${p.label} · ${fmt(p.l/dimFactor(),2)}×${fmt(p.w/dimFactor(),2)} ${state.unit} · ${thicknessText(p.t)}`]||0)+1,o),{})).map(([key,n])=>`<span class="pill">${esc(key)} × ${n}</span>`).join('')}</div></div>`:'';
 byId('cutDetails').innerHTML=kv('Toplam parça',fmt(data.parts.length,0))+kv('Yerleşen',fmt(sol.placedCount,0))+kv('Yerleşmeyen',sol.unplaced.length?`<span style="color:#a65d38">${fmt(sol.unplaced.length,0)}</span>`:'0')+kv('Kullanılan alan',fmt(sol.partArea/1e6,3)+' m²')+kv('Stok alanı',fmt(sol.stockArea/1e6,3)+' m²')+kv('Alan farkı',fmt((sol.stockArea-sol.partArea)/1e6,3)+' m²');
@@ -531,7 +584,7 @@ function closeModal(){byId('modal').classList.add('hidden');document.body.classL
 let processing=false;function run(){if(processing)return;const data=normalize();if(data.errors.length){toast(data.errors[0]);return}processing=true;byId('runBtn').textContent='Hesaplanıyor…';byId('mobileRunBtn').textContent='Hesaplanıyor…';requestAnimationFrame(()=>setTimeout(()=>{try{const sol=optimize(data),errors=validateLayout(sol,{kerf:data.kerf,trim:data.trim});if(errors.length)throw Error(errors.join(' '));showResult(data,sol);byId('results').scrollIntoView({behavior:'smooth',block:'start'});if(sol.unplaced.length)toast(sol.unplaced.length+' parça yerleştirilemedi.')}catch(err){console.error(err);toast('Hesaplama hatası: '+err.message)}finally{processing=false;byId('runBtn').textContent='▣  Yerleşimi hesapla';byId('mobileRunBtn').textContent='▣  Yerleşimi hesapla'}},15))}
 byId('runBtn').onclick=run;byId('mobileRunBtn').onclick=run;
 renderRows();syncSettings();showEmpty();renderProjects();
-window.BeythausCut={normalize,optimize,validateLayout,auditCutPlan,defaultData,getLastAudit:()=>lastAudit,getState:()=>state,setState:o=>{state=sanitize(o);renderRows();syncSettings();save();showEmpty()},run};
+window.BeythausCut={normalize,optimize,optimizeBaseline:data=>optimize(data,false),validateLayout,auditCutPlan,defaultData,getLastAudit:()=>lastAudit,getState:()=>state,setState:o=>{state=sanitize(o);renderRows();syncSettings();save();showEmpty()},run};
 })();
 </script>
 <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))}</script>
