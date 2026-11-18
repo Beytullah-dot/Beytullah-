@@ -816,6 +816,15 @@ assert.throws(()=>app.mergeRemnantBackup({kind:'other',version:1,pieces:[]}));
 const newBackupPiece={...backupDB.pieces[0],id:'imported-sample-1',sourceKey:'imported:unique',status:'available'};
 assert.equal(app.mergeRemnantBackup({...backup,pieces:[newBackupPiece]}),1);
 assert.equal(app.mergeRemnantBackup({...backup,pieces:[newBackupPiece]}),0);
+const separateBatch={...backupDB.batches[0],id:'B-import-history-new',signature:'imported-unique-signature'};
+const beforeBatchCount=app.getRemnantDB().batches.length;
+assert.equal(app.mergeRemnantBackup({...backup,pieces:[],batches:[separateBatch]}),0);
+assert.equal(app.getRemnantDB().batches.length,beforeBatchCount+1,
+ 'Imported production history should survive a JSON backup restore');
+assert.equal(app.mergeRemnantBackup({...backup,pieces:[],batches:[separateBatch]}),0);
+assert.equal(app.getRemnantDB().batches.length,beforeBatchCount+1,
+ 'Production history import must be idempotent');
+tests+=4;
 tests+=5;
 console.log('Remnant inventory: physical production only, project-to-project reuse, consumption, PDF provenance, status, backup and idempotency passed.');
 
