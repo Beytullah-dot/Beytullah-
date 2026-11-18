@@ -19,7 +19,48 @@
 @media(max-width:1180px){.container{width:min(100% - 36px,1100px)}.workspace{grid-template-columns:minmax(330px,430px) minmax(0,1fr);gap:14px}.metrics{grid-template-columns:repeat(2,1fr)}.info-grid{grid-template-columns:1fr}.hero h1{font-size:23px}.drawing-inner{min-width:690px}}
 @media(max-width:850px){.workspace{grid-template-columns:minmax(0,1fr);max-width:690px;margin:0 auto}.sidebar{gap:13px}.main-area{gap:13px}.topbar-inner{min-height:70px}.drawing-inner{min-width:840px}.info-grid{grid-template-columns:repeat(2,1fr)}.card-head{padding:17px 20px 13px}.metrics{grid-template-columns:repeat(4,1fr)}}
 @media(max-width:580px){.container{width:calc(100% - 26px)}.topbar-inner{min-height:68px}.brand-name{font-size:17px}.brand-meta{font-size:9px}.brand-mark{width:34px;height:34px}.toolbar .desktop-text{display:none}.toolbar .btn{padding:8px 9px;font-size:12px}.workspace{padding-top:13px;padding-bottom:100px}.card{border-radius:15px}.card-head{padding:15px 16px 13px}.card-foot{padding:11px 16px}.edit-table td:first-child,.edit-table th:first-child{padding-left:14px}.edit-table{min-width:605px}.settings-body{padding:2px 16px 18px}.hero h1{font-size:23px}.main-area .hero{padding:18px 16px}.metrics{gap:8px}.metric{padding:11px 8px}.metric strong{font-size:18px}.metric span{font-size:10px}.plans-head{padding:15px 16px}.plan-stage{padding:12px 13px 16px}.plan-tabs{padding:11px 13px 0}.details{margin:12px 13px 15px;gap:8px}.detail-card{padding:11px}.detail-card .detail-value{font-size:14px}.info-grid{grid-template-columns:1fr;gap:12px}.info-pad{padding:16px}.runbar{display:none}.mobile-run{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:24;background:#f9fbf9f5;border-top:1px solid var(--line);padding:10px 13px calc(10px + env(safe-area-inset-bottom));backdrop-filter:blur(16px);gap:9px}.mobile-run .btn.primary{flex:1;min-height:47px}.mobile-run .btn.ghost{background:white;border:1px solid var(--line);min-width:47px}.footer{flex-direction:column}.drawing-inner{min-width:730px}}
-@media print{@page{size:A4 landscape;margin:11mm}body{background:white}.topbar,.workspace,.mobile-run,.toast,.modal{display:none!important}#printCollection{display:block!important}.print-sheet{break-after:page;page-break-after:always;color:#233b2e}.print-sheet:last-child{break-after:auto;page-break-after:auto}.print-sheet h2{font-size:21px;margin:0 0 8px}.print-sheet .print-meta{font-size:13px;color:#6f8577;margin-bottom:14px}.print-sheet .cut-svg{width:100%;max-height:270px}.print-sheet table{width:100%;border-collapse:collapse;margin-top:16px;font-size:12px}.print-sheet th,.print-sheet td{border-bottom:1px solid #ddd;padding:6px;text-align:left}.print-sheet th{color:#6a7d71}.print-sheet .print-end{font-size:11px;color:#888;margin-top:12px}}
+
+@media print{
+@page{size:A4 landscape;margin:10mm}
+html,body{background:white!important;color:#26432d!important;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+.topbar,.workspace,.mobile-run,.toast,.modal,.projects-overlay{display:none!important}
+#printCollection{display:block!important}
+.print-sheet{min-height:180mm;page-break-after:always;break-after:page;display:flex;flex-direction:column}
+.print-sheet:last-child{break-after:auto;page-break-after:auto}
+.doc-brand-row{border-bottom:2px solid #3c6249;padding:0 0 9px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.doc-brand{display:flex;align-items:center;gap:10px}
+.doc-brand-icon{width:35px;height:35px;display:grid;place-items:center;border-radius:7px;background:#31563e;color:white;font-size:24px}
+.doc-brand b{font-size:17px;letter-spacing:1.7px}
+.doc-brand em{font-style:normal;color:#90a998}
+.doc-brand small{display:block;letter-spacing:1.6px;color:#8ca393;font-size:8px;margin-top:3px}
+.doc-ref{text-align:right}.doc-ref b{display:block;font-size:10px;letter-spacing:1px}.doc-ref small{display:block;color:#8ba290;margin-top:4px;font-size:9px}
+.doc-hero{padding:0 0 16px}.doc-hero span{font-size:10px;letter-spacing:2px;font-weight:800;color:#70927b}.doc-hero h1{font-size:28px;margin:6px 0;color:#27452f}.doc-hero p{font-size:10px;color:#91a393;margin:0}
+.doc-statgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:18px}
+.doc-stat{background:#f2f7f2;border:1px solid #dfe9e0;border-radius:6px;padding:10px 12px}
+.doc-stat span{font-size:9px;color:#799080;letter-spacing:.8px;display:block}
+.doc-stat strong{display:block;font-size:17px;margin-top:5px;color:#2a4b35}
+.doc-columns{display:grid;grid-template-columns:1.28fr 1fr;gap:20px;align-items:start}
+.print-sheet h2{font-size:14px;color:#2d5139;margin:0 0 9px}
+.doc-table{font-size:9px;width:100%;border-collapse:collapse;line-height:1.3;table-layout:auto}
+.doc-table thead{display:table-header-group}
+.doc-table th{text-align:left;font-size:8px;color:#4b6651;letter-spacing:.4px;background:#eaf2e9;padding:7px 6px;border-bottom:1px solid #d4e1d4}
+.doc-table td{border-bottom:1px solid #e4eae2;padding:7px 6px}
+.doc-table tr{break-inside:avoid;page-break-inside:avoid}
+.doc-info{background:#f5f8f3;border:1px solid #e1ebe1;border-radius:7px;padding:12px;margin-top:16px;font-size:10px;color:#687e6f;line-height:1.7}
+.doc-info b{display:block;color:#355b41;margin-bottom:4px}
+.doc-caution{background:#fff5e8;border-left:3px solid #b77b3e;margin-top:12px;padding:10px 12px;font-size:10px;line-height:1.5}
+.doc-quiet{background:#f4f7f2;border-left-color:#a5bca7;color:#64796a}
+.doc-foot{margin-top:auto;display:flex;justify-content:space-between;border-top:1px solid #e1eae0;padding-top:10px;color:#8ca493;font-size:9px;break-inside:avoid}
+.doc-paneltitle{display:flex;align-items:flex-start;justify-content:space-between;margin:3px 0 13px}
+.doc-paneltitle h1{font-size:22px;margin:0 0 5px;color:#2a4c35}
+.doc-paneltitle h1 span{font-size:12px;font-weight:400;color:#799281;margin-left:6px}
+.doc-paneltitle p{font-size:10px;color:#829886;margin:0}
+.doc-paneltag{display:flex;align-items:center;gap:8px;background:#edf5eb;padding:10px 13px;border-radius:7px}
+.doc-paneltag b{font-size:14px}.doc-paneltag span{font-size:10px;color:#77937e}
+.doc-drawing{padding:12px;border:1px solid #dce8db;border-radius:8px;background:#fbfdfa;break-inside:avoid}
+.doc-drawing .cut-svg{width:100%;height:auto;display:block;max-height:71mm;margin:auto}
+.doc-cutnote{font-size:9px;color:#8ca094;padding:9px 0 15px}
+}
 
 /* Project archive */
 .projects-overlay{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;background:rgba(14,31,22,.5);padding:16px}
@@ -73,7 +114,7 @@
     <div class="metrics"><div class="metric feature"><strong id="mSheets">—</strong><span>Gerekli stok</span></div><div class="metric"><strong id="mYield">—</strong><span>Verimlilik</span></div><div class="metric"><strong id="mCost">—</strong><span>Malzeme maliyeti</span></div><div class="metric"><strong id="mParts">—</strong><span>Yerleşen parça</span></div></div>
     <div class="status-line" id="status"><span class="status-dot"></span><span>Hesaplamak için düğmeye basın.</span></div>
   </section>
-  <section class="card" id="planCard"><div class="plans-head"><div><div class="card-title">Kesim yerleşimi</div><div class="card-sub" id="planSub">Stok başına plan</div></div><div class="card-actions"><button class="btn small" id="zoomBtn" disabled>⤢ Büyüt</button><button class="btn small" id="svgBtn" disabled>↓ SVG</button><button class="btn small" id="printBtn" disabled>⎙ Yazdır</button></div></div>
+  <section class="card" id="planCard"><div class="plans-head"><div><div class="card-title">Kesim yerleşimi</div><div class="card-sub" id="planSub">Stok başına plan</div></div><div class="card-actions"><button class="btn small" id="zoomBtn" disabled>⤢ Büyüt</button><button class="btn small hidden" id="svgBtn" disabled aria-hidden="true" tabindex="-1">↓ SVG</button><button class="btn small" id="printBtn" disabled>↓ Üretim PDF</button></div></div>
     <div class="plan-tabs" id="planTabs"></div><div id="planBody" class="empty-state"><div class="empty-icon">▤</div><strong>Kesim planı burada görünecek</strong><p>Parça ölçülerini, kalınlığı ve stokları girip yerleşimi hesaplayın.</p></div>
   </section>
   <div class="info-grid"><div class="card info-pad"><div class="card-title">Malzeme hesabı</div><div id="costDetails" class="empty-state" style="min-height:115px;padding:10px"><p>Hesaplama bekleniyor.</p></div></div><div class="card info-pad"><div class="card-title">Kesim özeti</div><div id="cutDetails" class="empty-state" style="min-height:115px;padding:10px"><p>Hesaplama bekleniyor.</p></div></div></div>
@@ -226,7 +267,49 @@ function drawActive(){const s=solution;if(!s||!s.bins.length){byId('planTabs').i
 byId('planTabs').innerHTML=s.bins.map((b,i)=>`<button class="sheet-tab ${i===activeSheet?'active':''}" data-i="${i}">Stok ${i+1} <span style="opacity:.65">· ${fmt(b.stock.t,0)} mm</span></button>`).join('');byId('planBody').className='';byId('planBody').innerHTML=planHtml(s.bins[activeSheet])+(window._unresolved||'')}
 byId('planTabs').onclick=e=>{const b=e.target.closest('button[data-i]');if(!b)return;activeSheet=Number(b.dataset.i);drawActive()};
 byId('svgBtn').onclick=()=>{if(!solution?.bins[activeSheet])return;let svg=svgFor(solution.bins[activeSheet],1600).replace('class="cut-svg"','');const m=svg.match(/viewBox="0 0 (\d+) (\d+)"/);if(m)svg=svg.replace('<svg ',`<svg width="${m[1]}" height="${m[2]}" `);download(new Blob([svg],{type:'image/svg+xml;charset=utf-8'}),`kesim-stok-${activeSheet+1}.svg`)};
-byId('printBtn').onclick=()=>{if(!solution?.bins.length)return;byId('printCollection').innerHTML=solution.bins.map((b,i)=>{const grouped=new Map();for(const p of b.placed){const key=`${p.label}|${p.l}|${p.h}|${p.t}|${p.rotated}`;if(!grouped.has(key))grouped.set(key,{...p,count:0});grouped.get(key).count++}const trs=[...grouped.values()].map(p=>`<tr><td>${esc(p.label)}</td><td>${fmt(p.w/dimFactor(),2)} × ${fmt(p.h/dimFactor(),2)} ${state.unit}</td><td>${fmt(p.t,2)} mm</td><td>${p.count}</td><td>${p.rotated?'90°':'—'}</td></tr>`).join('');return`<section class="print-sheet"><h2>${esc(state.project||'Kesim Planı')} — Stok ${i+1}/${solution.bins.length}</h2><div class="print-meta">${fmt(b.stock.l/dimFactor(),2)} × ${fmt(b.stock.w/dimFactor(),2)} ${state.unit} · ${fmt(b.stock.t,2)} mm · ${esc(b.stock.material)} · ${b.placed.length} parça</div>${svgFor(b,1600)}<table><thead><tr><th>Parça</th><th>Ölçü</th><th>Kalınlık</th><th>Adet</th><th>Döndü</th></tr></thead><tbody>${trs}</tbody></table><div class="print-end">Testere payı ${fmt(val(state.kerf),2)} mm · Kenar payı ${fmt(val(state.trim),2)} mm · ${state.mode==='nest'?'Serbest yerleşim':'Düz kesim'} · Beythaus Cut</div></section>`}).join('');window.print()};
+
+function productionFile(){
+ if(!solution||dirty||!solution.bins.length){toast('Güncel kesim planını hesaplayın.');return false}
+ const d=normalize(),sol=solution,bins=sol.bins,u=state.unit,f=dimFactor();
+ const n=x=>fmt(x,2), measured=x=>n(x/f)+' '+u, mm=x=>n(x)+' mm';
+ const date=new Date().toLocaleDateString('tr-TR',{day:'2-digit',month:'long',year:'numeric'});
+ const code='BHC-'+String(activeProjectId||'PROJE').replace(/[^a-zA-Z0-9]/g,'').slice(-8).toUpperCase();
+ const brand=(section)=>'<div class="doc-brand-row"><div class="doc-brand"><div class="doc-brand-icon">▦</div><div><b>BEYTHAUS <em>CUT</em></b><small>ÜRETİM / KESİM DOKÜMANI</small></div></div><div class="doc-ref"><b>'+esc(section)+'</b><small>'+esc(code)+' · '+esc(date)+'</small></div></div>';
+ const foot=(num)=>'<div class="doc-foot"><span>BEYTHAUS CUT · '+esc(code)+'</span><span>'+esc(num)+' · Teknik kontrol gereklidir</span></div>';
+ const cell=(title,value)=>'<div class="doc-stat"><span>'+esc(title)+'</span><strong>'+esc(value)+'</strong></div>';
+ const warning=state.mode==='nest'?'SERBEST YERLEŞİM: Çizim panel testeresinde kesim sırasını garanti etmez. Operatör uygulanabilirliği kontrol etmelidir.':'DÜZ KESİM: Kesim sırası, iş parçası bağlama ve gerçek testere payı operatör tarafından doğrulanmalıdır.';
+ const parts=state.parts.filter(p=>val(p.l)>0&&val(p.w)>0&&val(p.qty)>0).map((p,i)=>'<tr><td>'+esc(p.label||'P'+(i+1))+'</td><td>'+esc(p.material||'Ahşap')+'</td><td>'+n(val(p.l))+' × '+n(val(p.w))+' '+u+'</td><td>'+mm(val(p.t))+'</td><td>'+fmt(val(p.qty),0)+'</td><td>'+(p.rotate?'Serbest':'Sabit')+'</td></tr>').join('');
+ const stockMap=new Map();
+ for(const bin of bins){const stock=bin.stock,key=stock.material+'|'+stock.l+'|'+stock.w+'|'+stock.t;const row=stockMap.get(key)||{stock,count:0};row.count++;stockMap.set(key,row)}
+ const stocks=[...stockMap.values()].map(({stock,count})=>'<tr><td>'+esc(stock.material)+'</td><td>'+measured(stock.l)+' × '+measured(stock.w)+'</td><td>'+mm(stock.t)+'</td><td>'+count+'</td></tr>').join('');
+ const pct=sol.stockArea?100*sol.partArea/sol.stockArea:0;
+ const extra=sol.unplaced.length?'<div class="doc-caution"><b>EKSİK YERLEŞİM:</b> '+sol.unplaced.length+' parça kesim planında bulunmuyor. İmalattan önce gözden geçirin.</div>':'';
+ const cover='<section class="print-sheet">'+brand('PROJE ÖZETİ')+
+ '<div class="doc-hero"><span>ÜRETİM DOSYASI</span><h1>'+esc(state.project||'Kesim projesi')+'</h1><p>'+esc(date)+' · '+esc(code)+'</p></div>'+
+ '<div class="doc-statgrid">'+cell('PARÇA',String(d.parts.length)+' adet')+cell('STOK',String(bins.length)+' adet')+cell('YERLEŞİM VERİMİ','%'+n(pct))+cell('YÖNTEM',state.mode==='nest'?'Serbest yerleşim':'Düz kesim')+'</div>'+
+ '<div class="doc-columns"><div><h2>01 / Parça listesi</h2><table class="doc-table"><thead><tr><th>Etiket</th><th>Malzeme</th><th>Net ölçü</th><th>Kalınlık</th><th>Adet</th><th>Yön</th></tr></thead><tbody>'+parts+'</tbody></table></div>'+
+ '<div><h2>02 / Kullanılan stoklar</h2><table class="doc-table"><thead><tr><th>Malzeme</th><th>Panel ölçüsü</th><th>Kalınlık</th><th>Adet</th></tr></thead><tbody>'+stocks+'</tbody></table>'+
+ '<div class="doc-info"><b>Kesim parametreleri</b><div>Testere payı: '+mm(val(state.kerf))+'</div><div>Kenar fire payı: '+mm(val(state.trim))+' / kenar</div><div>Kesim türü: '+(state.mode==='nest'?'Serbest yerleşim':'Düz kesim')+'</div></div></div></div>'+
+ extra+'<div class="doc-caution doc-quiet">'+esc(warning)+'</div>'+foot('Özet')+'</section>';
+ const pages=bins.map((b,i)=>{
+ const groups=new Map();
+ for(const p of b.placed){const key=[p.label,p.w,p.h,p.t,p.rotated].join('|'),row=groups.get(key)||{...p,count:0};row.count++;groups.set(key,row)}
+ const rows=[...groups.values()].map(p=>'<tr><td>'+esc(p.label)+'</td><td>'+measured(p.w)+' × '+measured(p.h)+'</td><td>'+mm(p.t)+'</td><td>'+p.count+'</td><td>'+(p.rotated?'90°':'—')+'</td></tr>').join('');
+ const used=b.placed.reduce((total,p)=>total+p.w*p.h,0),use=100*used/(b.stock.l*b.stock.w);
+ return '<section class="print-sheet">'+brand('STOK '+(i+1)+' / '+bins.length)+
+ '<div class="doc-paneltitle"><div><h1>Stok '+(i+1)+' <span>Kesim yerleşimi</span></h1><p>'+esc(b.stock.material)+' · '+measured(b.stock.l)+' × '+measured(b.stock.w)+' · '+mm(b.stock.t)+'</p></div><div class="doc-paneltag"><b>'+b.placed.length+' parça</b><span>%'+n(use)+' verim</span></div></div>'+
+ '<div class="doc-drawing">'+svgFor(b,1600)+'</div>'+
+ '<div class="doc-cutnote">Yerleşim çizimi · Testere payı '+mm(val(state.kerf))+' · Kenar payı '+mm(val(state.trim))+' / kenar · '+(state.mode==='nest'?'Serbest yerleşim':'Düz kesim')+'</div>'+
+ '<h2>Bu stoktan üretilecek parçalar</h2><table class="doc-table"><thead><tr><th>Etiket</th><th>Net ölçü</th><th>Kalınlık</th><th>Adet</th><th>Dönüş</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+ '<div class="doc-caution doc-quiet">'+esc(warning)+'</div>'+foot('Stok '+(i+1))+'</section>'
+ }).join('');
+ byId('printCollection').innerHTML=cover+pages;
+ return true
+}
+byId('printBtn').onclick=()=>{
+ if(productionFile()){window.print()}
+};
+
 byId('zoomBtn').onclick=()=>{if(!solution?.bins[activeSheet])return;const b=solution.bins[activeSheet];byId('modalTitle').textContent=`Stok ${activeSheet+1} · ${fmt(b.stock.l/dimFactor(),1)} × ${fmt(b.stock.w/dimFactor(),1)} ${state.unit}`;byId('modalBody').innerHTML='<div class="drawing-wrap"><div class="drawing-inner">'+svgFor(b,1600)+'</div></div>';byId('modal').classList.remove('hidden');document.body.classList.add('no-overflow')};
 function closeModal(){byId('modal').classList.add('hidden');document.body.classList.remove('no-overflow')};byId('modalClose').onclick=closeModal;byId('modal').onclick=e=>{if(e.target.id==='modal')closeModal()};document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();run()}});
 let processing=false;function run(){if(processing)return;const data=normalize();if(data.errors.length){toast(data.errors[0]);return}processing=true;byId('runBtn').textContent='Hesaplanıyor…';byId('mobileRunBtn').textContent='Hesaplanıyor…';requestAnimationFrame(()=>setTimeout(()=>{try{const sol=optimize(data),errors=validateLayout(sol,{kerf:data.kerf,trim:data.trim});if(errors.length)throw Error(errors.join(' '));showResult(data,sol);byId('results').scrollIntoView({behavior:'smooth',block:'start'});if(sol.unplaced.length)toast(sol.unplaced.length+' parça yerleştirilemedi.')}catch(err){console.error(err);toast('Hesaplama hatası: '+err.message)}finally{processing=false;byId('runBtn').textContent='▣  Yerleşimi hesapla';byId('mobileRunBtn').textContent='▣  Yerleşimi hesapla'}},15))}
