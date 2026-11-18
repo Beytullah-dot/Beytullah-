@@ -1025,7 +1025,7 @@ function planHtml(bin){
  const steps=rows.map(x=>'<tr><td>'+x.n+'</td><td>'+x.axis+'</td><td>'+x.source+'</td><td>'+x.offset+'</td><td>'+esc(x.label)+'</td></tr>').join('');
  const offcutPanel='<details class="offcut-panel"><summary>Kullanılabilir artıklar <b>'+info.count+' adet · '+fmt(info.area/1e6,3)+' m²</b></summary><div class="offcut-panel-body">'+
  (info.count?'<div class="table-wrap"><table class="offcut-table"><thead><tr><th>No</th><th>Ölçü</th><th>Alan</th></tr></thead><tbody>'+pieces+'</tbody></table></div>':'<p>Eşik değerlerini karşılayan artık parça yok.</p>')+
- '<p>En dar kenar ≥ '+fmt(val(state.offcutMinEdgeMm),1)+' mm ve alan ≥ '+fmt(val(state.offcutMinAreaCm2),1)+' cm². Kenar payı ve testere talaşı kullanılabilir artığa dahil değildir.</p></div></details>';
+ '<p>En dar kenar ≥ '+fmt(val(state.offcutMinEdgeMm),1)+' mm ve alan ≥ '+fmt(val(state.offcutMinAreaCm2),1)+' cm². Kenar payı ve testere talaşı kullanılabilir artığa dahil değildir. Artık yerleşim araması sezgiseldir; mutlak optimumluk garantisi vermez.</p></div></details>';
  const stepsPanel='<details class="offcut-panel"><summary>Önerilen kesim sırası <b>'+cutCount+' adım</b></summary><div class="offcut-panel-body">'+
  (rows.length?'<div class="table-wrap"><table class="offcut-table"><thead><tr><th>Adım</th><th>Kesim</th><th>Kaynak parça</th><th>Net mesafe</th><th>Etiket</th></tr></thead><tbody>'+steps+'</tbody></table></div>':'<p>Bu yerleşimde ayrıca kesim gerekmedi.</p>')+
  '<p>Net mesafe, kesilecek alt parçanın sol veya üst kenarından ölçülür; testere kalınlığı ayrıca hesaba katılmıştır. Bağlama ve kesme güvenliği operatör tarafından doğrulanmalıdır.</p></div></details>';
