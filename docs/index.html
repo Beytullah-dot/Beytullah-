@@ -108,6 +108,19 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
 .offcut-table th{color:#688475;font-weight:700;background:#f2f6f1}
 .optimality-row{font-size:11px;line-height:1.5;color:#667b6d;padding-top:9px}
 .optimality-row.is-proven{color:#2e6949;font-weight:600}
+
+.remnant-summary{padding:5px 17px 8px;color:#5b7563;font-size:12px;line-height:1.5}
+.remnant-enable{display:flex;align-items:center;gap:9px;cursor:pointer;padding:8px 17px 10px;font-size:11px;font-weight:600;color:#456d53;line-height:1.5}
+.remnant-enable input{width:16px;height:16px;accent-color:#467c5c;flex:none}
+.remnant-actions{padding:0 17px 6px}
+.remnant-actions .btn{max-width:100%;white-space:normal;text-align:left}
+.remnant-warning{padding:0 17px 14px;margin:0;font-size:10px;color:#8b9a8f;line-height:1.6}
+.remnant-row{display:flex;gap:12px;align-items:center;border-bottom:1px solid #edf0eb;padding:12px 7px;flex-wrap:wrap}
+.remnant-detail{flex:1;min-width:130px;display:flex;flex-direction:column;gap:3px}
+.remnant-detail strong{font-size:12px;color:#365343}
+.remnant-detail small{font-size:10px;color:#7a8d7e}
+.remnant-row .project-ops{margin:0}
+.remnant-row.is-used{opacity:.68}
 </style>
 </head>
 <body>
@@ -124,6 +137,14 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
   <div class="card" id="stocksCard"><div class="card-head"><div><div class="card-title">Stok paneller <span class="count" id="stockCount">0</span></div><div class="card-sub">Elinizdeki ham malzemeler</div></div><div class="card-actions"><button class="btn small thickness-toggle" id="stocksThicknessToggle" aria-pressed="true" title="Stok kalınlığı aç/kapat" type="button">Kalınlık ✓</button><button class="btn small" id="addStockTop">＋ Ekle</button></div></div>
     <div class="table-wrap"><table class="edit-table" style="min-width:605px"><colgroup><col style="width:76px"><col style="width:70px"><col style="width:68px"><col style="width:56px"><col style="width:104px"><col style="width:90px"><col style="width:32px"></colgroup><thead><tr><th>Boy <span class="unitLabel">cm</span></th><th>En <span class="unitLabel">cm</span></th><th>Kal. mm</th><th>Stok</th><th>Malzeme</th><th>₺ / Panel</th><th></th></tr></thead><tbody id="stockRows"></tbody></table></div>
     <div class="card-foot"><button class="link-action" id="addStock">＋ Stok ekle</button><span class="hint">Stok 999 = bol miktar</span></div>
+  </div>
+
+  <div class="card" id="remnantCard">
+   <div class="card-head"><div><div class="card-title">Artık stok envanteri <span class="count" id="remnantCount">0</span></div><div class="card-sub">Kesimlerden kalan gerçek malzemeler</div></div><div class="card-actions"><button class="btn small" id="remnantManageBtn" type="button">Yönet</button></div></div>
+   <div class="remnant-summary" id="remnantSummary">Kayıtlı kullanılabilir artık yok.</div>
+   <label class="remnant-enable"><input type="checkbox" id="useRemnantStockInput" checked><span>Mevcut artıkları yeni yerleşimlerde otomatik değerlendir</span></label>
+   <div class="remnant-actions"><button class="btn small" id="remnantConfirmProductionBtn" type="button" disabled>✓ Üretimi onayla · artıkları kaydet</button></div>
+   <p class="remnant-warning">Artıklar yalnız fiziksel kesim tamamlandıktan sonra kaydedilir. Plan hesaplamak stok tüketmez. Envanter bu tarayıcıda tutulur; düzenli yedek alın.</p>
   </div>
   <div class="card" id="settingsCard"><div class="card-head"><div><div class="card-title">Hesap ayarları</div><div class="card-sub">Kesim ve fiyat</div></div></div>
     <div class="settings-body">
@@ -169,6 +190,15 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
     </div>
   </div>
 </div>
+
+<div id="remnantOverlay" class="projects-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="remnantHeading">
+ <div class="projects-panel">
+  <div class="projects-head"><h2 id="remnantHeading">Artık stok envanteri <span class="count" id="remnantModalCount">0</span></h2><button class="btn icononly" id="remnantCloseBtn" aria-label="Kapat" type="button">×</button></div>
+  <div class="projects-tools"><button class="btn" id="remnantExportBtn" type="button">↓ Envanter yedeği</button><button class="btn" id="remnantImportBtn" type="button">↑ Yedek yükle</button><input id="remnantImportFile" type="file" accept=".json,application/json" hidden></div>
+  <div id="remnantList" class="projects-list"></div>
+  <div class="projects-bottom"><p class="projects-note">Stok eklemek için doğrulanmış <b>düz kesim planından sonra fiziksel üretimi onaylayın</b>. “Kullanıldı” işaretlenen malzeme sonraki hesaplara katılmaz. Yedek başka cihazda yüklenebilir; otomatik eşitleme yoktur.</p></div>
+ </div>
+</div>
 <script>
 (()=>{'use strict';
 const byId=id=>document.getElementById(id),qsa=s=>Array.from(document.querySelectorAll(s));
@@ -182,12 +212,180 @@ function nextPartLabel(rows){const used=new Set(rows.map(p=>String(p.label??'').
 function ensurePartLabels(rows){const used=new Set(rows.map(p=>String(p.label??'').trim().toLocaleUpperCase('tr-TR')).filter(Boolean));let i=1;for(const p of rows){if(String(p.label??'').trim())continue;let code;do{code='P'+String(i++).padStart(2,'0')}while(used.has(code));p.label=code;used.add(code)}}
 const round=(n,d=3)=>Math.round(n*10**d)/10**d;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const defaultData=()=>({version:2,partsThicknessEnabled:true,stocksThicknessEnabled:true,project:'Atölye projesi',unit:'cm',kerf:3,trim:0,offcutMinEdgeMm:50,offcutMinAreaCm2:100,mode:'nest',priceMode:'m3',m3Price:25000,parts:[[40,24,30,2,'Ahşap','P01'],[38,24,30,1,'Ahşap','P02'],[31,24,30,1,'Ahşap','P03'],[180,5,30,2,'Ahşap','P04'],[40,5,30,3,'Ahşap','P05'],[52,12,30,2,'Ahşap','P06']].map(([l,w,t,qty,material,label])=>({id:uid(),l,w,t,qty,material,label,rotate:true})),stocks:[{id:uid(),l:300,w:30,t:30,qty:999,material:'Ahşap',price:0}]});
+const defaultData=()=>({version:2,partsThicknessEnabled:true,stocksThicknessEnabled:true,project:'Atölye projesi',unit:'cm',kerf:3,trim:0,offcutMinEdgeMm:50,offcutMinAreaCm2:100,useRemnantStock:true,mode:'nest',priceMode:'m3',m3Price:25000,parts:[[40,24,30,2,'Ahşap','P01'],[38,24,30,1,'Ahşap','P02'],[31,24,30,1,'Ahşap','P03'],[180,5,30,2,'Ahşap','P04'],[40,5,30,3,'Ahşap','P05'],[52,12,30,2,'Ahşap','P06']].map(([l,w,t,qty,material,label])=>({id:uid(),l,w,t,qty,material,label,rotate:true})),stocks:[{id:uid(),l:300,w:30,t:30,qty:999,material:'Ahşap',price:0}]});
 let state,solution=null,activeSheet=0,dirty=true,lastSaved='';
 const stored=()=>{try{const txt=localStorage.getItem('beythaus-cut-v2');return txt?JSON.parse(txt):null}catch{return null}};
 const save=()=>{try{localStorage.setItem('beythaus-cut-v2',JSON.stringify(state));if(typeof projectLibrary!=='undefined'&&activeProjectId){let p=projectLibrary.find(x=>x.id===activeProjectId);if(p){p.name=String(state.project||'İsimsiz proje').slice(0,60);p.updatedAt=Date.now();p.data=JSON.parse(JSON.stringify(state));localStorage.setItem('beythaus-cut-project-library-v1',JSON.stringify(projectLibrary))}}}catch(err){console.warn('Yerel kayıt yapılamadı',err)}};
-function sanitize(o){if(!o||typeof o!=='object'||!Array.isArray(o.parts)||!Array.isArray(o.stocks))throw Error('Geçersiz proje dosyası');let p=defaultData();p.project=String(o.project||p.project).slice(0,60);p.unit=o.unit==='mm'?'mm':'cm';p.kerf=Number.isFinite(val(o.kerf))?val(o.kerf):3;p.trim=Number.isFinite(val(o.trim))?val(o.trim):0;p.offcutMinEdgeMm=Number.isFinite(val(o.offcutMinEdgeMm))?val(o.offcutMinEdgeMm):50;p.offcutMinAreaCm2=Number.isFinite(val(o.offcutMinAreaCm2))?val(o.offcutMinAreaCm2):100;p.mode=o.mode==='guillotine'?'guillotine':'nest';p.priceMode=o.priceMode==='panel'?'panel':'m3';p.m3Price=Number.isFinite(val(o.m3Price))?val(o.m3Price):25000;p.partsThicknessEnabled=typeof o.partsThicknessEnabled==='boolean'?o.partsThicknessEnabled:o.parts.some(x=>String(x.t??'').trim()!=='');p.stocksThicknessEnabled=typeof o.stocksThicknessEnabled==='boolean'?o.stocksThicknessEnabled:o.stocks.some(x=>String(x.t??'').trim()!=='');p.parts=o.parts.slice(0,250).map(x=>({id:uid(),l:x.l??'',w:x.w??'',t:x.t??'',qty:x.qty??1,material:String(x.material??'Ahşap').slice(0,80),label:String(x.label??'').slice(0,70),rotate:x.rotate!==false}));p.stocks=o.stocks.slice(0,100).map(x=>({id:uid(),l:x.l??'',w:x.w??'',t:x.t??'',qty:x.qty??1,material:String(x.material??'Ahşap').slice(0,80),price:x.price??0}));return p}
+function sanitize(o){if(!o||typeof o!=='object'||!Array.isArray(o.parts)||!Array.isArray(o.stocks))throw Error('Geçersiz proje dosyası');let p=defaultData();p.project=String(o.project||p.project).slice(0,60);p.unit=o.unit==='mm'?'mm':'cm';p.kerf=Number.isFinite(val(o.kerf))?val(o.kerf):3;p.trim=Number.isFinite(val(o.trim))?val(o.trim):0;p.offcutMinEdgeMm=Number.isFinite(val(o.offcutMinEdgeMm))?val(o.offcutMinEdgeMm):50;p.offcutMinAreaCm2=Number.isFinite(val(o.offcutMinAreaCm2))?val(o.offcutMinAreaCm2):100;p.useRemnantStock=o.useRemnantStock!==false;p.mode=o.mode==='guillotine'?'guillotine':'nest';p.priceMode=o.priceMode==='panel'?'panel':'m3';p.m3Price=Number.isFinite(val(o.m3Price))?val(o.m3Price):25000;p.partsThicknessEnabled=typeof o.partsThicknessEnabled==='boolean'?o.partsThicknessEnabled:o.parts.some(x=>String(x.t??'').trim()!=='');p.stocksThicknessEnabled=typeof o.stocksThicknessEnabled==='boolean'?o.stocksThicknessEnabled:o.stocks.some(x=>String(x.t??'').trim()!=='');p.parts=o.parts.slice(0,250).map(x=>({id:uid(),l:x.l??'',w:x.w??'',t:x.t??'',qty:x.qty??1,material:String(x.material??'Ahşap').slice(0,80),label:String(x.label??'').slice(0,70),rotate:x.rotate!==false}));p.stocks=o.stocks.slice(0,100).map(x=>({id:uid(),l:x.l??'',w:x.w??'',t:x.t??'',qty:x.qty??1,material:String(x.material??'Ahşap').slice(0,80),price:x.price??0}));return p}
 try{state=sanitize(stored()||defaultData())}catch{state=defaultData()}
+
+// A separate, device-local physical stock ledger. Every item represents ONE
+// actual remnant in millimeters, not a hypothetical cut-plan rectangle.
+const REMNANT_KEY='beythaus-cut-remnant-library-v1',MAX_REMNANTS=700;
+function cleanRemnant(raw){
+ if(!raw||typeof raw!=='object'||!raw.id)return null;
+ const l=Number(raw.l),w=Number(raw.w),t=raw.t===null?null:Number(raw.t);
+ if(!(l>0&&w>0&&l<=1e7&&w<=1e7&&
+    (t===null||Number.isFinite(t)&&t>0&&t<=1e5)))return null;
+ return {id:String(raw.id).slice(0,90),l,w,t,
+  material:String(raw.material||'Ahşap').slice(0,80),
+  sourceKey:String(raw.sourceKey||'').slice(0,180),
+  projectName:String(raw.projectName||'').slice(0,60),
+  status:raw.status==='used'?'used':'available',
+  createdAt:Number(raw.createdAt)||Date.now(),
+  usedAt:raw.status==='used'?Number(raw.usedAt)||Date.now():null}
+}
+function readRemnantDB(){
+ try{
+  const obj=JSON.parse(localStorage.getItem(REMNANT_KEY)||'null');
+  if(!obj||obj.version!==1||!Array.isArray(obj.pieces))return {version:1,pieces:[],batches:[]};
+  const pieces=[],seen=new Set();
+  for(const item of obj.pieces.slice(0,MAX_REMNANTS)){
+   const p=cleanRemnant(item);
+   if(p&&!seen.has(p.id)){seen.add(p.id);pieces.push(p)}
+  }
+  return {version:1,pieces,batches:Array.isArray(obj.batches)?obj.batches.slice(-900):[]}
+ }catch{return {version:1,pieces:[],batches:[]}}
+}
+let remnantDB=readRemnantDB();
+function availableRemnants(){return remnantDB.pieces.filter(x=>x.status==='available')}
+function inventoryStocksForPlan(){
+ if(!state.useRemnantStock)return [];
+ return availableRemnants().map((r,i)=>({
+  id:'REM:'+r.id,l:r.l,w:r.w,
+  // Retain the recorded physical thickness even if this project's geometric
+  // dimensions are intentionally configured as 2D-only.
+  t:state.partsThicknessEnabled||state.stocksThicknessEnabled?r.t:null,
+  physicalThickness:r.t,qty:1,price:0,material:r.material,
+  order:state.stocks.length+i,isRemnant:true,remnantId:r.id
+ }))
+}
+function commitRemnants(next){
+ if(next.pieces.length>MAX_REMNANTS){toast('Envanter kapasitesi doldu. Yedek alın ve eski kayıtları temizleyin.');return false}
+ try{
+  localStorage.setItem(REMNANT_KEY,JSON.stringify(next));
+  remnantDB=next;
+  refreshRemnantUI();
+  return true
+ }catch{
+  toast('Envanter kaydedilemedi; tarayıcı depolama alanını kontrol edin.');
+  return false
+ }
+}
+function refreshRemnantUI(){
+ const current=availableRemnants(),count=current.length,area=current.reduce((n,p)=>n+p.l*p.w,0);
+ byId('remnantCount').textContent=count;
+ byId('remnantModalCount').textContent=remnantDB.pieces.length;
+ byId('remnantSummary').textContent=count?count+' kullanılabilir parça · '+fmt(area/1e6,3)+' m²':'Envanterde kullanılabilir artık bulunmuyor.';
+ byId('useRemnantStockInput').checked=state.useRemnantStock;
+ byId('remnantConfirmProductionBtn').disabled=!!(dirty||!lastAudit?.ok||!solution||
+  solution.productionRecorded||solution.unplaced.length||state.mode!=='guillotine'||!solution.bins.length);
+ renderRemnantList()
+}
+function renderRemnantList(){
+ const list=remnantDB.pieces.slice().sort((a,b)=>b.createdAt-a.createdAt);
+ byId('remnantList').innerHTML=list.length?list.map(p=>
+  '<div class="remnant-row '+(p.status==='used'?'is-used':'')+'"><div class="project-symbol">▦</div>'+
+  '<div class="remnant-detail"><strong>'+fmt(p.l,1)+' × '+fmt(p.w,1)+' mm · '+esc(p.material)+'</strong>'+
+  '<small>Kalınlık: '+esc(thicknessText(p.t))+' · '+(p.status==='available'?'Mevcut':'Kullanıldı')+'</small>'+
+  '<small>'+esc(p.projectName||'Kayıtsız üretim')+' · '+new Date(p.createdAt).toLocaleDateString('tr-TR')+'</small></div>'+
+  '<div class="project-ops"><button class="btn" data-remnant-action="toggle" data-remnant-id="'+esc(p.id)+'">'+
+  (p.status==='available'?'Kullanıldı':'Geri al')+'</button>'+
+  '<button class="btn danger" data-remnant-action="delete" data-remnant-id="'+esc(p.id)+'">Sil</button></div></div>'
+ ).join(''):'<div class="empty-state" style="min-height:130px"><strong>Henüz kayıtlı artık yok.</strong><p>Düz kesim üretimini onayladığınızda uygun parçalar burada listelenecek.</p></div>';
+}
+function setRemnantStatus(id,status){
+ const existing=remnantDB.pieces.find(p=>p.id===id);
+ if(!existing||!['used','available'].includes(status)||existing.status===status)return false;
+ const next={...remnantDB,pieces:remnantDB.pieces.map(p=>p.id===id?
+  {...p,status,usedAt:status==='used'?Date.now():null}:p)};
+ if(!commitRemnants(next))return false;
+ changed();return true
+}
+function deleteRemnant(id){
+ const target=remnantDB.pieces.find(p=>p.id===id);
+ if(!target)return false;
+ if(!confirm(fmt(target.l,1)+' × '+fmt(target.w,1)+' mm artık stok kaydı silinsin mi? Bu işlem geri alınamaz.'))return false;
+ if(!commitRemnants({...remnantDB,pieces:remnantDB.pieces.filter(p=>p.id!==id)}))return false;
+ changed();return true
+}
+function remnantPlanSignature(result){
+ const payload={project:activeProjectId,kerf:state.kerf,trim:state.trim,mode:state.mode,
+  boards:result.bins.map(b=>({stock:[
+   b.stock.isRemnant?b.stock.remnantId:'raw',b.stock.l,b.stock.w,
+   b.stock.physicalThickness??b.stock.t,b.stock.material],
+   pieces:b.placed.map(p=>[p.label,p.x,p.y,p.w,p.h,!!p.rotated])
+    .sort((a,b)=>JSON.stringify(a).localeCompare(JSON.stringify(b))),
+   offcuts:collectOffcuts(b).pieces.map(p=>[p.x,p.y,p.w,p.h])
+  }))};
+ const text=JSON.stringify(payload);let h=2166136261;
+ for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619)}
+ return (h>>>0).toString(36)
+}
+function registerRemnantProduction(){
+ if(dirty||!lastAudit?.ok||!solution||state.mode!=='guillotine'||
+  solution.unplaced.length||!solution.bins.length){
+  toast('Önce eksiksiz, geometrisi doğrulanmış düz kesim planı oluşturun.');return false
+ }
+ if(solution.productionRecorded){toast('Bu hesaplama için üretim zaten onaylandı.');return false}
+ const usedIds=[...new Set(solution.bins.filter(b=>b.stock.isRemnant).map(b=>b.stock.remnantId))];
+ if(usedIds.some(id=>!remnantDB.pieces.some(p=>p.id===id&&p.status==='available'))){
+  toast('Planlanmış artık stoklardan biri artık mevcut değil. Tekrar hesaplayın.');return false
+ }
+ const recovered=[];
+ for(let bi=0;bi<solution.bins.length;bi++){
+  const b=solution.bins[bi];
+  for(let ri=0,leaves=collectOffcuts(b).pieces;ri<leaves.length;ri++){
+   const p=leaves[ri];
+   recovered.push({boardIndex:bi,pieceIndex:ri,l:p.w,w:p.h,material:b.stock.material,
+    t:b.stock.physicalThickness??b.stock.t})
+  }
+ }
+ const signature=remnantPlanSignature(solution);
+ const previouslySaved=remnantDB.batches.some(b=>b.projectId===activeProjectId&&b.signature===signature);
+ if(previouslySaved&&!confirm('Aynı kesim planının üretimi daha önce kaydedilmiş. Fiziksel olarak ayrı bir yeni üretim partisi mi yaptınız?'))return false;
+ if(!confirm('Üretimin FİZİKSEL OLARAK tamamlandığını onaylıyor musunuz? '+recovered.length+
+  ' artık parça envantere eklenecek'+(usedIds.length?', kullanılan '+usedIds.length+' mevcut artık tüketilecek':'')+
+  '. Yalnız planlama yaptıysanız bu işlemi onaylamayın.'))return false;
+ if(remnantDB.pieces.length+recovered.length>MAX_REMNANTS){
+  toast('Envanter sınırına ulaşıldı. Önce yedek alın.');return false
+ }
+ const batchId='B'+Date.now().toString(36)+uid();
+ const now=Date.now(),created=recovered.map(p=>cleanRemnant({
+  id:'R'+Date.now().toString(36)+uid()+p.boardIndex+p.pieceIndex,
+  l:p.l,w:p.w,t:p.t,material:p.material,sourceKey:batchId+':'+p.boardIndex+':'+p.pieceIndex,
+  projectName:state.project,status:'available',createdAt:now
+ }));
+ if(created.some(x=>!x)){toast('Artık ölçülerinden biri geçersiz.');return false}
+ const next={...remnantDB,
+  pieces:remnantDB.pieces.map(p=>usedIds.includes(p.id)?{...p,status:'used',usedAt:now}:p).concat(created),
+  batches:remnantDB.batches.concat([{id:batchId,projectId:activeProjectId,
+   projectName:state.project,signature,createdAt:now,usedIds,
+   createdIds:created.map(p=>p.id)}]).slice(-900)
+ };
+ if(!commitRemnants(next))return false;
+ solution.productionRecorded=true;
+ refreshRemnantUI();
+ toast('Üretim kaydedildi: '+created.length+' yeni artık, '+usedIds.length+' tüketilen stok.');
+ return true
+}
+function mergeRemnantBackup(payload){
+ if(!payload||payload.kind!=='beythaus-cut-remnant-backup'||payload.version!==1||
+   !Array.isArray(payload.pieces))throw Error('Geçerli Beythaus Cut envanter yedeği değil.');
+ const existingIds=new Set(remnantDB.pieces.map(x=>x.id)),
+       existingKeys=new Set(remnantDB.pieces.map(x=>x.sourceKey).filter(Boolean));
+ const additions=[];
+ for(const raw of payload.pieces.slice(0,MAX_REMNANTS)){
+  const r=cleanRemnant(raw);
+  if(!r||existingIds.has(r.id)||(r.sourceKey&&existingKeys.has(r.sourceKey)))continue;
+  existingIds.add(r.id);if(r.sourceKey)existingKeys.add(r.sourceKey);additions.push(r)
+ }
+ if(!additions.length)return 0;
+ if(!commitRemnants({...remnantDB,pieces:remnantDB.pieces.concat(additions)}))
+  throw Error('Envanter yedeği kaydedilemedi.');
+ changed();return additions.length
+}
+
 let projectLibrary=[],activeProjectId='';
 try{const a=JSON.parse(localStorage.getItem('beythaus-cut-project-library-v1')||'[]');if(Array.isArray(a)){projectLibrary=a.filter(x=>x&&typeof x.id==='string'&&x.data&&Array.isArray(x.data.parts)&&Array.isArray(x.data.stocks)).slice(0,250)}}catch{}
 try{activeProjectId=localStorage.getItem('beythaus-cut-active-project-v1')||''}catch{}
@@ -202,8 +400,8 @@ byId('partCount').textContent=fmt(state.parts.reduce((s,p)=>s+(Number(val(p.qty)
 }
 function syncThicknessVisibility(){for(const [flag,cardId,buttonId] of [['partsThicknessEnabled','partsCard','partsThicknessToggle'],['stocksThicknessEnabled','stocksCard','stocksThicknessToggle']]){const on=state[flag]!==false,btn=byId(buttonId);byId(cardId).classList.toggle('thickness-off',!on);btn.setAttribute('aria-pressed',String(on));btn.textContent='Kalınlık '+(on?'✓':'＋');btn.classList.toggle('thickness-on',on)}}
 for(const [flag,buttonId] of [['partsThicknessEnabled','partsThicknessToggle'],['stocksThicknessEnabled','stocksThicknessToggle']])byId(buttonId).onclick=()=>{state[flag]=!state[flag];syncThicknessVisibility();changed()};
-function syncSettings(){syncThicknessVisibility();byId('unitSelect').value=state.unit;byId('kerfInput').value=state.kerf;byId('trimInput').value=state.trim;byId('projectName').value=state.project;byId('m3Input').value=state.m3Price;byId('offcutEdgeInput').value=state.offcutMinEdgeMm;byId('offcutAreaInput').value=state.offcutMinAreaCm2;for(const b of qsa('#modeSegment button'))b.classList.toggle('active',b.dataset.mode===state.mode);for(const b of qsa('#priceSegment button'))b.classList.toggle('active',b.dataset.price===state.priceMode);byId('m3Field').classList.toggle('hidden',state.priceMode==='panel');byId('priceHelp').textContent=state.priceMode==='m3'?'Toplam maliyet, kullanılan tam stokların hacmine göre hesaplanır.':'Her stok satırının ₺ / Panel fiyatı kullanılır.';byId('modeHelp').textContent=state.mode==='nest'?'Serbest yerleşim: daha sıkı dizilim; CNC ve uygun içten kesim yöntemleri için.':'Düz kesim: her adımda kenardan kenara tam kesim yapılabilecek yerleşim.';byId('resultTitle').textContent=state.project||'Kesim planı'}
-function changed(){dirty=true;lastAudit=null;byId('optimalityRow').textContent='Girdiler değişti. Optimumluk yeniden hesaplanmalı.';byId('optimalityRow').classList.remove('is-proven');byId('grossWasteProofRow').textContent='Girdiler değişti. Brüt fire yeniden hesaplanmalı.';byId('grossWasteProofRow').classList.remove('is-proven');invalidateCachedPdf();save();if(solution){for(const id of ['zoomBtn','downloadPdfTopBtn','printBtn'])byId(id).disabled=true;byId('status').className='status-line warning';byId('status').innerHTML='<span class="status-dot"></span><span>Girdiler değişti. Yeni plan için tekrar hesaplayın.</span>'}}
+function syncSettings(){syncThicknessVisibility();byId('unitSelect').value=state.unit;byId('kerfInput').value=state.kerf;byId('trimInput').value=state.trim;byId('projectName').value=state.project;byId('m3Input').value=state.m3Price;byId('offcutEdgeInput').value=state.offcutMinEdgeMm;byId('offcutAreaInput').value=state.offcutMinAreaCm2;byId('useRemnantStockInput').checked=state.useRemnantStock;for(const b of qsa('#modeSegment button'))b.classList.toggle('active',b.dataset.mode===state.mode);for(const b of qsa('#priceSegment button'))b.classList.toggle('active',b.dataset.price===state.priceMode);byId('m3Field').classList.toggle('hidden',state.priceMode==='panel');byId('priceHelp').textContent=state.priceMode==='m3'?'Toplam maliyet, kullanılan tam stokların hacmine göre hesaplanır.':'Her stok satırının ₺ / Panel fiyatı kullanılır.';byId('modeHelp').textContent=state.mode==='nest'?'Serbest yerleşim: daha sıkı dizilim; CNC ve uygun içten kesim yöntemleri için.':'Düz kesim: her adımda kenardan kenara tam kesim yapılabilecek yerleşim.';byId('resultTitle').textContent=state.project||'Kesim planı'}
+function changed(){dirty=true;lastAudit=null;refreshRemnantUI();byId('optimalityRow').textContent='Girdiler değişti. Optimumluk yeniden hesaplanmalı.';byId('optimalityRow').classList.remove('is-proven');byId('grossWasteProofRow').textContent='Girdiler değişti. Brüt fire yeniden hesaplanmalı.';byId('grossWasteProofRow').classList.remove('is-proven');invalidateCachedPdf();save();if(solution){for(const id of ['zoomBtn','downloadPdfTopBtn','printBtn'])byId(id).disabled=true;byId('status').className='status-line warning';byId('status').innerHTML='<span class="status-dot"></span><span>Girdiler değişti. Yeni plan için tekrar hesaplayın.</span>'}}
 function toast(msg){const el=byId('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove('show'),2800)}
 function bindTable(id,key){const root=byId(id);root.addEventListener('input',e=>{const t=e.target,field=t.dataset.k,row=t.closest('tr');if(!field||!row)return;const obj=state[key].find(x=>x.id===row.dataset.id);if(!obj)return;obj[field]=t.type==='checkbox'?t.checked:t.value;changed();if(field==='qty')byId('partCount').textContent=fmt(state.parts.reduce((a,p)=>a+(Number(val(p.qty))||0),0),0)});root.addEventListener('focusout',e=>{const t=e.target,row=t.closest('tr');if(key!=='parts'||t.dataset.k!=='label'||!row||String(t.value??'').trim())return;const obj=state.parts.find(p=>p.id===row.dataset.id);if(!obj)return;obj.label=nextPartLabel(state.parts);t.value=obj.label;changed()});root.addEventListener('change',e=>{const t=e.target;if(t.type!=='checkbox')return;const obj=state[key].find(x=>x.id===t.closest('tr').dataset.id);if(obj){obj[t.dataset.k]=t.checked;changed()}});root.addEventListener('click',e=>{if(e.target.dataset.action!=='delete')return;state[key]=state[key].filter(x=>x.id!==e.target.closest('tr').dataset.id);renderRows();changed()})}
 bindTable('partRows','parts');bindTable('stockRows','stocks');
@@ -247,12 +445,47 @@ byId('projectsList').onclick=e=>{const b=e.target.closest('button[data-project-a
 byId('icloudBackupBtn').onclick=async()=>{save();const name=String(state.project||'Yeni proje').trim();const slug=name.replace(/[^\p{L}\p{N}._-]+/gu,'-').slice(0,48)||'Kesim-Projesi';const filename='Beythaus-Cut-'+slug+'-'+new Date().toISOString().slice(0,10)+'.json';const txt=JSON.stringify(state,null,2);const file=new File([txt],filename,{type:'application/json'});try{if(navigator.canShare&&navigator.canShare({files:[file]})&&navigator.share){await navigator.share({files:[file],title:name+' · Beythaus Cut'});return}}catch(err){if(err.name==='AbortError')return}download(new Blob([txt],{type:'application/json;charset=utf-8'}),filename);toast('Proje yedeği indirildi. iCloud Drive’a kaydedebilirsin.')};
 byId('projectsImportBtn').onclick=()=>byId('fileInput').click();
 
+
+byId('remnantManageBtn').onclick=()=>{refreshRemnantUI();byId('remnantOverlay').classList.remove('hidden')};
+byId('remnantCloseBtn').onclick=()=>byId('remnantOverlay').classList.add('hidden');
+byId('remnantOverlay').onclick=e=>{if(e.target===byId('remnantOverlay'))byId('remnantOverlay').classList.add('hidden')};
+byId('remnantConfirmProductionBtn').onclick=registerRemnantProduction;
+byId('useRemnantStockInput').onchange=()=>{
+ state.useRemnantStock=!!byId('useRemnantStockInput').checked;changed()
+};
+byId('remnantList').onclick=e=>{
+ const button=e.target.closest('button[data-remnant-action]');if(!button)return;
+ const id=button.dataset.remnantId;
+ if(button.dataset.remnantAction==='toggle'){
+  const item=remnantDB.pieces.find(p=>p.id===id);
+  if(item)setRemnantStatus(id,item.status==='available'?'used':'available')
+ }else if(button.dataset.remnantAction==='delete')deleteRemnant(id)
+};
+byId('remnantExportBtn').onclick=()=>{
+ const backup={kind:'beythaus-cut-remnant-backup',version:1,
+  exportedAt:new Date().toISOString(),pieces:remnantDB.pieces,batches:remnantDB.batches};
+ download(new Blob([JSON.stringify(backup,null,2)],{type:'application/json;charset=utf-8'}),
+  'Beythaus-Cut-Artik-Stok-Yedek-'+new Date().toISOString().slice(0,10)+'.json');
+ toast('Envanter yedeği indirildi.')
+};
+byId('remnantImportBtn').onclick=()=>byId('remnantImportFile').click();
+byId('remnantImportFile').onchange=async e=>{
+ const file=e.target.files?.[0];if(!file)return;
+ try{
+  const data=JSON.parse(await file.text());
+  const added=mergeRemnantBackup(data);
+  toast(added?added+' artık stok envantere aktarıldı.':'Yeni kayıt bulunamadı.');
+ }catch(err){toast('Envanter yedeği yüklenemedi: '+err.message)}
+ e.target.value=''
+};
+
 byId('mobileSettings').onclick=()=>byId('settingsCard').scrollIntoView({behavior:'smooth',block:'start'});
 const dimFactor=()=>state.unit==='cm'?10:1;
 const mkey=material=>String(material).trim().toLocaleLowerCase('tr-TR');
 const area=p=>p.w*p.h;
 function normalize(){const f=dimFactor(),parts=[],stocks=[],errors=[];let sumqty=0;for(let i=0;i<state.parts.length;i++){let p=state.parts[i],l=val(p.l)*f,w=val(p.w)*f,t=state.partsThicknessEnabled?optionalThickness(p.t):null,qty=val(p.qty);if(!String(p.l).trim()&&!String(p.w).trim())continue;if(!(l>0&&w>0&&(t===null||Number.isFinite(t)&&t>0)&&Number.isInteger(qty)&&qty>0&&qty<=2000)){errors.push(`Parça ${i+1}: ölçü veya adet geçersiz; girilmişse kalınlık pozitif olmalı.`);continue}sumqty+=qty;if(sumqty>1500){errors.push('Bir seferde en fazla 1500 parça hesaplanabilir.');break}for(let j=0;j<qty;j++)parts.push({id:p.id+'-'+j,origin:p.id,l,w,t,material:String(p.material||'Ahşap').trim()||'Ahşap',label:String(p.label||`P${i+1}`).trim()||`P${i+1}`,rotate:!!p.rotate,order:i})}
 for(let i=0;i<state.stocks.length;i++){const s=state.stocks[i],l=val(s.l)*f,w=val(s.w)*f,t=state.stocksThicknessEnabled?optionalThickness(s.t):null,qty=val(s.qty),price=val(s.price);if(!String(s.l).trim()&&!String(s.w).trim())continue;if(!(l>0&&w>0&&(t===null||Number.isFinite(t)&&t>0)&&Number.isInteger(qty)&&qty>=0&&qty<=99999)){errors.push(`Stok ${i+1}: ölçü veya adet geçersiz; girilmişse kalınlık pozitif olmalı.`);continue}stocks.push({id:s.id,l,w,t,qty,price:Number.isFinite(price)?price:0,material:String(s.material||'Ahşap').trim()||'Ahşap',order:i})}
+stocks.push(...inventoryStocksForPlan());
 const kerf=val(state.kerf),trim=val(state.trim),m3=val(state.m3Price),minEdge=val(state.offcutMinEdgeMm),minArea=val(state.offcutMinAreaCm2)*100;if(!(kerf>=0&&kerf<50))errors.push('Testere payı 0–50 mm arasında olmalı.');if(!(trim>=0&&trim<200))errors.push('Kenar payı 0–200 mm arasında olmalı.');if(!(minEdge>=0&&minEdge<=100000))errors.push('Artık kısa kenar eşiği geçersiz.');if(!(minArea>=0&&minArea<=1e10))errors.push('Artık alan eşiği geçersiz.');if(state.priceMode==='m3'&&!(m3>=0))errors.push('m³ fiyatı geçersiz.');if(!parts.length)errors.push('En az bir geçerli parça girin.');if(!stocks.length)errors.push('En az bir stok panel girin.');return{parts,stocks,kerf,trim,m3,minEdge,minArea,errors}}
 function intersect(a,b){return a.x<b.x+b.w-1e-7&&a.x+a.w>b.x+1e-7&&a.y<b.y+b.h-1e-7&&a.y+a.h>b.y+1e-7}
 function contain(a,b){return a.x>=b.x-1e-7&&a.y>=b.y-1e-7&&a.x+a.w<=b.x+b.w+1e-7&&a.y+a.h<=b.y+b.h+1e-7}
@@ -263,7 +496,7 @@ function splitGuillotine(fr,used,k,dir){const rw=fr.w-used.w-k,bh=fr.h-used.h-k;
 const rand=(seed)=>()=>{seed^=seed<<13;seed^=seed>>>17;seed^=seed<<5;return (seed>>>0)/4294967296};
 function orderParts(items,trial){const rnd=rand(1013+trial*1777),f=trial%9;return items.map(it=>({...it,jitter:rnd()})).sort((a,b)=>{let sa,sb;switch(f){case 0:sa=a.l*a.w;sb=b.l*b.w;break;case 1:sa=Math.max(a.l,a.w);sb=Math.max(b.l,b.w);break;case 2:sa=Math.min(a.l,a.w);sb=Math.min(b.l,b.w);break;case 3:sa=a.l*a.w+3*Math.max(a.l,a.w);sb=b.l*b.w+3*Math.max(b.l,b.w);break;case 4:sa=a.w;sb=b.w;break;case 5:sa=a.l;sb=b.l;break;case 6:sa=(a.l*a.w)*(0.72+a.jitter*.56);sb=(b.l*b.w)*(0.72+b.jitter*.56);break;case 7:sa=Math.max(a.l,a.w)*(0.65+a.jitter*.7);sb=Math.max(b.l,b.w)*(0.65+b.jitter*.7);break;default:sa=a.l*a.w*(0.4+a.jitter*1.2);sb=b.l*b.w*(0.4+b.jitter*1.2)}return sb-sa||b.l*b.w-a.l*a.w||a.order-b.order})}
 function evalFit(fr,w,h,variant){const dw=fr.w-w,dh=fr.h-h;if(dw< -1e-7||dh< -1e-7)return Infinity;const sh=Math.min(dw,dh),lg=Math.max(dw,dh);switch(variant%5){case 0:return sh*1e3+lg;case 1:return dw*dh*1e2+sh;case 2:return lg*1000+sh;case 3:return dh*110+dw;default:return dw*110+dh}}
-function binCost(s,cfg){if(cfg.priceMode==='panel')return s.price>0?s.price:null;if(s.t===null||!(cfg.m3>0))return null;return s.l*s.w*s.t/1e9*cfg.m3}
+function binCost(s,cfg){if(s.isRemnant)return 0;if(cfg.priceMode==='panel')return s.price>0?s.price:null;if(s.t===null||!(cfg.m3>0))return null;return s.l*s.w*s.t/1e9*cfg.m3}
 function mkBin(s,trim){let w=s.l-2*trim,h=s.w-2*trim;return{stock:s,x:trim,y:trim,w,h,free:[{x:trim,y:trim,w,h}],placed:[],cuts:[]}}
 function orientationChoices(it){return it.rotate&&Math.abs(it.l-it.w)>1e-7?[[it.l,it.w,false],[it.w,it.l,true]]:[[it.l,it.w,false]]}
 function findFit(bin,it,variant){if(it.t!==null&&(bin.stock.t===null||Math.abs(it.t-bin.stock.t)>1e-6))return null;let best=null;for(let j=0;j<bin.free.length;j++){const fr=bin.free[j];for(const [w,h,rotated]of orientationChoices(it)){if(w>fr.w+1e-8||h>fr.h+1e-8)continue;if(state.mode==='guillotine'){const k=val(state.kerf),rx=fr.w-w,ry=fr.h-h;if(rx>1e-6&&rx<k-1e-6||ry>1e-6&&ry<k-1e-6)continue}let score=evalFit(fr,w,h,variant);if(score===Infinity)continue;const tie=(fr.x+fr.y)*.00001+Number(rotated)*.00001;score+=tie;if(!best||score<best.score)best={freeIndex:j,x:fr.x,y:fr.y,w,h,rotated,score,fr}}}return best}
@@ -1031,10 +1264,10 @@ function planHtml(bin){
  '<p>Net mesafe, kesilecek alt parçanın sol veya üst kenarından ölçülür; testere kalınlığı ayrıca hesaba katılmıştır. Bağlama ve kesme güvenliği operatör tarafından doğrulanmalıdır.</p></div></details>';
  return base+'<div class="offcut-panels">'+offcutPanel+stepsPanel+'</div>';
 }
-function showEmpty(){dirty=true;lastAudit=null;byId('optimalityRow').textContent='Minimum stok sayısı: hesaplama bekleniyor.';byId('optimalityRow').classList.remove('is-proven');byId('grossWasteProofRow').textContent='Brüt fire optimumluğu: hesaplama bekleniyor.';byId('grossWasteProofRow').classList.remove('is-proven');invalidateCachedPdf();byId('mSheets').textContent='—';byId('mYield').textContent='—';byId('mCost').textContent='—';byId('mParts').textContent='—';byId('summarySub').textContent='Parçalar ve stok hazır.';byId('status').className='status-line';byId('status').innerHTML='<span class="status-dot"></span><span>Hesaplamak için düğmeye basın.</span>';byId('planTabs').innerHTML='';byId('planBody').className='empty-state';byId('planBody').innerHTML='<div class="empty-icon">▤</div><strong>Kesim planı burada görünecek</strong><p>Parça ve stok ölçülerini girip yerleşimi hesaplayın. Kalınlık isteğe bağlıdır.</p>';byId('costDetails').innerHTML='<p style="color:#8a968d;font-size:12px">Hesaplama bekleniyor.</p>';byId('cutDetails').innerHTML='<p style="color:#8a968d;font-size:12px">Hesaplama bekleniyor.</p>';for(const id of ['zoomBtn','downloadPdfTopBtn','printBtn'])byId(id).disabled=true}
+function showEmpty(){dirty=true;lastAudit=null;refreshRemnantUI();byId('optimalityRow').textContent='Minimum stok sayısı: hesaplama bekleniyor.';byId('optimalityRow').classList.remove('is-proven');byId('grossWasteProofRow').textContent='Brüt fire optimumluğu: hesaplama bekleniyor.';byId('grossWasteProofRow').classList.remove('is-proven');invalidateCachedPdf();byId('mSheets').textContent='—';byId('mYield').textContent='—';byId('mCost').textContent='—';byId('mParts').textContent='—';byId('summarySub').textContent='Parçalar ve stok hazır.';byId('status').className='status-line';byId('status').innerHTML='<span class="status-dot"></span><span>Hesaplamak için düğmeye basın.</span>';byId('planTabs').innerHTML='';byId('planBody').className='empty-state';byId('planBody').innerHTML='<div class="empty-icon">▤</div><strong>Kesim planı burada görünecek</strong><p>Parça ve stok ölçülerini girip yerleşimi hesaplayın. Kalınlık isteğe bağlıdır.</p>';byId('costDetails').innerHTML='<p style="color:#8a968d;font-size:12px">Hesaplama bekleniyor.</p>';byId('cutDetails').innerHTML='<p style="color:#8a968d;font-size:12px">Hesaplama bekleniyor.</p>';for(const id of ['zoomBtn','downloadPdfTopBtn','printBtn'])byId(id).disabled=true}
 function kv(k,v){return`<div class="kv"><span>${esc(k)}</span><strong>${v}</strong></div>`}
 let lastAudit=null;
-function showResult(data,sol){const audit=auditCutPlan(sol,data);if(!audit.ok)throw Error('Kesim doğrulaması başarısız: '+audit.issues.slice(0,2).join(' · '));sol.stockProof=certifyStockCount(sol,data,audit);lastAudit=audit;solution=sol;dirty=false;activeSheet=0;byId('optimalityRow').textContent=stockProofDescription(sol.stockProof);byId('optimalityRow').classList.toggle('is-proven',sol.stockProof.proven);byId('grossWasteProofRow').textContent=grossWasteProofDescription(sol);byId('grossWasteProofRow').classList.toggle('is-proven',!!sol.areaProof?.proven);
+function showResult(data,sol){const audit=auditCutPlan(sol,data);if(!audit.ok)throw Error('Kesim doğrulaması başarısız: '+audit.issues.slice(0,2).join(' · '));sol.stockProof=certifyStockCount(sol,data,audit);lastAudit=audit;solution=sol;dirty=false;activeSheet=0;refreshRemnantUI();byId('optimalityRow').textContent=stockProofDescription(sol.stockProof);byId('optimalityRow').classList.toggle('is-proven',sol.stockProof.proven);byId('grossWasteProofRow').textContent=grossWasteProofDescription(sol);byId('grossWasteProofRow').classList.toggle('is-proven',!!sol.areaProof?.proven);
 const completeThickness=sol.bins.length>0&&sol.bins.every(b=>b.stock.t!==null);
 const m3Stock=completeThickness?sol.bins.reduce((a,b)=>a+b.stock.l*b.stock.w*b.stock.t,0)/1e9:null;
 const m3Parts=completeThickness?sol.bins.reduce((a,b)=>a+b.placed.reduce((sum,p)=>sum+p.w*p.h*b.stock.t,0),0)/1e9:null;
@@ -1043,12 +1276,12 @@ const yieldPct=sol.stockArea?sol.partArea/sol.stockArea*100:0,all=sol.unplaced.l
 const priceKnown=state.priceMode==='m3'?completeThickness&&data.m3>0:sol.bins.length>0&&sol.bins.every(b=>b.stock.price>0);
 const missingThicknessCost=state.priceMode==='m3'&&!completeThickness&&sol.bins.length>0;
 byId('mSheets').textContent=fmt(sol.bins.length,0);byId('mYield').textContent='%'+fmt(yieldPct,1);byId('mCost').textContent=priceKnown?money(sol.cost):'—';byId('mParts').textContent=sol.placedCount+'/'+data.parts.length;
-byId('summarySub').textContent=fmt(data.parts.length,0)+' parça · '+fmt(data.stocks.length,0)+' stok türü · '+(state.mode==='nest'?'Serbest yerleşim':'Düz kesim');
+byId('summarySub').textContent=fmt(data.parts.length,0)+' parça · '+fmt(data.stocks.length,0)+' stok türü · '+(state.mode==='nest'?'Serbest yerleşim':'Düz kesim')+(sol.bins.some(b=>b.stock.isRemnant)?' · '+sol.bins.filter(b=>b.stock.isRemnant).length+' artık stok':'');
 byId('status').className=all&&!missingThicknessCost?'status-line':'status-line warning';
 byId('status').innerHTML='<span class="status-dot"></span><span>'+(all?'Tüm parçalar yerleştirildi.':'Yerleşmeyen '+fmt(sol.unplaced.length,0)+' parça var. Stok ve ölçüleri kontrol edin.')+(missingThicknessCost?' m³ maliyeti için stok kalınlığı girilmeli.':'')+(sol.search?.savedStockCount?' Gelişmiş arama '+sol.search.savedStockCount+' stok tasarrufu buldu.':'')+' Geometri kontrolü geçti.</span>';
 byId('planSub').textContent=sol.bins.length?fmt(sol.bins.length,0)+' stok üzerinde '+fmt(sol.placedCount,0)+' parça':'Uygun stok bulunamadı';
 const unresolved=sol.unplaced.length?`<div class="warning-box"><b>Yerleşmeyen ${fmt(sol.unplaced.length,0)} parça:</b><div class="parts-pill">${Object.entries(sol.unplaced.reduce((o,p)=>(o[`${p.label} · ${fmt(p.l/dimFactor(),2)}×${fmt(p.w/dimFactor(),2)} ${state.unit} · ${thicknessText(p.t)}`]=(o[`${p.label} · ${fmt(p.l/dimFactor(),2)}×${fmt(p.w/dimFactor(),2)} ${state.unit} · ${thicknessText(p.t)}`]||0)+1,o),{})).map(([key,n])=>`<span class="pill">${esc(key)} × ${n}</span>`).join('')}</div></div>`:'';
-byId('cutDetails').innerHTML=kv('Toplam parça',fmt(data.parts.length,0))+kv('Yerleşen',fmt(sol.placedCount,0))+kv('Yerleşmeyen',sol.unplaced.length?`<span style="color:#a65d38">${fmt(sol.unplaced.length,0)}</span>`:'0')+kv('Kullanılan alan',fmt(sol.partArea/1e6,3)+' m²')+kv('Stok alanı',fmt(sol.stockArea/1e6,3)+' m²')+kv('Alan farkı',fmt((sol.stockArea-sol.partArea)/1e6,3)+' m²')+(sol.areaProof?.areaSaved>1e-5?kv('Brüt stok alanı tasarrufu',fmt(sol.areaProof.areaSaved/1e6,4)+' m²'):'')+(state.mode==='guillotine'?kv('Kullanılabilir artık',fmt(sol.bins.reduce((n,b)=>n+collectOffcuts(b).count,0),0)+' adet · '+fmt(sol.bins.reduce((n,b)=>n+collectOffcuts(b).area,0)/1e6,3)+' m²')+
+byId('cutDetails').innerHTML=kv('Toplam parça',fmt(data.parts.length,0))+kv('Yerleşen',fmt(sol.placedCount,0))+kv('Yerleşmeyen',sol.unplaced.length?`<span style="color:#a65d38">${fmt(sol.unplaced.length,0)}</span>`:'0')+kv('Kullanılan alan',fmt(sol.partArea/1e6,3)+' m²')+kv('Stok alanı',fmt(sol.stockArea/1e6,3)+' m²')+(sol.bins.some(b=>b.stock.isRemnant)?kv('Envanterden planlanan stok',sol.bins.filter(b=>b.stock.isRemnant).length+' adet; üretim onayında tüketilecek'):'')+kv('Alan farkı',fmt((sol.stockArea-sol.partArea)/1e6,3)+' m²')+(sol.areaProof?.areaSaved>1e-5?kv('Brüt stok alanı tasarrufu',fmt(sol.areaProof.areaSaved/1e6,4)+' m²'):'')+(state.mode==='guillotine'?kv('Kullanılabilir artık',fmt(sol.bins.reduce((n,b)=>n+collectOffcuts(b).count,0),0)+' adet · '+fmt(sol.bins.reduce((n,b)=>n+collectOffcuts(b).area,0)/1e6,3)+' m²')+
  kv('En büyük kullanılabilir artık',fmt(sol.bins.reduce((largest,b)=>{
   const data=collectOffcuts(b);return Math.max(largest,...data.pieces.map(p=>p.area),0)
  },0)/1e6,4)+' m²')+
@@ -1265,7 +1498,7 @@ function closeModal(){byId('modal').classList.add('hidden');document.body.classL
 let processing=false;function run(){if(processing)return;const data=normalize();if(data.errors.length){toast(data.errors[0]);return}processing=true;byId('runBtn').textContent='Hesaplanıyor…';byId('mobileRunBtn').textContent='Hesaplanıyor…';requestAnimationFrame(()=>setTimeout(()=>{try{const sol=optimize(data),errors=validateLayout(sol,{kerf:data.kerf,trim:data.trim});if(errors.length)throw Error(errors.join(' '));showResult(data,sol);byId('results').scrollIntoView({behavior:'smooth',block:'start'});if(sol.unplaced.length)toast(sol.unplaced.length+' parça yerleştirilemedi.')}catch(err){console.error(err);toast('Hesaplama hatası: '+err.message)}finally{processing=false;byId('runBtn').textContent='▣  Yerleşimi hesapla';byId('mobileRunBtn').textContent='▣  Yerleşimi hesapla'}},15))}
 byId('runBtn').onclick=run;byId('mobileRunBtn').onclick=run;
 renderRows();syncSettings();showEmpty();renderProjects();
-window.BeythausCut={normalize,optimize,optimizeBaseline:data=>optimize(data,false),refineUsableOffcuts,offcutMetrics,betterOffcuts,offcutOptimizationDescription,enumerateBoardMultisets,exactGrossAreaRefine,grossWasteProofDescription,exactUniformFeasibility,exactVariableFeasibility,exactRefinePlan,minStockCountLowerBound,certifyStockCount,stockProofDescription,validateLayout,auditCutPlan,auditGuillotineCuts,collectOffcuts,defaultData,getLastAudit:()=>lastAudit,getState:()=>state,setState:o=>{state=sanitize(o);renderRows();syncSettings();save();showEmpty()},run};
+window.BeythausCut={getRemnantDB:()=>JSON.parse(JSON.stringify(remnantDB)),inventoryStocksForPlan,registerRemnantProduction,setRemnantStatus,mergeRemnantBackup,normalize,optimize,optimizeBaseline:data=>optimize(data,false),refineUsableOffcuts,offcutMetrics,betterOffcuts,offcutOptimizationDescription,enumerateBoardMultisets,exactGrossAreaRefine,grossWasteProofDescription,exactUniformFeasibility,exactVariableFeasibility,exactRefinePlan,minStockCountLowerBound,certifyStockCount,stockProofDescription,validateLayout,auditCutPlan,auditGuillotineCuts,collectOffcuts,defaultData,getLastAudit:()=>lastAudit,getState:()=>state,setState:o=>{state=sanitize(o);renderRows();syncSettings();save();showEmpty()},run};
 })();
 </script>
 <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))}</script>
