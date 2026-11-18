@@ -39,7 +39,7 @@ const server={items:[
  createdAt:1700000000000,updatedAt:1700000000000,usedAt:null}
 ],movements:[],workspace:{id:'w1',name:'Beythaus Atölye',defaultLocation:'Raf A'},
  operations:new Map(),failNext:false};
-let totalRequests=0,idCounter=0;
+let totalRequests=0,idCounter=0,globalUuidCounter=0;
 function fakeFetch(url,options){
  totalRequests++;
  const ending=new URL(url).pathname,request=options.body?JSON.parse(options.body):{};
@@ -122,9 +122,8 @@ function createClient(device){
   cloudProductionPayload(){return null},markCloudProductionComplete(){},
   openRemnantEditor(){},getSelectedRemnantSource(){return 'qr'}
  };
- let nonce=0;
  const window={BeythausCut:app,sessionStorage,
-  location:{protocol:'https:'},crypto:{randomUUID:()=>'00000000-0000-4000-8000-'+String(++nonce).padStart(12,'0')},
+  location:{protocol:'https:'},crypto:{randomUUID:()=>'00000000-0000-4000-8000-'+String(++globalUuidCounter).padStart(12,'0')},
   addEventListener(){},print(){}};
  const context={document:doc,window,localStorage,navigator:{},URL,fetch:fakeFetch,
   setInterval(){return 1},clearInterval(){},setTimeout(){},console,Date,JSON,Number,String,
