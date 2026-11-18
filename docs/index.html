@@ -249,8 +249,64 @@ function evalFit(fr,w,h,variant){const dw=fr.w-w,dh=fr.h-h;if(dw< -1e-7||dh< -1e
 function binCost(s,cfg){if(cfg.priceMode==='panel')return s.price>0?s.price:null;if(s.t===null||!(cfg.m3>0))return null;return s.l*s.w*s.t/1e9*cfg.m3}
 function mkBin(s,trim){let w=s.l-2*trim,h=s.w-2*trim;return{stock:s,x:trim,y:trim,w,h,free:[{x:trim,y:trim,w,h}],placed:[],cuts:[]}}
 function orientationChoices(it){return it.rotate&&Math.abs(it.l-it.w)>1e-7?[[it.l,it.w,false],[it.w,it.l,true]]:[[it.l,it.w,false]]}
-function findFit(bin,it,variant){if(it.t!==null&&(bin.stock.t===null||Math.abs(it.t-bin.stock.t)>1e-6))return null;let best=null;for(let j=0;j<bin.free.length;j++){const fr=bin.free[j];for(const [w,h,rotated]of orientationChoices(it)){if(w>fr.w+1e-8||h>fr.h+1e-8)continue;let score=evalFit(fr,w,h,variant);if(score===Infinity)continue;const tie=(fr.x+fr.y)*.00001+Number(rotated)*.00001;score+=tie;if(!best||score<best.score)best={freeIndex:j,x:fr.x,y:fr.y,w,h,rotated,score,fr}}}return best}
-function applyFit(bin,it,fit,cfg,splitVariant){let used={...it,x:fit.x,y:fit.y,w:fit.w,h:fit.h,rotated:fit.rotated};bin.placed.push(used);if(cfg.mode==='nest')bin.free=splitNest(bin.free,used,cfg.kerf);else{const rect=bin.free.splice(fit.freeIndex,1)[0],dw=rect.w-used.w,dh=rect.h-used.h,dir=splitVariant===0?'vertical':splitVariant===1?'horizontal':splitVariant===2?(dw>=dh?'vertical':'horizontal'):(dw<dh?'vertical':'horizontal');bin.free.push(...splitGuillotine(rect,used,cfg.kerf,dir));if(dir==='vertical'){if(dw>1e-8)bin.cuts.push({x1:used.x+used.w+cfg.kerf/2,y1:rect.y,x2:used.x+used.w+cfg.kerf/2,y2:rect.y+rect.h});if(dh>1e-8)bin.cuts.push({x1:rect.x,y1:used.y+used.h+cfg.kerf/2,x2:rect.x+used.w,y2:used.y+used.h+cfg.kerf/2})}else{if(dh>1e-8)bin.cuts.push({x1:rect.x,y1:used.y+used.h+cfg.kerf/2,x2:rect.x+rect.w,y2:used.y+used.h+cfg.kerf/2});if(dw>1e-8)bin.cuts.push({x1:used.x+used.w+cfg.kerf/2,y1:rect.y,x2:used.x+used.w+cfg.kerf/2,y2:rect.y+used.h})}}}
+function findFit(bin,it,variant){if(it.t!==null&&(bin.stock.t===null||Math.abs(it.t-bin.stock.t)>1e-6))return null;let best=null;for(let j=0;j<bin.free.length;j++){const fr=bin.free[j];for(const [w,h,rotated]of orientationChoices(it)){if(w>fr.w+1e-8||h>fr.h+1e-8)continue;if(state.mode==='guillotine'){const k=val(state.kerf),rx=fr.w-w,ry=fr.h-h;if(rx>1e-6&&rx<k-1e-6||ry>1e-6&&ry<k-1e-6)continue}let score=evalFit(fr,w,h,variant);if(score===Infinity)continue;const tie=(fr.x+fr.y)*.00001+Number(rotated)*.00001;score+=tie;if(!best||score<best.score)best={freeIndex:j,x:fr.x,y:fr.y,w,h,rotated,score,fr}}}return best}
+
+function applyFit(bin,it,fit,cfg,splitVariant){
+ const used={...it,x:fit.x,y:fit.y,w:fit.w,h:fit.h,rotated:fit.rotated};
+ bin.placed.push(used);
+ if(cfg.mode==='nest'){bin.free=splitNest(bin.free,used,cfg.kerf);return}
+ const rect=bin.free.splice(fit.freeIndex,1)[0],dw=rect.w-used.w,dh=rect.h-used.h;
+ const dir=splitVariant===0?'vertical':splitVariant===1?'horizontal':splitVariant===2?(dw>=dh?'vertical':'horizontal'):(dw<dh?'vertical':'horizontal');
+ bin.free.push(...splitGuillotine(rect,used,cfg.kerf,dir));
+ function step(axis,source,at){
+  const alongX=axis==='vertical',x1=alongX?at:source.x,y1=alongX?source.y:at,x2=alongX?at:source.x+source.w,y2=alongX?source.y+source.h:at;
+  bin.cuts.push({x1,y1,x2,y2,axis,at,source:{x:source.x,y:source.y,w:source.w,h:source.h},label:used.label,number:bin.cuts.length+1});
+ }
+ if(dir==='vertical'){
+  if(dw>1e-6)step('vertical',rect,used.x+used.w+cfg.kerf/2);
+  if(dh>1e-6)step('horizontal',{x:rect.x,y:rect.y,w:used.w,h:rect.h},used.y+used.h+cfg.kerf/2);
+ }else{
+  if(dh>1e-6)step('horizontal',rect,used.y+used.h+cfg.kerf/2);
+  if(dw>1e-6)step('vertical',{x:rect.x,y:rect.y,w:rect.w,h:used.h},used.x+used.w+cfg.kerf/2);
+ }
+}
+function auditGuillotineCuts(bin,cfg){
+ const errors=[],tol=1e-5,eq=(a,b)=>Math.abs(a-b)<=tol;
+ const leaves=[{x:cfg.trim,y:cfg.trim,w:bin.stock.l-2*cfg.trim,h:bin.stock.w-2*cfg.trim}];
+ const same=(a,b)=>eq(a.x,b.x)&&eq(a.y,b.y)&&eq(a.w,b.w)&&eq(a.h,b.h);
+ function issue(msg){if(errors.length<10)errors.push(msg)}
+ if(!Array.isArray(bin.cuts)){issue('Kesim adımları eksik.');return errors}
+ for(let j=0;j<bin.cuts.length;j++){
+  const c=bin.cuts[j],p=c.source;if(!p||!['vertical','horizontal'].includes(c.axis)){issue('Kesim kaydı geçersiz.');continue}
+  const ix=leaves.findIndex(x=>same(x,p));if(ix<0){issue('Adım '+(j+1)+': kaynak parça bulunamadı.');continue}
+  const source=leaves.splice(ix,1)[0],vertical=c.axis==='vertical',at=c.at,k=cfg.kerf;
+  if(!(Number.isFinite(at)&&c.number===j+1)){issue('Adım numarası veya kesim yeri geçersiz.');continue}
+  if(vertical?!(eq(c.x1,at)&&eq(c.x2,at)&&eq(c.y1,p.y)&&eq(c.y2,p.y+p.h)):!(eq(c.y1,at)&&eq(c.y2,at)&&eq(c.x1,p.x)&&eq(c.x2,p.x+p.w))){
+   issue('Adım '+(j+1)+': kesim kaynağın tamamını geçmiyor.')
+  }
+  const before=(vertical?at-p.x:at-p.y)-k/2,after=(vertical?p.x+p.w-at:p.y+p.h-at)-k/2;
+  if(before<-tol||after<-tol){issue('Adım '+(j+1)+': testere payı stok dışına taşıyor.');continue}
+  if(vertical){
+   if(before>tol)leaves.push({x:p.x,y:p.y,w:before,h:p.h});
+   if(after>tol)leaves.push({x:at+k/2,y:p.y,w:after,h:p.h});
+  }else{
+   if(before>tol)leaves.push({x:p.x,y:p.y,w:p.w,h:before});
+   if(after>tol)leaves.push({x:p.x,y:at+k/2,w:p.w,h:after});
+  }
+ }
+ for(const piece of bin.placed){
+  const ix=leaves.findIndex(x=>same(x,piece));
+  if(ix<0)issue('Kesim adımları '+piece.label+' parçasını oluşturmuyor.');
+  else leaves.splice(ix,1);
+ }
+ for(const fr of bin.free){
+  const ix=leaves.findIndex(x=>same(x,fr));
+  if(ix<0)issue('Kalan stok dikdörtgeni kesim ağacıyla uyuşmuyor.');
+  else leaves.splice(ix,1);
+ }
+ if(leaves.length)issue('Kesim ağacında sınıflandırılmayan parçalar mevcut.');
+ return errors
+}
 function packAttempt(items,stocks,cfg,trial){const ordered=orderParts(items,trial),bins=[],unplaced=[],used={},suffix=new Array(ordered.length+1).fill(0);for(let k=ordered.length-1;k>=0;k--)suffix[k]=suffix[k+1]+ordered[k].l*ordered[k].w;const variant=Math.floor(trial/2)%5,splitVariant=Math.floor(trial/5)%4,stockSelect=Math.floor(trial/7)%4;
 for(let idx=0;idx<ordered.length;idx++){const it=ordered[idx];let match=null;for(let bi=0;bi<bins.length;bi++){const fit=findFit(bins[bi],it,variant);if(fit&&(!match||fit.score<match.fit.score))match={bin:bins[bi],fit}}if(match){applyFit(match.bin,it,match.fit,cfg,splitVariant);continue}
 let choices=[];for(const s of stocks){if(used[s.id]>=s.qty||s.qty===0)continue;const tmp=mkBin(s,cfg.trim);if(tmp.w<=0||tmp.h<=0)continue;const fit=findFit(tmp,it,variant);if(!fit)continue;const remainingArea=suffix[idx];const usableArea=tmp.w*tmp.h;const cost=binCost(s,cfg),missingCost=cost===null,rankCost=cost??0;let rank;
@@ -341,6 +397,7 @@ function auditCutPlan(result,data){
   if(!stock){error('Stok '+(index+1)+' kaynak listesinde yok.');continue}
   usage.set(stock.id,(usage.get(stock.id)||0)+1);totalStockArea+=stock.l*stock.w;
   if(!Array.isArray(bin.placed)||!bin.placed.length){error('Boş stok yerleşimi.');continue}
+  if(state.mode==='guillotine')for(const msg of auditGuillotineCuts(bin,{trim:data.trim,kerf:data.kerf}))error(msg);
   if(!eq(board.l,stock.l)||!eq(board.w,stock.w)||mkey(board.material)!==mkey(stock.material)||
    (board.t===null)!==(stock.t===null)||(board.t!==null&&!eq(board.t,stock.t)))error('Stok boyutları değişmiş.');
   for(const piece of bin.placed){
@@ -584,7 +641,7 @@ function closeModal(){byId('modal').classList.add('hidden');document.body.classL
 let processing=false;function run(){if(processing)return;const data=normalize();if(data.errors.length){toast(data.errors[0]);return}processing=true;byId('runBtn').textContent='Hesaplanıyor…';byId('mobileRunBtn').textContent='Hesaplanıyor…';requestAnimationFrame(()=>setTimeout(()=>{try{const sol=optimize(data),errors=validateLayout(sol,{kerf:data.kerf,trim:data.trim});if(errors.length)throw Error(errors.join(' '));showResult(data,sol);byId('results').scrollIntoView({behavior:'smooth',block:'start'});if(sol.unplaced.length)toast(sol.unplaced.length+' parça yerleştirilemedi.')}catch(err){console.error(err);toast('Hesaplama hatası: '+err.message)}finally{processing=false;byId('runBtn').textContent='▣  Yerleşimi hesapla';byId('mobileRunBtn').textContent='▣  Yerleşimi hesapla'}},15))}
 byId('runBtn').onclick=run;byId('mobileRunBtn').onclick=run;
 renderRows();syncSettings();showEmpty();renderProjects();
-window.BeythausCut={normalize,optimize,optimizeBaseline:data=>optimize(data,false),validateLayout,auditCutPlan,defaultData,getLastAudit:()=>lastAudit,getState:()=>state,setState:o=>{state=sanitize(o);renderRows();syncSettings();save();showEmpty()},run};
+window.BeythausCut={normalize,optimize,optimizeBaseline:data=>optimize(data,false),validateLayout,auditCutPlan,auditGuillotineCuts,defaultData,getLastAudit:()=>lastAudit,getState:()=>state,setState:o=>{state=sanitize(o);renderRows();syncSettings();save();showEmpty()},run};
 })();
 </script>
 <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))}</script>
