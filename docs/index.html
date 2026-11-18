@@ -133,6 +133,7 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
 .remnant-filter-field:first-child{grid-column:span 2}
 .remnant-list-summary{padding:0 18px 11px;display:flex;align-items:center;justify-content:space-between;gap:9px;color:#738579;font-size:11px}
 .remnant-list-summary .btn{font-size:10px}
+.remnant-filter-hint{padding:0 18px 12px;margin:0;color:#87958a;font-size:10px;line-height:1.5}
 .remnant-detail small.remnant-shelf{color:#426d4f;font-weight:650}
 .remnant-editor{padding:15px 18px;margin:0 13px 12px;border:1px solid #cde0d0;border-radius:12px;background:#f7faf6}
 .remnant-editor.hidden{display:none}
@@ -230,7 +231,7 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
    <div class="remnant-filter-field"><label for="remnantMinLength">Minimum boy (mm)</label><input id="remnantMinLength" type="text" inputmode="decimal" placeholder="—"></div>
    <div class="remnant-filter-field"><label for="remnantMinWidth">Minimum en (mm)</label><input id="remnantMinWidth" type="text" inputmode="decimal" placeholder="—"></div>
   </div>
-  <div class="remnant-list-summary"><span id="remnantFilteredCount">0 parça gösteriliyor</span><button class="btn small" type="button" id="remnantClearFilters">Filtreleri temizle</button></div>
+  <div class="remnant-list-summary"><span id="remnantFilteredCount">0 parça gösteriliyor</span><button class="btn small" type="button" id="remnantClearFilters">Filtreleri temizle</button></div><p class="remnant-filter-hint">Ölçü filtresi parçanın 90° döndürülmesini de kabul eder; damar yönü ve malzeme kusurları dikkate alınmaz.</p>
   <form id="remnantEditForm" class="remnant-editor hidden">
    <h3>Artık parça bilgilerini düzelt</h3>
    <p id="remnantEditIdentity" class="remnant-edit-identity"></p>
@@ -277,13 +278,13 @@ function cleanRemnant(raw){
  if(!(l>0&&w>0&&l<=1e7&&w<=1e7&&
     (t===null||Number.isFinite(t)&&t>0&&t<=1e5)))return null;
  return {id:String(raw.id).slice(0,90),l,w,t,
-  material:String(raw.material||'Ahşap').slice(0,80),
+  material:String(raw.material||'Ahşap').trim().slice(0,80),
   location:String(raw.location??'').trim().slice(0,80),
   notes:String(raw.notes??'').trim().slice(0,220),
   sourceKey:String(raw.sourceKey||'').slice(0,180),
   projectName:String(raw.projectName||'').slice(0,60),
   status:raw.status==='used'?'used':'available',
-  createdAt:Number(raw.createdAt)||Date.now(),
+  createdAt:Number(raw.createdAt)||Date.now(),updatedAt:Number(raw.updatedAt)||null,
   usedAt:raw.status==='used'?Number(raw.usedAt)||Date.now():null}
 }
 function readRemnantDB(){
@@ -335,7 +336,7 @@ function filterRemnants(pieces,filters={}){
   if(status!=='all'&&p.status!==status)return false;
   if(material!=='all'&&p.material!==material)return false;
   if(thickness!=='all'&&(thickness==='unknown'?p.t!==null:String(p.t)!==thickness))return false;
-  if(location!=='all'&&p.location!==location)return false;
+  if(location!=='all'&&(location==='__unassigned__'?p.location!=='':p.location!==location))return false;
   if(minL>0||minW>0){
    const straight=p.l>=minL&&p.w>=minW,rotated=p.w>=minL&&p.l>=minW;
    if(!straight&&!rotated)return false
@@ -366,7 +367,7 @@ function updateRemnantFilterOptions(){
   locations=[...new Set(pieces.map(p=>p.location))].sort((a,b)=>a.localeCompare(b,'tr'));
  keep('remnantMaterialFilter',[['all','Tüm malzemeler'],...materials.map(m=>[m,m])]);
  keep('remnantThicknessFilter',[['all','Tüm kalınlıklar'],...thicknesses.map(t=>t===null?['unknown','Bilinmeyen']:[String(t),fmt(t,1)+' mm'])]);
- keep('remnantLocationFilter',[['all','Tüm raflar'],...locations.map(loc=>[loc,loc||'Raf belirtilmedi'])]);
+ keep('remnantLocationFilter',[['all','Tüm raflar'],...locations.map(loc=>loc? [loc,loc]:['__unassigned__','Raf belirtilmedi'])]);
 }
 function setRemnantDefaultLocation(location){
  const clean=String(location??'').trim();
@@ -378,7 +379,8 @@ function setRemnantDefaultLocation(location){
 function editRemnantRecord(id,changes){
  const current=remnantDB.pieces.find(p=>p.id===id);
  if(!current)return false;
- const updated=cleanRemnant({...current,...changes,id:current.id});
+ if(String(changes.location??current.location).trim().length>80||String(changes.notes??current.notes).trim().length>220)return false;
+ const updated=cleanRemnant({...current,...changes,id:current.id,updatedAt:Date.now()});
  if(!updated)return false;
  if(!updated.material.trim())return false;
  if(updated.location.length>80||updated.notes.length>220)return false;
@@ -425,10 +427,10 @@ function submitRemnantEditor(){
 }
 
 function refreshRemnantUI(){
- const current=availableRemnants(),count=current.length,area=current.reduce((n,p)=>n+p.l*p.w,0);
+ const current=availableRemnants(),count=current.length,area=current.reduce((n,p)=>n+p.l*p.w,0),shelves=new Set(current.map(p=>p.location).filter(Boolean));
  byId('remnantCount').textContent=count;
  byId('remnantModalCount').textContent=remnantDB.pieces.length;
- byId('remnantSummary').textContent=count?count+' kullanılabilir parça · '+fmt(area/1e6,3)+' m²':'Envanterde kullanılabilir artık bulunmuyor.';
+ byId('remnantSummary').textContent=count?count+' kullanılabilir parça · '+fmt(area/1e6,3)+' m² · '+shelves.size+' tanımlı raf':'Envanterde kullanılabilir artık bulunmuyor.';
  byId('useRemnantStockInput').checked=state.useRemnantStock;
  byId('remnantConfirmProductionBtn').disabled=!!(dirty||!lastAudit?.ok||!solution||
   solution.productionRecorded||solution.unplaced.length||state.mode!=='guillotine'||!solution.bins.length);
@@ -555,9 +557,10 @@ function mergeRemnantBackup(payload){
    createdIds:Array.isArray(raw.createdIds)?raw.createdIds.slice(0,700).map(String):[]
   })
  }
- if(!additions.length&&!newBatches.length)return 0;
+ const importedDefault=String(payload.defaultLocation||'').trim().slice(0,80),nextDefault=remnantDB.defaultLocation||importedDefault;
+ if(!additions.length&&!newBatches.length&&nextDefault===remnantDB.defaultLocation)return 0;
  if(!commitRemnants({...remnantDB,pieces:remnantDB.pieces.concat(additions),
-   defaultLocation:remnantDB.defaultLocation||String(payload.defaultLocation||'').trim().slice(0,80),
+   defaultLocation:nextDefault,
    batches:remnantDB.batches.concat(newBatches).slice(-900)}))
   throw Error('Envanter yedeği kaydedilemedi.');
  changed();return additions.length
