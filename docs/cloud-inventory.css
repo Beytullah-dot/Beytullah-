@@ -1,0 +1,23 @@
+/* Optional cloud inventory UI; legacy local inventory remains the default. */
+.cloud-card{margin-bottom:12px}
+.cloud-card .card-head{padding-bottom:8px}
+.cloud-body{padding:0 16px 16px;display:grid;gap:10px}
+.cloud-status{font-size:11px;color:#60766b;line-height:1.5}
+.cloud-status[data-state="connected"]{color:#246b44;font-weight:650}
+.cloud-status[data-state="error"]{color:#a64b35}
+.cloud-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.cloud-field{display:grid;gap:5px;min-width:0}
+.cloud-field label{font-size:11px;color:#637e6c;font-weight:650}
+.cloud-field input,.cloud-field select{min-width:0;width:100%;background:#fff;color:#304837;border:1px solid #dae5dc;border-radius:8px;padding:9px 10px;font-size:12px;min-height:38px}
+.cloud-field.span-all{grid-column:span 2}
+.cloud-buttons{display:flex;gap:7px;flex-wrap:wrap}
+.cloud-buttons .btn{min-height:35px;white-space:normal;text-align:left}
+.cloud-subheading{font-size:11px;font-weight:750;color:#476c53}
+.cloud-hint{margin:0;font-size:10px;line-height:1.55;color:#84958a}
+.cloud-error{color:#b04d40;font-size:11px}
+.cloud-separator{height:1px;background:#e4ebe5;margin:2px 0}
+.cloud-workspace-control{display:grid;gap:10px}
+.cloud-hidden{display:none!important}
+.cloud-status-pill{font-size:10px;font-weight:700;border-radius:20px;padding:5px 9px;color:#61786b;background:#eaf0eb}
+.cloud-status-pill[data-mode="connected"]{background:#dfefe3;color:#206641}
+@media(max-width:550px){.cloud-form-grid{grid-template-columns:1fr}.cloud-field.span-all{grid-column:span 1}.cloud-body{padding:0 12px 13px}}
