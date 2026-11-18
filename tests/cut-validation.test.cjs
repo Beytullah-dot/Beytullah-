@@ -226,7 +226,7 @@ assert.equal(exactTwo.proof.proven,true);
 assert.equal(exactTwo.proof.lowerBound,2);
 assert.equal(exactTwo.result.bins.length,2);
 const weakArea=certificate(state({kerf:0,trim:0,
-  parts:[certPart(60,60),certPart(60,60)],stocks:[certStock(100,100)]}));
+  parts:[certPart(60,60),certPart(60,60)],stocks:[certStock(100,100),certStock(120,120,0)]}));
 assert.equal(weakArea.proof.proven,false);
 assert.equal(weakArea.proof.lowerBound,1);
 assert.equal(weakArea.result.bins.length,2);
@@ -249,7 +249,7 @@ assert.ok(node('printCollection').innerHTML.includes('Minimum stok sayısı kan�
 window.__testHooks.showResult(weakArea.input,weakArea.result);
 assert.ok(node('optimalityRow').textContent.includes('henüz kanıtlanmadı'));
 tests+=11;
-console.log('Stock-count certificate checks: 1-stock, 2-stock, weak area bound, distinct materials, incomplete and PDF labeling.');
+console.log('Stock-count certificate checks: 1-stock, 2-stock, unsupported mixed-stock scope, distinct materials, incomplete and PDF labeling.');
 
 
 // Exhaustive disjunctive solver vs a SEPARATE integer-grid brute-force oracle.
