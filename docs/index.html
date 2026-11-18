@@ -146,6 +146,7 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
 </style>
 <link rel="stylesheet" href="./qr-inventory.css">
 <link rel="stylesheet" href="./remnant-history.css">
+<link rel="stylesheet" href="./cloud-inventory.css">
 </head>
 <body>
 <header class="topbar"><div class="container topbar-inner">
@@ -170,6 +171,7 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
    <div class="remnant-actions"><button class="btn small" id="remnantConfirmProductionBtn" type="button" disabled>✓ Üretimi onayla · artıkları kaydet</button></div>
    <p class="remnant-warning">Artıklar yalnız fiziksel kesim tamamlandıktan sonra kaydedilir. Plan hesaplamak stok tüketmez. Envanter bu tarayıcıda tutulur; düzenli yedek alın. Artık stokların alış maliyeti 0 ₺ kabul edilir; bu ekonomik değerlerinin sıfır olduğu anlamına gelmez.</p>
   </div>
+  <div id="cloudSettingsRoot"></div>
   <div class="card" id="settingsCard"><div class="card-head"><div><div class="card-title">Hesap ayarları</div><div class="card-sub">Kesim ve fiyat</div></div></div>
     <div class="settings-body">
       <div class="settings-section"><div class="fields"><div class="field"><label for="unitSelect">Boy / en birimi</label><select id="unitSelect"><option value="cm">Santimetre (cm)</option><option value="mm">Milimetre (mm)</option></select></div><div class="field"><label for="kerfInput">Testere payı (mm)</label><input id="kerfInput" inputmode="decimal" type="text" value="3"></div><div class="field"><label for="trimInput">Kenar fire payı (mm / kenar)</label><input id="trimInput" inputmode="decimal" type="text" value="0"></div><div class="field"><label for="projectName">Proje adı</label><input id="projectName" type="text" placeholder="Yeni proje" maxlength="60"></div></div></div>
@@ -379,7 +381,7 @@ function cleanRemnant(raw){
  const l=Number(raw.l),w=Number(raw.w),t=raw.t===null?null:Number(raw.t);
  if(!(l>0&&w>0&&l<=1e7&&w<=1e7&&
     (t===null||Number.isFinite(t)&&t>0&&t<=1e5)))return null;
- return {id:String(raw.id).slice(0,90),l,w,t,
+ return {id:String(raw.id).slice(0,90),l,w,t,version:Number.isInteger(Number(raw.version))&&Number(raw.version)>=1?Number(raw.version):1,
   material:String(raw.material||'Ahşap').trim().slice(0,80),
   location:String(raw.location??'').trim().slice(0,80),
   notes:String(raw.notes??'').trim().slice(0,220),
@@ -401,7 +403,18 @@ function readRemnantDB(){
   return {version:1,pieces,batches:Array.isArray(obj.batches)?obj.batches.slice(-900):[],movements:Array.isArray(obj.movements)?obj.movements.slice(-MAX_REMNANT_HISTORY).map(cleanRemnantEvent).filter(Boolean):[],defaultLocation:String(obj.defaultLocation??'').trim().slice(0,80)}
  }catch{return {version:1,pieces:[],batches:[],movements:[],defaultLocation:''}}
 }
-let remnantDB=readRemnantDB();
+let remnantDB=readRemnantDB(),cloudInventoryActive=false;
+function enterCloudInventory(snapshot){
+ if(!snapshot||!Array.isArray(snapshot.pieces)||!snapshot.workspace)throw Error('Bulut stok verisi geçersiz');
+ const pieces=snapshot.pieces.map(cleanRemnant);
+ if(pieces.some(x=>!x)||pieces.length>MAX_REMNANTS)throw Error('Bulut stok sınırı aşıldı veya ölçüler geçersiz');
+ remnantDB={version:1,pieces,batches:Array.isArray(snapshot.batches)?snapshot.batches:[],
+  movements:Array.isArray(snapshot.movements)?snapshot.movements.slice(-MAX_REMNANT_HISTORY).map(cleanRemnantEvent).filter(Boolean):[],
+  defaultLocation:String(snapshot.workspace.defaultLocation||'').slice(0,80)};
+ cloudInventoryActive=true;
+ changed();return true
+}
+function exitCloudInventory(){cloudInventoryActive=false;remnantDB=readRemnantDB();changed();return true}
 function availableRemnants(){return remnantDB.pieces.filter(x=>x.status==='available')}
 function inventoryStocksForPlan(){
  if(!state.useRemnantStock)return [];
@@ -410,11 +423,12 @@ function inventoryStocksForPlan(){
   // Retain the recorded physical thickness even if this project's geometric
   // dimensions are intentionally configured as 2D-only.
   t:state.partsThicknessEnabled||state.stocksThicknessEnabled?r.t:null,
-  physicalThickness:r.t,qty:1,price:0,material:r.material,
+  physicalThickness:r.t,version:r.version,qty:1,price:0,material:r.material,
   order:state.stocks.length+i,isRemnant:true,remnantId:r.id
  }))
 }
 function commitRemnants(next){
+ if(cloudInventoryActive){toast('Bulut stokları yalnız sunucu üzerinden değiştirilebilir.');return false}
  if(next.pieces.length>MAX_REMNANTS){toast('Envanter kapasitesi doldu. Yedek alın ve eski kayıtları temizleyin.');return false}
  try{
   localStorage.setItem(REMNANT_KEY,JSON.stringify(next));
@@ -593,7 +607,40 @@ function remnantPlanSignature(result){
  for(let i=0;i<text.length;i++){h^=text.charCodeAt(i);h=Math.imul(h,16777619)}
  return (h>>>0).toString(36)
 }
+
+// Build the EXACT plan's physical consumption and new recoverable leaves.
+// The browser never claims success until the server RPC transaction commits.
+// It must be called immediately before an explicit production confirmation.
+function cloudProductionPayload(){
+ if(!cloudInventoryActive||dirty||!lastAudit?.ok||!solution||solution.unplaced.length||
+    !solution.bins.length||state.mode!=='guillotine'||solution.productionRecorded)return null;
+ if(solution.cloudProductionRequest)return solution.cloudProductionRequest;
+ const used=solution.bins.filter(b=>b.stock.isRemnant);
+ const consumed=[];
+ for(const bin of used){
+  const id=bin.stock.remnantId,version=bin.stock.version;
+  if(!id||!Number.isInteger(version)||version<1||consumed.some(p=>p.id===id))return null;
+  consumed.push({id,expectedVersion:version})
+ }
+ const opId=window.crypto?.randomUUID?.();
+ if(!opId)return null;
+ const batchId='B'+opId.replace(/-/g,'');
+ const created=[];
+ for(const b of solution.bins)for(const leaf of collectOffcuts(b).pieces){
+  const itemId='R'+window.crypto.randomUUID().replace(/-/g,'');
+  created.push({id:itemId,l:leaf.w,w:leaf.h,t:b.stock.physicalThickness??b.stock.t,
+   material:b.stock.material,location:remnantDB.defaultLocation||'',notes:'',
+   sourceKey:batchId+':'+created.length,projectName:state.project,status:'available'})
+ }
+ const data={operationId:opId,kind:'production',payload:{source:'production',
+  batchId,signature:remnantPlanSignature(solution),projectName:state.project,consumed,created}};
+ solution.cloudProductionRequest=data;
+ return data
+}
+function markCloudProductionComplete(){if(solution){solution.productionRecorded=true;refreshRemnantUI()}}
+
 function registerRemnantProduction(){
+ if(cloudInventoryActive){toast('Bulut üretimi sunucu tarafından onaylanmalıdır.');return false}
  if(dirty||!lastAudit?.ok||!solution||state.mode!=='guillotine'||
   solution.unplaced.length||!solution.bins.length){
   toast('Önce eksiksiz, geometrisi doğrulanmış düz kesim planı oluşturun.');return false
@@ -1815,12 +1862,13 @@ function closeModal(){byId('modal').classList.add('hidden');document.body.classL
 let processing=false;function run(){if(processing)return;const data=normalize();if(data.errors.length){toast(data.errors[0]);return}processing=true;byId('runBtn').textContent='Hesaplanıyor…';byId('mobileRunBtn').textContent='Hesaplanıyor…';requestAnimationFrame(()=>setTimeout(()=>{try{const sol=optimize(data),errors=validateLayout(sol,{kerf:data.kerf,trim:data.trim});if(errors.length)throw Error(errors.join(' '));showResult(data,sol);byId('results').scrollIntoView({behavior:'smooth',block:'start'});if(sol.unplaced.length)toast(sol.unplaced.length+' parça yerleştirilemedi.')}catch(err){console.error(err);toast('Hesaplama hatası: '+err.message)}finally{processing=false;byId('runBtn').textContent='▣  Yerleşimi hesapla';byId('mobileRunBtn').textContent='▣  Yerleşimi hesapla'}},15))}
 byId('runBtn').onclick=run;byId('mobileRunBtn').onclick=run;
 renderRows();syncSettings();showEmpty();renderProjects();
-window.BeythausCut={remnantMovements,cleanRemnantEvent,getRemnantDB:()=>JSON.parse(JSON.stringify(remnantDB)),filterRemnants,editRemnantRecord,setRemnantDefaultLocation,openRemnantEditor,submitRemnantEditor,inventoryStocksForPlan,registerRemnantProduction,setRemnantStatus,mergeRemnantBackup,normalize,optimize,optimizeBaseline:data=>optimize(data,false),refineUsableOffcuts,offcutMetrics,betterOffcuts,offcutOptimizationDescription,enumerateBoardMultisets,exactGrossAreaRefine,grossWasteProofDescription,exactUniformFeasibility,exactVariableFeasibility,exactRefinePlan,minStockCountLowerBound,certifyStockCount,stockProofDescription,validateLayout,auditCutPlan,auditGuillotineCuts,collectOffcuts,defaultData,getLastAudit:()=>lastAudit,getState:()=>state,setState:o=>{state=sanitize(o);renderRows();syncSettings();save();showEmpty()},run};
+window.BeythausCut={enterCloudInventory,exitCloudInventory,isCloudInventory:()=>cloudInventoryActive,cloudProductionPayload,markCloudProductionComplete,remnantMovements,cleanRemnantEvent,getRemnantDB:()=>JSON.parse(JSON.stringify(remnantDB)),filterRemnants,editRemnantRecord,setRemnantDefaultLocation,openRemnantEditor,submitRemnantEditor,inventoryStocksForPlan,registerRemnantProduction,setRemnantStatus,mergeRemnantBackup,normalize,optimize,optimizeBaseline:data=>optimize(data,false),refineUsableOffcuts,offcutMetrics,betterOffcuts,offcutOptimizationDescription,enumerateBoardMultisets,exactGrossAreaRefine,grossWasteProofDescription,exactUniformFeasibility,exactVariableFeasibility,exactRefinePlan,minStockCountLowerBound,certifyStockCount,stockProofDescription,validateLayout,auditCutPlan,auditGuillotineCuts,collectOffcuts,defaultData,getLastAudit:()=>lastAudit,getState:()=>state,setState:o=>{state=sanitize(o);renderRows();syncSettings();save();showEmpty()},run};
 })();
 </script>
 <script src="./vendor/qrcode.min.js"></script>
 <script src="./vendor/jsQR.js"></script>
 <script src="./qr-inventory.js"></script>
 <script src="./remnant-history.js"></script>
+<script src="./cloud-inventory.js"></script>
 <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))}</script>
 </body></html>
