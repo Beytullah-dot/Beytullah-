@@ -1,0 +1,23 @@
+/* Beythaus Cut — local inventory transaction history */
+.remnant-history-panel{width:min(100%,780px)}
+.remnant-history-controls{display:grid;grid-template-columns:1.5fr 1fr;align-items:end;gap:10px;padding:15px 18px 8px}
+.remnant-history-controls label{min-width:0;display:grid;gap:6px;font-size:11px;color:#637e6c;font-weight:650}
+.remnant-history-controls input,.remnant-history-controls select{border:1px solid #dce6df;border-radius:8px;background:#fff;padding:10px;font-size:12px;color:#35523c;min-height:39px;width:100%}
+.remnant-history-controls button{min-height:39px}
+.remnant-history-summary{margin:3px 18px 12px;color:#6b806f;font-size:11px;line-height:1.5}
+.remnant-history-list{overflow:auto;padding:0 18px 18px;min-height:120px}
+.remnant-history-entry{border:1px solid #e1e9e2;background:#fafcfa;border-radius:11px;padding:13px;margin-bottom:9px}
+.remnant-history-entry-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.remnant-history-entry-head strong{font-size:12px;color:#284c34}
+.remnant-history-entry-head time{font-size:11px;color:#718674;white-space:nowrap}
+.remnant-history-meta{margin-top:5px;font-size:10px;color:#687c6e;overflow-wrap:anywhere}
+.remnant-history-diff{margin-top:9px;border-top:1px solid #e1ece3;padding-top:8px;display:grid;gap:5px;font-size:11px;color:#3e6248;overflow-wrap:anywhere}
+.remnant-history-identity{display:flex;align-items:center;gap:10px;margin-top:7px;flex-wrap:wrap;font-size:10px;color:#718273;overflow-wrap:anywhere}
+.remnant-history-footnote{border-top:1px solid #e8eee8;margin:0;padding:12px 18px 18px;font-size:10px;color:#819385;line-height:1.6}
+@media(max-width:580px){
+.remnant-history-controls{grid-template-columns:1fr 1fr;padding:12px;gap:8px}
+.remnant-history-controls label{grid-column:span 2}
+.remnant-history-list{padding:0 12px 14px}
+.remnant-history-summary{margin:5px 12px 10px}
+.remnant-history-entry{padding:11px}
+}
