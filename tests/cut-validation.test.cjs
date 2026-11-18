@@ -1166,6 +1166,7 @@ node('remnantEditStatusAction').onclick();
 assert.equal(app.getRemnantDB().pieces.find(p=>p.id===qrRecord.id).status,'used');
 const qrConsume=app.remnantMovements({pieceId:qrRecord.id,type:'consumed'})[0];
 assert.equal(qrConsume.source,'qr');
+historyUI.openFor(qrRecord.id);
 assert.ok(historyUI.csvContent().includes('Olay kimliği'));
 assert.ok(historyUI.csvContent().includes('QR üzerinden'));
 assert.equal(qrConsume.before.status,'available');
