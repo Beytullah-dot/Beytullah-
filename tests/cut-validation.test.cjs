@@ -462,7 +462,7 @@ console.log('Variable-stock exact search: 75 independent integer-grid oracle cas
 // through MIT-licensed ktnr/BinPacking2D. The referenced optimum is an external
 // result, NOT a proof produced by Beythaus Cut when its certificate is absent.
 const academic=JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures/class-literature-samples.json'),'utf8'));
-let academicMatched=0,academicProven=0;
+let academicMatched=0,academicProven=0,academicValidated=0;
 for(const b of academic.examples){
  const run=verify(state({
    project:b.name,unit:'mm',kerf:0,trim:0,mode:'nest',
@@ -473,12 +473,16 @@ for(const b of academic.examples){
  const audited=app.auditCutPlan(run.result,run.input),proof=app.certifyStockCount(run.result,run.input,audited);
  assert.ok(audited.ok);
  assert.equal(run.result.unplaced.length,0);
- assert.ok(run.result.bins.length>=b.referenceOptimal,'A result beating published optimum suggests model mismatch');
- assert.equal(run.result.bins.length,b.referenceOptimal,'Regression: lost published optimum for '+b.name);
- if(proof.proven)assert.equal(proof.usedStockCount,b.referenceOptimal,'Incorrect certificate');
- academicMatched++;academicProven+=Number(proof.proven);tests+=3;
+ academicValidated++;
+ if(Number.isInteger(b.referenceOptimal)){
+  assert.ok(run.result.bins.length>=b.referenceOptimal,'A result beating published optimum suggests model mismatch');
+  assert.equal(run.result.bins.length,b.referenceOptimal,'Regression: lost published optimum for '+b.name);
+  if(proof.proven)assert.equal(proof.usedStockCount,b.referenceOptimal,'Incorrect certificate');
+  academicMatched++;academicProven+=Number(proof.proven);
+ }
+ tests+=3;
 }
-console.log('2DPackLib CLASS external benchmarks: '+academicMatched+'/'+academic.examples.length+
-  ' match published minimum board counts; '+academicProven+' internally certified.');
+console.log('2DPackLib CLASS external benchmarks: '+academicValidated+' geometry-validated instances across 6 classes; '+
+ academicMatched+' match externally reported optimum; '+academicProven+' internally certified among those with a known reference.');
 
 console.log('Beythaus Cut: '+tests+' checks passed; invalid plans rejected and unknown prices preserved.');
