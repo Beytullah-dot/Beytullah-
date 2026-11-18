@@ -83,6 +83,18 @@ Arama bir malzeme grubu için en fazla 65 parça ve 6 kullanılan stokla çalı�
 
 **Güvence sınırı:** Envanter, bir tarayıcıda stok hareketlerinin tutarlı takibini sağlar; fiziksel depo sayımı ve kalite kontrolün yerine geçmez. Otomatik testlerde üretim onayı, ikinci nesil artık üretimi, eski parçanın tüketilmesi, yeni projeye aktarım, PDF kaynak açıklaması ve yedek birleştirme kuralları kontrol edilir.
 
+## Raf, malzeme ve ölçü bazlı fiziksel envanter
+
+Artık envanteri ayrı bir mobil uyumlu yönetim görünümüne sahiptir. Her fiziksel parçanın kaynak üretim bilgilerine ilaveten raf/konum etiketi (ör. "Raf A / Göz 2"), serbest notu, düzenleme tarihi ve gerçek ölçüleri kaydedilir. Eski kayıtların kimliği, geçmiş üretim bilgisi, ölçüsü, fiyat statüsü veya "kullanıldı" durumu değiştirilmeden konum ve not alanları boş olarak yüklenir.
+
+- **Sorgu ve filtreler:** Metinsel arama (proje adı, raf, not, malzeme veya ölçü), durum (mevcut/kullanıldı/tümü), malzeme türü, kalınlık, raf ve minimum boy/en ölçüleri. Ölçü filtresi iki ekseni 90° yer değiştirerek de kontrol eder; damar yönü gibi fiziksel koşulları modellemez.
+- **Parça düzeltme:** Ölçüler mm olarak, kalınlık isteğe bağlı, malzeme türü, raf/konum ve açıklama elle güncellenebilir. Değişiklikler tarayıcıdaki kayıt defterine yazılır ve açık kesim planı varsa yeniden hesaplama gerektirir. Kaynak üretim kimliği korunur.
+- **Varsayılan raf:** Yeni, onaylanmış üretimden oluşan tüm kullanılabilir artıklar belirlenen varsayılan rafla açılır. Raf seçilmemişse "Raf belirtilmedi" filtresinde bulunur.
+- **Yedekler:** Envanter JSON yedeği raf ve not bilgilerini, varsayılan rafı ve üretim partisi geçmişini korur. Eski v1 kayıtları otomatik olarak eksik alanları boş kabul ederek okunur.
+- **Stok hareketleri:** Filtrelemek veya rafı güncellemek kullanılabilir miktarı azaltmaz. Tüketme yalnız fiziksel üretim onayında veya kullanıcı "Kullanıldı" işlemini seçtiğinde gerçekleşir.
+
+Bu bilgiler yalnız kullanıcının girdiği **atölye içi konum kodlarıdır**; fiziksel raf yerleri GPS veya harita verisiyle doğrulanmaz. Envanter yine cihazın tarayıcısında saklanır; birden fazla cihazın eşzamanlı stok yönetimi henüz desteklenmez.
+
 ## Genişletme notu
 
 2DPackLib'de çok daha fazla örnek ve farklı matematiksel problem sınıfları bulunmaktadır. Bu projeye eklenmiş **11 örneğin tamamının** 2DPackLib'in bütün koleksiyonunda başarı göstermeyi temsil ettiği iddia edilmez. Sonraki aşama, bütün standart örnekleri dönüştüren ayrı bir içe aktarıcı ve resmi sonuç dosyalarıyla performans kıyaslamasıdır.
