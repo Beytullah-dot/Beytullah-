@@ -348,4 +348,137 @@ for(let j=0;j<90;j++){
 }
 console.log('Exact engine: improvement 2→1, impossible 1-board proof, timeout guard, and 90 independent grid-oracle fixtures passed.');
 
+
+// MULTI-STOCK EXACT SEARCH: a second solver which assigns parts to genuinely
+// different board dimensions and materials while honoring quantities and kerf.
+assert.equal(typeof app.exactVariableFeasibility,'function');
+function multiCase(parts,stocks,opts={}) {
+ return state({mode:'nest',kerf:0,trim:0,partsThicknessEnabled:false,stocksThicknessEnabled:false,
+  parts:parts.map(([l,w,material='Wood',rotate=false,t=''],i)=>({l,w,material,rotate,t,qty:1,label:'M'+i})),
+  stocks:stocks.map(([l,w,qty=5,material='Wood',price=100,t=''])=>({l,w,qty,material,price,t})),
+  ...opts});
+}
+const differentBoards=verify(multiCase([[60,60],[60,60]],[[100,100,2,'Wood',1],[120,60,1,'Wood',100]]));
+assert.equal(app.optimizeBaseline(differentBoards.input).bins.length,2);
+assert.equal(differentBoards.result.bins.length,1);
+assert.equal(app.certifyStockCount(differentBoards.result,differentBoards.input,app.auditCutPlan(differentBoards.result,differentBoards.input)).proven,true);
+tests+=4;
+
+const impossibleOne=verify(multiCase([[60,60],[60,60]],[[100,100,2],[110,60,1]]));
+assert.equal(impossibleOne.result.bins.length,2);
+const cannot=app.certifyStockCount(impossibleOne.result,impossibleOne.input,app.auditCutPlan(impossibleOne.result,impossibleOne.input));
+assert.equal(cannot.method,'exhaustive-geometry');
+assert.equal(cannot.proven,true);
+tests+=3;
+
+const twoMaterials=verify(multiCase(
+ [[60,60,'Birch'],[60,60,'Birch'],[60,60,'Pine'],[60,60,'Pine']],
+ [[100,100,3,'Birch'],[120,60,2,'Pine']]
+));
+assert.equal(twoMaterials.result.bins.length,3);
+assert.equal(twoMaterials.result.exact.groups.length,2);
+const materialProof=app.certifyStockCount(twoMaterials.result,twoMaterials.input,app.auditCutPlan(twoMaterials.result,twoMaterials.input));
+assert.equal(materialProof.method,'exhaustive-geometry');
+assert.equal(materialProof.proven,true);
+tests+=4;
+
+const typed=multiCase([[5,5,'Wood',false,20]],[[8,8,1,'Wood',100,30],[8,8,1,'Wood',100,20]],{
+ partsThicknessEnabled:true,stocksThicknessEnabled:true});
+const typedRun=verify(typed);
+assert.equal(typedRun.result.bins[0].stock.t,20);
+const exactTyped=app.exactVariableFeasibility(typedRun.input.parts,typedRun.input.stocks,1,{trim:0,kerf:0},{
+ maxNodes:25000,deadline:Date.now()+2000});
+assert.equal(exactTyped.status,'feasible');
+assert.equal(exactTyped.layout[0].stock.t,20);
+tests+=4;
+const unknownVariable=app.exactVariableFeasibility(
+ [{id:'a',l:6,w:6,t:null,material:'Wood',rotate:false},{id:'b',l:6,w:6,t:null,material:'Wood',rotate:false}],
+ [{id:'s1',l:10,w:10,qty:1,t:null,material:'Wood'},{id:'s2',l:10,w:10,qty:1,t:null,material:'Wood'}],
+ 1,{trim:0,kerf:0},{maxNodes:1,deadline:Date.now()+3000});
+assert.equal(unknownVariable.status,'limit','A search budget must not become a fake impossibility proof');
+tests++;
+
+// Fully independent integer-grid oracle for variable-size boards, 2 materials,
+// rotations and stock quantities. It deliberately does NOT use the
+// application's difference-constraint logic.
+function gridVariableOracle(parts,types,limit,kerf,trim) {
+ const boards=[],used=new Array(types.length).fill(0);
+ const sameMat=(a,b)=>String(a).trim().toLowerCase()===String(b).trim().toLowerCase();
+ const compatible=(p,t)=>sameMat(p.material,t.material)&&(p.t===null||(t.t!==null&&p.t===t.t));
+ const ordered=parts.slice().sort((a,b)=>b.l*b.w-a.l*a.w);
+ function tryBoard(part,board,w,h,i) {
+  const maxX=board.type.l-2*trim-w,maxY=board.type.w-2*trim-h;
+  if(maxX<0||maxY<0)return false;
+  for(let y=0;y<=maxY;y++)for(let x=0;x<=maxX;x++){
+   if(board.parts.some(p=>!(x+w+kerf<=p.x||p.x+p.w+kerf<=x||
+                             y+h+kerf<=p.y||p.y+p.h+kerf<=y)))continue;
+   board.parts.push({x,y,w,h});
+   if(search(i+1))return true;
+   board.parts.pop();
+  }
+  return false
+ }
+ function search(i){
+  if(i===ordered.length)return true;
+  const part=ordered[i],orient=part.rotate&&part.l!==part.w?[[part.l,part.w],[part.w,part.l]]:[[part.l,part.w]];
+  for(const [w,h]of orient){
+   for(const board of boards)if(compatible(part,board.type)&&tryBoard(part,board,w,h,i))return true;
+   if(boards.length>=limit)continue;
+   for(let t=0;t<types.length;t++){
+    if(used[t]>=types[t].qty||!compatible(part,types[t]))continue;
+    const board={type:types[t],parts:[]};
+    boards.push(board);used[t]++;
+    const success=tryBoard(part,board,w,h,i);
+    boards.pop();used[t]--;
+    if(success)return true
+   }
+  }
+  return false
+ }
+ return search(0)
+}
+let multiSeed=78114;
+const next=()=>((multiSeed=(Math.imul(multiSeed,1664525)+1013904223)>>>0)/4294967296);
+for(let i=0;i<75;i++){
+ const stocks=Array.from({length:2},(_,j)=>({
+   id:'v'+j,l:4+Math.floor(next()*4),w:4+Math.floor(next()*4),
+   qty:1+Math.floor(next()*2),material:next()>.25?'Wood':'Birch',t:null
+ }));
+ const rects=Array.from({length:2+Math.floor(next()*2)},(_,j)=>({
+   id:'p'+j,l:1+Math.floor(next()*6),w:1+Math.floor(next()*6),
+   material:next()>.25?'Wood':'Birch',rotate:next()>.5,t:null
+ }));
+ const kerf=Math.floor(next()*2),trim=Math.floor(next()*2),limit=1+Math.floor(next()*2);
+ const oracle=gridVariableOracle(rects,stocks,limit,kerf,trim);
+ const exact=app.exactVariableFeasibility(rects,stocks,limit,{kerf,trim},{
+   maxNodes:300000,deadline:Date.now()+2500});
+ assert.notEqual(exact.status,'limit','Tiny multi-stock cases must terminate completely, case '+i);
+ assert.equal(exact.status==='feasible',oracle,'Variable-stock exact solver must agree with independent exhaustive grid oracle, case '+i);
+ tests++;
+}
+console.log('Variable-stock exact search: 75 independent integer-grid oracle cases passed.');
+
+// Actual CLASS benchmark data, mirrored from published 2DPackLib literature
+// through MIT-licensed ktnr/BinPacking2D. The referenced optimum is an external
+// result, NOT a proof produced by Beythaus Cut when its certificate is absent.
+const academic=JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures/class-literature-samples.json'),'utf8'));
+let academicMatched=0,academicProven=0;
+for(const b of academic.examples){
+ const run=verify(state({
+   project:b.name,unit:'mm',kerf:0,trim:0,mode:'nest',
+   parts:b.items.map((p,i)=>({l:p.w,w:p.h,t:'',qty:p.demand,
+     material:'Wood',label:'B'+i,rotate:false})),
+   stocks:[{l:b.board.w,w:b.board.h,t:'',qty:99,material:'Wood',price:100}]
+ }));
+ const audited=app.auditCutPlan(run.result,run.input),proof=app.certifyStockCount(run.result,run.input,audited);
+ assert.ok(audited.ok);
+ assert.equal(run.result.unplaced.length,0);
+ assert.ok(run.result.bins.length>=b.referenceOptimal,'A result beating published optimum suggests model mismatch');
+ assert.equal(run.result.bins.length,b.referenceOptimal,'Regression: lost published optimum for '+b.name);
+ if(proof.proven)assert.equal(proof.usedStockCount,b.referenceOptimal,'Incorrect certificate');
+ academicMatched++;academicProven+=Number(proof.proven);tests+=3;
+}
+console.log('2DPackLib CLASS external benchmarks: '+academicMatched+'/'+academic.examples.length+
+  ' match published minimum board counts; '+academicProven+' internally certified.');
+
 console.log('Beythaus Cut: '+tests+' checks passed; invalid plans rejected and unknown prices preserved.');
