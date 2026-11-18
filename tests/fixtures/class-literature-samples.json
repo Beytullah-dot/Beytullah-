@@ -1,0 +1,644 @@
+{
+  "attribution": "2D-BPP CLASS instances of Berkey & Wang (1987) and Martello & Vigo (1998), mirrored under MIT at github.com/ktnr/BinPacking2D. Reference optimum values are reported in that repository README for instance 1–10. Kerf=0, no rotations in these benchmark runs. Original 2DPackLib: https://site.unibo.it/operations-research/en/research/2dpacklib",
+  "reference": "https://github.com/ktnr/BinPacking2D",
+  "license": "https://github.com/ktnr/BinPacking2D/blob/master/LICENSE",
+  "examples": [
+    {
+      "name": "CLASS01_020_01",
+      "mirrorInstance": 1,
+      "referenceOptimal": 8,
+      "board": {
+        "w": 10,
+        "h": 10
+      },
+      "items": [
+        {
+          "w": 5,
+          "h": 9,
+          "demand": 1
+        },
+        {
+          "w": 4,
+          "h": 2,
+          "demand": 1
+        },
+        {
+          "w": 10,
+          "h": 6,
+          "demand": 1
+        },
+        {
+          "w": 5,
+          "h": 7,
+          "demand": 1
+        },
+        {
+          "w": 6,
+          "h": 3,
+          "demand": 1
+        },
+        {
+          "w": 10,
+          "h": 7,
+          "demand": 1
+        },
+        {
+          "w": 1,
+          "h": 5,
+          "demand": 1
+        },
+        {
+          "w": 3,
+          "h": 5,
+          "demand": 1
+        },
+        {
+          "w": 6,
+          "h": 9,
+          "demand": 1
+        },
+        {
+          "w": 2,
+          "h": 4,
+          "demand": 1
+        },
+        {
+          "w": 6,
+          "h": 7,
+          "demand": 1
+        },
+        {
+          "w": 7,
+          "h": 2,
+          "demand": 1
+        },
+        {
+          "w": 8,
+          "h": 3,
+          "demand": 3
+        },
+        {
+          "w": 4,
+          "h": 10,
+          "demand": 1
+        },
+        {
+          "w": 4,
+          "h": 5,
+          "demand": 1
+        },
+        {
+          "w": 10,
+          "h": 3,
+          "demand": 1
+        },
+        {
+          "w": 7,
+          "h": 8,
+          "demand": 1
+        },
+        {
+          "w": 8,
+          "h": 7,
+          "demand": 1
+        }
+      ],
+      "source": "https://github.com/ktnr/BinPacking2D/blob/master/data/input/BPP/CLASS/1.json"
+    },
+    {
+      "name": "CLASS01_020_02",
+      "mirrorInstance": 2,
+      "referenceOptimal": 5,
+      "board": {
+        "w": 10,
+        "h": 10
+      },
+      "items": [
+        {
+          "w": 2,
+          "h": 2,
+          "demand": 2
+        },
+        {
+          "w": 6,
+          "h": 8,
+          "demand": 1
+        },
+        {
+          "w": 10,
+          "h": 2,
+          "demand": 1
+        },
+        {
+          "w": 1,
+          "h": 3,
+          "demand": 1
+        },
+        {
+          "w": 8,
+          "h": 4,
+          "demand": 1
+        },
+        {
+          "w": 3,
+          "h": 10,
+          "demand": 1
+        },
+        {
+          "w": 1,
+          "h": 9,
+          "demand": 2
+        },
+        {
+          "w": 1,
+          "h": 5,
+          "demand": 1
+        },
+        {
+          "w": 6,
+          "h": 3,
+          "demand": 1
+        },
+        {
+          "w": 1,
+          "h": 1,
+          "demand": 1
+        },
+        {
+          "w": 4,
+          "h": 2,
+          "demand": 1
+        },
+        {
+          "w": 9,
+          "h": 2,
+          "demand": 1
+        },
+        {
+          "w": 9,
+          "h": 5,
+          "demand": 1
+        },
+        {
+          "w": 4,
+          "h": 7,
+          "demand": 1
+        },
+        {
+          "w": 3,
+          "h": 4,
+          "demand": 1
+        },
+        {
+          "w": 9,
+          "h": 7,
+          "demand": 1
+        },
+        {
+          "w": 4,
+          "h": 1,
+          "demand": 1
+        },
+        {
+          "w": 9,
+          "h": 8,
+          "demand": 1
+        }
+      ],
+      "source": "https://github.com/ktnr/BinPacking2D/blob/master/data/input/BPP/CLASS/2.json"
+    },
+    {
+      "name": "CLASS01_020_03",
+      "mirrorInstance": 3,
+      "referenceOptimal": 9,
+      "board": {
+        "w": 10,
+        "h": 10
+      },
+      "items": [
+        {
+          "w": 7,
+          "h": 5,
+          "demand": 1
+        },
+        {
+          "w": 10,
+          "h": 6,
+          "demand": 1
+        },
+        {
+          "w": 5,
+          "h": 6,
+          "demand": 1
+        },
+        {
+          "w": 7,
+          "h": 2,
+          "demand": 1
+        },
+        {
+          "w": 4,
+          "h": 8,
+          "demand": 1
+        },
+        {
+          "w": 9,
+          "h": 10,
+          "demand": 1
+        },
+        {
+          "w": 8,
+          "h": 5,
+          "demand": 1
+        },
+        {
+          "w": 8,
+          "h": 6,
+          "demand": 1
+        },
+        {
+          "w": 4,
+          "h": 9,
+          "demand": 1
+        },
+        {
+          "w": 9,
+          "h": 3,
+          "demand": 1
+        },
+        {
+          "w": 3,
+          "h": 10,
+          "demand": 1
+        },
+        {
+          "w": 9,
+          "h": 5,
+          "demand": 1
+        },
+        {
+          "w": 1,
+          "h": 7,
+          "demand": 1
+        },
+        {
+          "w": 8,
+          "h": 9,
+          "demand": 1
+        },
+        {
+          "w": 4,
+          "h": 6,
+          "demand": 1
+        },
+        {
+          "w": 3,
+          "h": 6,
+          "demand": 1
+        },
+        {
+          "w": 4,
+          "h": 3,
+          "demand": 1
+        },
+        {
+          "w": 10,
+          "h": 2,
+          "demand": 1
+        },
+        {
+          "w": 6,
+          "h": 1,
+          "demand": 1
+        },
+        {
+          "w": 1,
+          "h": 4,
+          "demand": 1
+        }
+      ],
+      "source": "https://github.com/ktnr/BinPacking2D/blob/master/data/input/BPP/CLASS/3.json"
+    },
+    {
+      "name": "CLASS01_020_04",
+      "mirrorInstance": 4,
+      "referenceOptimal": 6,
+      "board": {
+        "w": 10,
+        "h": 10
+      },
+      "items": [
+        {
+          "w": 4,
+          "h": 7,
+          "demand": 1
+        },
+        {
+          "w": 1,
+          "h": 3,
+          "demand": 2
+        },
+        {
+          "w": 6,
+          "h": 7,
+          "demand": 1
+        },
+        {
+          "w": 8,
+          "h": 2,
+          "demand": 1
+        },
+        {
+          "w": 9,
+          "h": 4,
+          "demand": 1
+        },
+        {
+          "w": 6,
+          "h": 2,
+          "demand": 1
+        },
+        {
+          "w": 7,
+          "h": 7,
+          "demand": 1
+        },
+        {
+          "w": 3,
+          "h": 6,
+          "demand": 1
+        },
+        {
+          "w": 2,
+          "h": 7,
+          "demand": 1
+        },
+        {
+          "w": 3,
+          "h": 8,
+          "demand": 1
+        },
+        {
+          "w": 4,
+          "h": 3,
+          "demand": 1
+        },
+        {
+          "w": 1,
+          "h": 9,
+          "demand": 1
+        },
+        {
+          "w": 8,
+          "h": 1,
+          "demand": 1
+        },
+        {
+          "w": 1,
+          "h": 10,
+          "demand": 1
+        },
+        {
+          "w": 7,
+          "h": 6,
+          "demand": 1
+        },
+        {
+          "w": 9,
+          "h": 5,
+          "demand": 1
+        },
+        {
+          "w": 3,
+          "h": 7,
+          "demand": 1
+        },
+        {
+          "w": 8,
+          "h": 3,
+          "demand": 1
+        },
+        {
+          "w": 6,
+          "h": 9,
+          "demand": 1
+        }
+      ],
+      "source": "https://github.com/ktnr/BinPacking2D/blob/master/data/input/BPP/CLASS/4.json"
+    },
+    {
+      "name": "CLASS01_020_05",
+      "mirrorInstance": 5,
+      "referenceOptimal": 6,
+      "board": {
+        "w": 10,
+        "h": 10
+      },
+      "items": [
+        {
+          "w": 10,
+          "h": 4,
+          "demand": 1
+        },
+        {
+          "w": 2,
+          "h": 10,
+          "demand": 2
+        },
+        {
+          "w": 2,
+          "h": 4,
+          "demand": 1
+        },
+        {
+          "w": 10,
+          "h": 10,
+          "demand": 1
+        },
+        {
+          "w": 7,
+          "h": 2,
+          "demand": 1
+        },
+        {
+          "w": 9,
+          "h": 10,
+          "demand": 1
+        },
+        {
+          "w": 5,
+          "h": 6,
+          "demand": 1
+        },
+        {
+          "w": 7,
+          "h": 5,
+          "demand": 1
+        },
+        {
+          "w": 1,
+          "h": 7,
+          "demand": 2
+        },
+        {
+          "w": 5,
+          "h": 3,
+          "demand": 1
+        },
+        {
+          "w": 3,
+          "h": 9,
+          "demand": 1
+        },
+        {
+          "w": 9,
+          "h": 4,
+          "demand": 1
+        },
+        {
+          "w": 4,
+          "h": 3,
+          "demand": 1
+        },
+        {
+          "w": 2,
+          "h": 2,
+          "demand": 1
+        },
+        {
+          "w": 4,
+          "h": 9,
+          "demand": 1
+        },
+        {
+          "w": 2,
+          "h": 8,
+          "demand": 1
+        },
+        {
+          "w": 1,
+          "h": 1,
+          "demand": 1
+        },
+        {
+          "w": 4,
+          "h": 4,
+          "demand": 1
+        }
+      ],
+      "source": "https://github.com/ktnr/BinPacking2D/blob/master/data/input/BPP/CLASS/5.json"
+    },
+    {
+      "name": "CLASS01_020_10",
+      "mirrorInstance": 10,
+      "referenceOptimal": 8,
+      "board": {
+        "w": 10,
+        "h": 10
+      },
+      "items": [
+        {
+          "w": 8,
+          "h": 10,
+          "demand": 1
+        },
+        {
+          "w": 6,
+          "h": 5,
+          "demand": 1
+        },
+        {
+          "w": 3,
+          "h": 2,
+          "demand": 1
+        },
+        {
+          "w": 10,
+          "h": 10,
+          "demand": 1
+        },
+        {
+          "w": 8,
+          "h": 8,
+          "demand": 1
+        },
+        {
+          "w": 2,
+          "h": 2,
+          "demand": 1
+        },
+        {
+          "w": 2,
+          "h": 6,
+          "demand": 1
+        },
+        {
+          "w": 10,
+          "h": 6,
+          "demand": 1
+        },
+        {
+          "w": 2,
+          "h": 9,
+          "demand": 1
+        },
+        {
+          "w": 5,
+          "h": 8,
+          "demand": 1
+        },
+        {
+          "w": 3,
+          "h": 9,
+          "demand": 1
+        },
+        {
+          "w": 2,
+          "h": 1,
+          "demand": 1
+        },
+        {
+          "w": 9,
+          "h": 5,
+          "demand": 1
+        },
+        {
+          "w": 7,
+          "h": 8,
+          "demand": 1
+        },
+        {
+          "w": 2,
+          "h": 8,
+          "demand": 1
+        },
+        {
+          "w": 3,
+          "h": 8,
+          "demand": 1
+        },
+        {
+          "w": 2,
+          "h": 3,
+          "demand": 1
+        },
+        {
+          "w": 4,
+          "h": 2,
+          "demand": 1
+        },
+        {
+          "w": 8,
+          "h": 6,
+          "demand": 1
+        },
+        {
+          "w": 6,
+          "h": 3,
+          "demand": 1
+        }
+      ],
+      "source": "https://github.com/ktnr/BinPacking2D/blob/master/data/input/BPP/CLASS/10.json"
+    }
+  ]
+}
