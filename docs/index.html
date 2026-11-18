@@ -412,11 +412,149 @@ function improveGroupPacking(initial,items,cfg){
  return {solution:best,attempts,improvements};
 }
 
+
+// Exact finite disjunctive search for SMALL uniform-stock free nesting instances.
+// Every pair on a common board must satisfy x_i+w_i+kerf<=x_j, the reverse,
+// y_i+h_i+kerf<=y_j, or the reverse. Enumerating all four alternatives,
+// stock assignments and allowed rotations is complete. On each branch,
+// longest-path difference constraints determine whether coordinates exist.
+// A budget-interrupted search is UNKNOWN, never a proof of infeasibility.
+function exactUniformFeasibility(parts,stock,limit,cfg,options={}){
+ const started=Date.now(),deadline=options.deadline??started+130,maxNodes=options.maxNodes??30000;
+ const W=stock.l-2*cfg.trim,H=stock.w-2*cfg.trim,kerf=cfg.kerf,eps=1e-7;
+ let nodes=0,limited=false,layout=null;
+ const finish=status=>({status,nodes,elapsedMs:Date.now()-started,layout});
+ const area=parts.reduce((n,p)=>n+p.l*p.w,0);
+ if(limit<1||W<=0||H<=0||area>limit*W*H+eps)return finish('infeasible');
+ if(parts.some(p=>!orientationChoices(p).some(([w,h])=>w<=W+eps&&h<=H+eps)))return finish('infeasible');
+ const sorted=parts.map((p,i)=>({...p,_originalIndex:i})).sort((a,b)=>b.l*b.w-a.l*a.w||Math.max(b.l,b.w)-Math.max(a.l,a.w)||a._originalIndex-b._originalIndex);
+ const n=sorted.length,boards=Array.from({length:limit},()=>({pieces:[],xs:[],ys:[],area:0}));
+ function tick(){
+  nodes++;
+  if(nodes>maxNodes||(nodes%128===0&&Date.now()>deadline)){limited=true;return false}
+  return true
+ }
+ function coordinates(board){
+  const X=new Array(n).fill(0),Y=new Array(n).fill(0),length=board.pieces.length;
+  function relax(edges,values){
+   let changed=false;
+   for(let i=0;i<length;i++){
+    changed=false;
+    for(const e of edges){
+     const next=values[e.from]+e.distance;
+     if(next>values[e.to]+eps){values[e.to]=next;changed=true}
+    }
+    if(!changed)break
+   }
+   return !changed
+  }
+  if(!relax(board.xs,X)||!relax(board.ys,Y))return null;
+  if(board.pieces.some(p=>X[p.index]+p.w>W+eps||Y[p.index]+p.h>H+eps))return null;
+  return {X,Y}
+ }
+ function finishPacking(){
+  const found=[];
+  for(const board of boards){
+   if(!board.pieces.length)continue;
+   const coords=coordinates(board);
+   if(!coords)return false;
+   found.push(board.pieces.map(p=>({
+    ...p.source,x:cfg.trim+coords.X[p.index],y:cfg.trim+coords.Y[p.index],
+    w:p.w,h:p.h,rotated:p.rotated
+   })))
+  }
+  layout=found;return true
+ }
+ function assign(index,usedBoards){
+  if(!tick())return false;
+  if(index===n)return finishPacking();
+  const original=sorted[index];
+  for(const [w,h,rotated]of orientationChoices(original)){
+   if(w>W+eps||h>H+eps)continue;
+   for(let bi=0;bi<Math.min(limit,usedBoards+1);bi++){
+    if(limited)return false;
+    const board=boards[bi];
+    if(board.area+w*h>W*H+eps)continue;
+    const previous=board.pieces.slice();
+    board.pieces.push({source:original,index,w,h,rotated});board.area+=w*h;
+    function relate(j){
+     if(!tick())return false;
+     if(j===previous.length)return assign(index+1,Math.max(usedBoards,bi+1));
+     const prev=previous[j],options=[
+      [board.xs,{from:prev.index,to:index,distance:prev.w+kerf}],
+      [board.xs,{from:index,to:prev.index,distance:w+kerf}],
+      [board.ys,{from:prev.index,to:index,distance:prev.h+kerf}],
+      [board.ys,{from:index,to:prev.index,distance:h+kerf}]
+     ];
+     for(const [edges,edge]of options){
+      edges.push(edge);
+      const possible=coordinates(board);
+      if(possible&&relate(j+1))return true;
+      edges.pop();
+      if(limited)return false
+     }
+     return false
+    }
+    const found=relate(0);
+    board.pieces.pop();board.area-=w*h;
+    if(found)return true;
+    if(limited)return false
+   }
+  }
+  return false
+ }
+ const feasible=assign(0,0);
+ return finish(feasible?'feasible':limited?'limit':'infeasible')
+}
+function buildExactPlan(layout,stock,items,cfg){
+ const bins=layout.map(pieces=>{const bin=mkBin(stock,cfg.trim);bin.placed=pieces;bin.free=[];return bin});
+ const unknownCostBins=bins.filter(b=>binCost(b.stock,cfg)===null).length;
+ return {bins,unplaced:[],placedCount:items.length,unknownCostBins,
+  cost:unknownCostBins?null:bins.reduce((n,b)=>n+binCost(b.stock,cfg),0),
+  stockArea:bins.reduce((n,b)=>n+b.stock.l*b.stock.w,0),
+  partArea:bins.reduce((n,b)=>n+b.placed.reduce((a,p)=>a+p.w*p.h,0),0)}
+}
+function exactRefinePlan(initial,data,cfg){
+ const proof={status:'skipped',proof:false,optimumCount:null,nodes:0,elapsedMs:0,checks:[],scope:'Serbest yerleşim, tek tip stok, 2–8 parça'};
+ const done=p=>{p.exact=proof;return p};
+ if(state.mode!=='nest'||data.stocks.length!==1||data.parts.length<2||data.parts.length>8||
+    initial.unplaced.length||initial.bins.length<2||initial.bins.length>4)return done(initial);
+ const stock=data.stocks[0];
+ if(data.parts.some(p=>mkey(p.material)!==mkey(stock.material)||
+   (p.t!==null&&(stock.t===null||Math.abs(p.t-stock.t)>1e-6))))return done(initial);
+ const lb=minStockCountLowerBound(data).lowerBound;
+ if(!Number.isInteger(lb)||lb<1||lb>=initial.bins.length)return done(initial);
+ const deadline=Date.now()+135;
+ let result=initial,allLowerExcluded=true;
+ proof.status='running';
+ for(let n=lb;n<initial.bins.length;n++){
+  if(n>stock.qty){proof.checks.push({boards:n,status:'infeasible'});continue}
+  const attempt=exactUniformFeasibility(data.parts,stock,n,cfg,{deadline,maxNodes:30000});
+  proof.nodes+=attempt.nodes;proof.elapsedMs+=attempt.elapsedMs;
+  proof.checks.push({boards:n,status:attempt.status});
+  if(attempt.status==='infeasible')continue;
+  if(attempt.status==='limit'){proof.status='limit';allLowerExcluded=false;break}
+  if(attempt.status==='feasible'){
+   const proposal=buildExactPlan(attempt.layout,stock,data.parts,cfg);
+   if(auditCutPlan(proposal,data).ok&&proposal.bins.length<result.bins.length){
+    result={...proposal,search:{...initial.search,
+     savedStockCount:(initial.search?.savedStockCount||0)+initial.bins.length-proposal.bins.length}};
+    proof.status='improved'
+   }else{proof.status='invalid-candidate';allLowerExcluded=false}
+   break
+  }
+ }
+ if(proof.status==='running')proof.status='proved';
+ proof.proof=allLowerExcluded&&(proof.status==='proved'||proof.status==='improved');
+ proof.optimumCount=proof.proof?result.bins.length:null;
+ return done(result)
+}
+
 function optimize(data,enhanced=true){const groups=new Map(),stockgroups=new Map();for(const p of data.parts){const key=mkey(p.material,p.t);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(p)}for(const s of data.stocks){const key=mkey(s.material,s.t);if(!stockgroups.has(key))stockgroups.set(key,[]);stockgroups.get(key).push(s)}let result={bins:[],unplaced:[],partArea:0,stockArea:0,cost:0,unknownCostBins:0,placedCount:0},search={baselineStockCount:0,savedStockCount:0,refinementAttempts:0,refinementSteps:0},cfg={kerf:data.kerf,trim:data.trim,m3:data.m3,mode:state.mode,priceMode:state.priceMode};for(const [key,group]of groups){const stock=stockgroups.get(key)||[];let best=null;const trials=group.length<=35?144:group.length<=120?90:group.length<=400?40:14;for(let tr=0;tr<trials;tr++){const r=packAttempt(group,stock,cfg,tr);if(compare(r,best)<0)best=r;if(best?.unplaced.length===0&&best?.bins.length===1&&best.stockArea<=group.reduce((a,p)=>a+p.l*p.w,0)*1.005)break}search.baselineStockCount+=best.bins.length;
 const refined=enhanced?improveGroupPacking(best,group,cfg):{solution:best,attempts:0,improvements:0};
 search.refinementAttempts+=refined.attempts;search.refinementSteps+=refined.improvements;
 search.savedStockCount+=best.bins.length-refined.solution.bins.length;
-best=refined.solution;result.bins.push(...best.bins);result.unplaced.push(...best.unplaced);result.unknownCostBins+=best.unknownCostBins;if(best.cost!==null)result.cost+=best.cost;result.stockArea+=best.stockArea;result.partArea+=best.partArea;result.placedCount+=best.placedCount}if(result.unknownCostBins)result.cost=null;result.search=search;return result}
+best=refined.solution;result.bins.push(...best.bins);result.unplaced.push(...best.unplaced);result.unknownCostBins+=best.unknownCostBins;if(best.cost!==null)result.cost+=best.cost;result.stockArea+=best.stockArea;result.partArea+=best.partArea;result.placedCount+=best.placedCount}if(result.unknownCostBins)result.cost=null;result.search=search;if(enhanced)result=exactRefinePlan(result,data,cfg);return result}
 
 // Rigorous, intentionally optimistic lower bound on required board COUNT.
 // Each material is independent. Ignore shape, thickness and kerf to NEVER overstate
@@ -458,21 +596,22 @@ function minStockCountLowerBound(data){
 }
 function certifyStockCount(plan,data,audit){
  const bound=minStockCountLowerBound(data),complete=!!audit?.ok&&plan.unplaced.length===0&&plan.placedCount===data.parts.length;
- const count=plan.bins.length;
- const proven=complete&&bound.lowerBound!==null&&count===bound.lowerBound;
+ const count=plan.bins.length,byArea=complete&&bound.lowerBound!==null&&count===bound.lowerBound;
+ const byExact=complete&&plan.exact?.proof===true&&plan.exact?.optimumCount===count;
+ const proven=byArea||byExact,method=byExact&&!byArea?'exhaustive-geometry':'area';
  return {goal:'minimum-stock-count',proven,complete,
-  usedStockCount:count,lowerBound:bound.lowerBound,method:bound.method,
+  usedStockCount:count,lowerBound:bound.lowerBound,method,searchStatus:plan.exact?.status||'skipped',
   gap:complete&&bound.lowerBound!==null?Math.max(0,count-bound.lowerBound):null,
   reason:!complete?'Tüm parçalar yerleşmedi veya geometri doğrulanmadı.':bound.reason||
-   (proven?'Alan alt sınırına ulaşıldı.':'Alt sınırın üzerindeki çözümlerde optimumluk henüz kanıtlanmadı.'),
+   (proven?'Minimum stok sayısı matematiksel olarak kanıtlandı.':'Kesin arama henüz tamamlanmadı veya kapsam dışında.'),
   details:bound.details}
 }
 function stockProofDescription(proof){
  if(!proof?.complete)return 'Optimumluk: Tüm parçalar yerleşmeden stok sayısı kanıtlanamaz.';
  if(proof.proven)return 'Minimum stok sayısı kanıtlandı: '+proof.usedStockCount+
-  ' stok kullanıldı; alan alt sınırı da '+proof.lowerBound+' stok. Bu kanıt fire veya maliyet optimumluğu değildir.';
+  ' stok. '+(proof.method==='exhaustive-geometry'?'Kesin geometrik arama daha az stoklu tüm seçenekleri eledi.':'Geçerli yerleşim alan alt sınırına ulaştı.')+' Bu kanıt fire veya maliyet optimumluğu değildir.';
  if(proof.lowerBound===null)return 'Minimum stok sayısı kanıtlanamadı: '+proof.reason;
- return 'Minimum stok sayısı henüz kanıtlanmadı: kullanılan '+proof.usedStockCount+
+ return (proof.searchStatus==='limit'?'Kesin çözüm araması zaman veya işlem sınırına ulaştı. ':'')+'Minimum stok sayısı henüz kanıtlanmadı: kullanılan '+proof.usedStockCount+
   ', matematiksel alt sınır '+proof.lowerBound+' stok. Daha iyi bir planın varlığı da kanıtlanmış değil.';
 }
 
@@ -790,7 +929,7 @@ function closeModal(){byId('modal').classList.add('hidden');document.body.classL
 let processing=false;function run(){if(processing)return;const data=normalize();if(data.errors.length){toast(data.errors[0]);return}processing=true;byId('runBtn').textContent='Hesaplanıyor…';byId('mobileRunBtn').textContent='Hesaplanıyor…';requestAnimationFrame(()=>setTimeout(()=>{try{const sol=optimize(data),errors=validateLayout(sol,{kerf:data.kerf,trim:data.trim});if(errors.length)throw Error(errors.join(' '));showResult(data,sol);byId('results').scrollIntoView({behavior:'smooth',block:'start'});if(sol.unplaced.length)toast(sol.unplaced.length+' parça yerleştirilemedi.')}catch(err){console.error(err);toast('Hesaplama hatası: '+err.message)}finally{processing=false;byId('runBtn').textContent='▣  Yerleşimi hesapla';byId('mobileRunBtn').textContent='▣  Yerleşimi hesapla'}},15))}
 byId('runBtn').onclick=run;byId('mobileRunBtn').onclick=run;
 renderRows();syncSettings();showEmpty();renderProjects();
-window.BeythausCut={normalize,optimize,optimizeBaseline:data=>optimize(data,false),minStockCountLowerBound,certifyStockCount,stockProofDescription,validateLayout,auditCutPlan,auditGuillotineCuts,collectOffcuts,defaultData,getLastAudit:()=>lastAudit,getState:()=>state,setState:o=>{state=sanitize(o);renderRows();syncSettings();save();showEmpty()},run};
+window.BeythausCut={normalize,optimize,optimizeBaseline:data=>optimize(data,false),exactUniformFeasibility,exactRefinePlan,minStockCountLowerBound,certifyStockCount,stockProofDescription,validateLayout,auditCutPlan,auditGuillotineCuts,collectOffcuts,defaultData,getLastAudit:()=>lastAudit,getState:()=>state,setState:o=>{state=sanitize(o);renderRows();syncSettings();save();showEmpty()},run};
 })();
 </script>
 <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))}</script>
