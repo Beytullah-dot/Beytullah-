@@ -336,15 +336,15 @@ const pdfSources=[
  'https://cdn.jsdelivr.net/npm/pdfmake@0.2.23/build/pdfmake.min.js',
  'https://cdn.jsdelivr.net/npm/pdfmake@0.2.23/build/vfs_fonts.js'
 ];
-let pdfLoader=null;
+let pdfLoader=null,pdfEngineReady=false;
 function loadPDFEngine(){
- if(window.pdfMake?.createPdf&&window.pdfMake?.vfs)return Promise.resolve(window.pdfMake);
+ if(pdfEngineReady&&window.pdfMake?.createPdf)return Promise.resolve(window.pdfMake);
  if(pdfLoader)return pdfLoader;
  pdfLoader=(async()=>{
    for(const src of pdfSources){
      await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=src;script.async=false;script.onload=resolve;script.onerror=()=>reject(new Error('PDF kitaplığı yüklenemedi'));document.head.appendChild(script)});
    }
-   if(!window.pdfMake?.createPdf||!window.pdfMake?.vfs)throw new Error('PDF motoru başlatılamadı');
+   if(!window.pdfMake?.createPdf)throw new Error('PDF motoru başlatılamadı');pdfEngineReady=true;
    return window.pdfMake
  })().catch(err=>{pdfLoader=null;throw err});
  return pdfLoader;
