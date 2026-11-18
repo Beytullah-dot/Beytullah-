@@ -342,7 +342,7 @@ function loadPDFEngine(){
  if(pdfLoader)return pdfLoader;
  pdfLoader=(async()=>{
    for(const src of pdfSources){
-     await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=src;script.async=false;script.onload=resolve;script.onerror=()=>reject(new Error('PDF kitaplığı yüklenemedi'));document.head.appendChild(script)});
+     await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=src;script.async=false;let finished=false;const timer=setTimeout(()=>{if(finished)return;finished=true;script.remove();reject(new Error('PDF kitaplığı zaman aşımı'))},12000);const finish=err=>{if(finished)return;finished=true;clearTimeout(timer);err?reject(err):resolve()};script.onload=()=>finish();script.onerror=()=>finish(new Error('PDF kitaplığı yüklenemedi'));document.head.appendChild(script)});
    }
    if(!window.pdfMake?.createPdf)throw new Error('PDF motoru başlatılamadı');pdfEngineReady=true;
    return window.pdfMake
@@ -424,8 +424,8 @@ function prepareCachedPdf(){
   if(rev!==pdfRenderGeneration||dirty)return;
   const doc=makePdfDocument();
   const blob=await new Promise((resolve,reject)=>{
-   let done=false;const handle=b=>{if(done)return;done=true;if(b&&b.size>100)resolve(b);else reject(new Error('Oluşturulan PDF boş'))};
-   try{engine.createPdf(doc).getBlob(handle)}catch(err){reject(err)}
+   let done=false;const timer=setTimeout(()=>{if(done)return;done=true;reject(new Error('PDF oluşturma zaman aşımı'))},20000);const handle=b=>{if(done)return;done=true;clearTimeout(timer);if(b&&b.size>100)resolve(b);else reject(new Error('Oluşturulan PDF boş'))};
+   try{engine.createPdf(doc).getBlob(handle)}catch(err){clearTimeout(timer);reject(err)}
   });
   if(rev!==pdfRenderGeneration||dirty)return;
   cachedPdf={blob,filename:pdfFilename()};pdfExportState='ready';b.disabled=false;b.title='Üretim PDF indir';b.removeAttribute('aria-busy');
