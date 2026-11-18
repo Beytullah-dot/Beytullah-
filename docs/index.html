@@ -299,7 +299,60 @@ try{state=sanitize(stored()||defaultData())}catch{state=defaultData()}
 
 // A separate, device-local physical stock ledger. Every item represents ONE
 // actual remnant in millimeters, not a hypothetical cut-plan rectangle.
-const REMNANT_KEY='beythaus-cut-remnant-library-v1',MAX_REMNANTS=700;
+const REMNANT_KEY='beythaus-cut-remnant-library-v1',MAX_REMNANTS=700,MAX_REMNANT_HISTORY=3000;
+
+// Browser-local stock movement history. Records are stored atomically with
+// the inventory operation; this is NOT a tamper-proof or multi-user audit trail.
+const REMNANT_EVENT_TYPES=['created','consumed','restored','moved','corrected','deleted','imported'];
+const REMNANT_EVENT_SOURCES=['manual','qr','production','backup'];
+function remnantEventSnapshot(p){
+ if(!p)return null;
+ return {l:p.l,w:p.w,t:p.t,material:p.material,location:p.location,
+  notes:p.notes,status:p.status,projectName:p.projectName}
+}
+function cleanRemnantEvent(raw){
+ if(!raw||typeof raw!=='object'||typeof raw.id!=='string'||!raw.id||
+    !REMNANT_EVENT_TYPES.includes(raw.type))return null;
+ const time=Number(raw.at);
+ if(!(time>0&&Number.isFinite(time)))return null;
+ const snapshot=x=>{
+  if(!x||typeof x!=='object')return null;
+  const o={};
+  for(const field of ['l','w','t','material','location','notes','status','projectName']){
+   if(!Object.prototype.hasOwnProperty.call(x,field))continue;
+   const v=x[field];
+   o[field]=v===null?null:typeof v==='number'&&Number.isFinite(v)?v:
+    typeof v==='string'?v.slice(0,220):null
+  }
+  return o
+ };
+ return {id:raw.id.slice(0,96),at:time,type:raw.type,
+  source:REMNANT_EVENT_SOURCES.includes(raw.source)?raw.source:'manual',
+  pieceId:String(raw.pieceId||'').slice(0,90),
+  projectName:String(raw.projectName||'').slice(0,60),
+  batchId:String(raw.batchId||'').slice(0,90),
+  before:snapshot(raw.before),after:snapshot(raw.after)}
+}
+function newRemnantEvent(type,piece,before,after,source='manual',meta={}){
+ return cleanRemnantEvent({
+  id:'EV'+Date.now().toString(36)+uid()+Math.random().toString(36).slice(2,8),
+  at:Date.now(),type,source,pieceId:piece?.id||meta.pieceId||'',
+  projectName:meta.projectName??piece?.projectName??state.project,
+  batchId:meta.batchId||'',before:remnantEventSnapshot(before),after:remnantEventSnapshot(after)
+ })
+}
+function appendRemnantEvents(next,events){
+ if(!events.length)return next;
+ return {...next,movements:(remnantDB.movements||[]).concat(events.filter(Boolean)).slice(-MAX_REMNANT_HISTORY)}
+}
+function remnantMovements(filters={}){
+ const type=filters.type||'all',pieceId=filters.pieceId||'',query=String(filters.query||'').trim().toLocaleLowerCase('tr-TR');
+ return (remnantDB.movements||[]).filter(e=>(type==='all'||e.type===type)&&(!pieceId||e.pieceId===pieceId)&&
+  (!query||[e.pieceId,e.id,e.type,e.source,e.projectName,e.batchId,e.before?.location,
+   e.after?.location,e.before?.material,e.after?.material].join(' ').toLocaleLowerCase('tr-TR').includes(query))
+ ).sort((a,b)=>b.at-a.at||b.id.localeCompare(a.id))
+}
+
 function cleanRemnant(raw){
  if(!raw||typeof raw!=='object'||!raw.id)return null;
  const l=Number(raw.l),w=Number(raw.w),t=raw.t===null?null:Number(raw.t);
@@ -318,14 +371,14 @@ function cleanRemnant(raw){
 function readRemnantDB(){
  try{
   const obj=JSON.parse(localStorage.getItem(REMNANT_KEY)||'null');
-  if(!obj||obj.version!==1||!Array.isArray(obj.pieces))return {version:1,pieces:[],batches:[],defaultLocation:''};
+  if(!obj||obj.version!==1||!Array.isArray(obj.pieces))return {version:1,pieces:[],batches:[],movements:[],defaultLocation:''};
   const pieces=[],seen=new Set();
   for(const item of obj.pieces.slice(0,MAX_REMNANTS)){
    const p=cleanRemnant(item);
    if(p&&!seen.has(p.id)){seen.add(p.id);pieces.push(p)}
   }
-  return {version:1,pieces,batches:Array.isArray(obj.batches)?obj.batches.slice(-900):[],defaultLocation:String(obj.defaultLocation??'').trim().slice(0,80)}
- }catch{return {version:1,pieces:[],batches:[],defaultLocation:''}}
+  return {version:1,pieces,batches:Array.isArray(obj.batches)?obj.batches.slice(-900):[],movements:Array.isArray(obj.movements)?obj.movements.slice(-MAX_REMNANT_HISTORY).map(cleanRemnantEvent).filter(Boolean):[],defaultLocation:String(obj.defaultLocation??'').trim().slice(0,80)}
+ }catch{return {version:1,pieces:[],batches:[],movements:[],defaultLocation:''}}
 }
 let remnantDB=readRemnantDB();
 function availableRemnants(){return remnantDB.pieces.filter(x=>x.status==='available')}
@@ -404,7 +457,7 @@ function setRemnantDefaultLocation(location){
  byId('remnantDefaultLocation').value=clean;
  return true
 }
-function editRemnantRecord(id,changes){
+function editRemnantRecord(id,changes,options={}){
  const current=remnantDB.pieces.find(p=>p.id===id);
  if(!current)return false;
  if(String(changes.location??current.location).trim().length>80||String(changes.notes??current.notes).trim().length>220)return false;
@@ -413,15 +466,19 @@ function editRemnantRecord(id,changes){
  if(!updated.material.trim())return false;
  if(updated.location.length>80||updated.notes.length>220)return false;
  const changedData=remnantDB.pieces.map(p=>p.id===id?updated:p);
- if(!commitRemnants({...remnantDB,pieces:changedData}))return false;
+ const changedFields=Object.keys(remnantEventSnapshot(current)).filter(k=>remnantEventSnapshot(current)[k]!==remnantEventSnapshot(updated)[k]);
+ const changeType=changedFields.length===1&&changedFields[0]==='location'?'moved':'corrected';
+ const event=changedFields.length?[newRemnantEvent(changeType,current,current,updated,options.source==='qr'?'qr':'manual')]:[];
+ if(!commitRemnants(appendRemnantEvents({...remnantDB,pieces:changedData},event)))return false;
  changed();
  return true
 }
-let selectedRemnantEditId=null;
-function openRemnantEditor(id){
+let selectedRemnantEditId=null,selectedRemnantEditSource='manual';
+function openRemnantEditor(id,source='manual'){
  const piece=remnantDB.pieces.find(p=>p.id===id);
  if(!piece)return false;
- selectedRemnantEditId=id;
+ selectedRemnantEditId=id;selectedRemnantEditSource=source==='qr'?'qr':'manual';
+ byId('remnantEditStatusAction').textContent=piece.status==='available'?'Kullanıldı işaretle':'Mevcut yap';
  byId('remnantEditLength').value=piece.l;
  byId('remnantEditWidth').value=piece.w;
  byId('remnantEditThickness').value=piece.t??'';
@@ -434,7 +491,7 @@ function openRemnantEditor(id){
  return true
 }
 function closeRemnantEditor(){
- selectedRemnantEditId=null;byId('remnantEditForm').classList.add('hidden')
+ selectedRemnantEditId=null;selectedRemnantEditSource='manual';byId('remnantEditForm').classList.add('hidden')
 }
 function submitRemnantEditor(){
  if(!selectedRemnantEditId)return false;
@@ -447,7 +504,7 @@ function submitRemnantEditor(){
     material.length>80||location.length>80||notes.length>220){
   toast('Ölçü, kalınlık veya malzeme bilgisi geçersiz.');return false
  }
- const saved=editRemnantRecord(selectedRemnantEditId,{l:length,w:width,t,material,location,notes});
+ const saved=editRemnantRecord(selectedRemnantEditId,{l:length,w:width,t,material,location,notes},{source:selectedRemnantEditSource});
  if(!saved){toast('Artık kaydı düzenlenemedi.');return false}
  closeRemnantEditor();
  toast('Artık malzeme bilgileri güncellendi.');
@@ -485,19 +542,21 @@ function renderRemnantList(){
   '<button class="btn danger" data-remnant-action="delete" data-remnant-id="'+esc(p.id)+'">Sil</button></div></div>'
  ).join(''):'<div class="empty-state" style="min-height:130px"><strong>Bu filtreyle eşleşen artık yok.</strong><p>Filtreleri temizleyebilir veya yeni üretimden sonra envantere parça ekleyebilirsiniz.</p></div>';
 }
-function setRemnantStatus(id,status){
+function setRemnantStatus(id,status,options={}){
  const existing=remnantDB.pieces.find(p=>p.id===id);
  if(!existing||!['used','available'].includes(status)||existing.status===status)return false;
- const next={...remnantDB,pieces:remnantDB.pieces.map(p=>p.id===id?
-  {...p,status,usedAt:status==='used'?Date.now():null}:p)};
- if(!commitRemnants(next))return false;
+ const updated={...existing,status,usedAt:status==='used'?Date.now():null};
+ const next={...remnantDB,pieces:remnantDB.pieces.map(p=>p.id===id?updated:p)};
+ const event=newRemnantEvent(status==='used'?'consumed':'restored',existing,existing,updated,options.source==='qr'?'qr':'manual');
+ if(!commitRemnants(appendRemnantEvents(next,[event])))return false;
  changed();return true
 }
 function deleteRemnant(id){
  const target=remnantDB.pieces.find(p=>p.id===id);
  if(!target)return false;
  if(!confirm(fmt(target.l,1)+' × '+fmt(target.w,1)+' mm artık stok kaydı silinsin mi? Bu işlem geri alınamaz.'))return false;
- if(!commitRemnants({...remnantDB,pieces:remnantDB.pieces.filter(p=>p.id!==id)}))return false;
+ if(!commitRemnants(appendRemnantEvents({...remnantDB,pieces:remnantDB.pieces.filter(p=>p.id!==id)},
+  [newRemnantEvent('deleted',target,target,null,'manual')])))return false;
  changed();return true
 }
 function remnantPlanSignature(result){
@@ -554,7 +613,11 @@ function registerRemnantProduction(){
    projectName:state.project,signature,createdAt:now,usedIds,
    createdIds:created.map(p=>p.id)}]).slice(-900)
  };
- if(!commitRemnants(next))return false;
+ const movementEvents=[...usedIds.map(id=>{
+  const prev=remnantDB.pieces.find(x=>x.id===id),used=next.pieces.find(x=>x.id===id);
+  return newRemnantEvent('consumed',prev,prev,used,'production',{projectName:state.project,batchId})
+ }),...created.map(piece=>newRemnantEvent('created',piece,null,piece,'production',{projectName:state.project,batchId}))];
+ if(!commitRemnants(appendRemnantEvents(next,movementEvents)))return false;
  solution.productionRecorded=true;
  refreshRemnantUI();
  toast('Üretim kaydedildi: '+created.length+' yeni artık, '+usedIds.length+' tüketilen stok.');
@@ -585,11 +648,18 @@ function mergeRemnantBackup(payload){
    createdIds:Array.isArray(raw.createdIds)?raw.createdIds.slice(0,700).map(String):[]
   })
  }
+ const currentMovementIds=new Set((remnantDB.movements||[]).map(e=>e.id)),importedMovements=[];
+ if(Array.isArray(payload.movements))for(const raw of payload.movements.slice(-MAX_REMNANT_HISTORY)){
+  const event=cleanRemnantEvent(raw);
+  if(event&&!currentMovementIds.has(event.id)){currentMovementIds.add(event.id);importedMovements.push(event)}
+ }
+ const importEvents=additions.map(piece=>newRemnantEvent('imported',piece,null,piece,'backup'));
  const importedDefault=String(payload.defaultLocation||'').trim().slice(0,80),nextDefault=remnantDB.defaultLocation||importedDefault;
- if(!additions.length&&!newBatches.length&&nextDefault===remnantDB.defaultLocation)return 0;
+ if(!additions.length&&!newBatches.length&&!importedMovements.length&&nextDefault===remnantDB.defaultLocation)return 0;
  if(!commitRemnants({...remnantDB,pieces:remnantDB.pieces.concat(additions),
    defaultLocation:nextDefault,
-   batches:remnantDB.batches.concat(newBatches).slice(-900)}))
+   batches:remnantDB.batches.concat(newBatches).slice(-900),
+   movements:(remnantDB.movements||[]).concat(importedMovements,importEvents).slice(-MAX_REMNANT_HISTORY)}))
   throw Error('Envanter yedeği kaydedilemedi.');
  changed();return additions.length
 }
@@ -676,7 +746,7 @@ byId('remnantList').onclick=e=>{
 };
 byId('remnantExportBtn').onclick=()=>{
  const backup={kind:'beythaus-cut-remnant-backup',version:1,
-  exportedAt:new Date().toISOString(),defaultLocation:remnantDB.defaultLocation||'',pieces:remnantDB.pieces,batches:remnantDB.batches};
+  exportedAt:new Date().toISOString(),defaultLocation:remnantDB.defaultLocation||'',pieces:remnantDB.pieces,batches:remnantDB.batches,movements:remnantDB.movements||[]};
  download(new Blob([JSON.stringify(backup,null,2)],{type:'application/json;charset=utf-8'}),
   'Beythaus-Cut-Artik-Stok-Yedek-'+new Date().toISOString().slice(0,10)+'.json');
  toast('Envanter yedeği indirildi.')
@@ -1711,7 +1781,7 @@ function closeModal(){byId('modal').classList.add('hidden');document.body.classL
 let processing=false;function run(){if(processing)return;const data=normalize();if(data.errors.length){toast(data.errors[0]);return}processing=true;byId('runBtn').textContent='Hesaplanıyor…';byId('mobileRunBtn').textContent='Hesaplanıyor…';requestAnimationFrame(()=>setTimeout(()=>{try{const sol=optimize(data),errors=validateLayout(sol,{kerf:data.kerf,trim:data.trim});if(errors.length)throw Error(errors.join(' '));showResult(data,sol);byId('results').scrollIntoView({behavior:'smooth',block:'start'});if(sol.unplaced.length)toast(sol.unplaced.length+' parça yerleştirilemedi.')}catch(err){console.error(err);toast('Hesaplama hatası: '+err.message)}finally{processing=false;byId('runBtn').textContent='▣  Yerleşimi hesapla';byId('mobileRunBtn').textContent='▣  Yerleşimi hesapla'}},15))}
 byId('runBtn').onclick=run;byId('mobileRunBtn').onclick=run;
 renderRows();syncSettings();showEmpty();renderProjects();
-window.BeythausCut={getRemnantDB:()=>JSON.parse(JSON.stringify(remnantDB)),filterRemnants,editRemnantRecord,setRemnantDefaultLocation,openRemnantEditor,submitRemnantEditor,inventoryStocksForPlan,registerRemnantProduction,setRemnantStatus,mergeRemnantBackup,normalize,optimize,optimizeBaseline:data=>optimize(data,false),refineUsableOffcuts,offcutMetrics,betterOffcuts,offcutOptimizationDescription,enumerateBoardMultisets,exactGrossAreaRefine,grossWasteProofDescription,exactUniformFeasibility,exactVariableFeasibility,exactRefinePlan,minStockCountLowerBound,certifyStockCount,stockProofDescription,validateLayout,auditCutPlan,auditGuillotineCuts,collectOffcuts,defaultData,getLastAudit:()=>lastAudit,getState:()=>state,setState:o=>{state=sanitize(o);renderRows();syncSettings();save();showEmpty()},run};
+window.BeythausCut={remnantMovements,cleanRemnantEvent,getRemnantDB:()=>JSON.parse(JSON.stringify(remnantDB)),filterRemnants,editRemnantRecord,setRemnantDefaultLocation,openRemnantEditor,submitRemnantEditor,inventoryStocksForPlan,registerRemnantProduction,setRemnantStatus,mergeRemnantBackup,normalize,optimize,optimizeBaseline:data=>optimize(data,false),refineUsableOffcuts,offcutMetrics,betterOffcuts,offcutOptimizationDescription,enumerateBoardMultisets,exactGrossAreaRefine,grossWasteProofDescription,exactUniformFeasibility,exactVariableFeasibility,exactRefinePlan,minStockCountLowerBound,certifyStockCount,stockProofDescription,validateLayout,auditCutPlan,auditGuillotineCuts,collectOffcuts,defaultData,getLastAudit:()=>lastAudit,getState:()=>state,setState:o=>{state=sanitize(o);renderRows();syncSettings();save();showEmpty()},run};
 })();
 </script>
 <script src="./vendor/qrcode.min.js"></script>
