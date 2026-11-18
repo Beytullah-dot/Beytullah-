@@ -144,6 +144,7 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
 .remnant-edit-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
 @media(max-width:580px){.remnant-filter-bar{grid-template-columns:repeat(2,minmax(0,1fr));padding:12px}.remnant-filter-field:first-child{grid-column:span 2}.remnant-default-location{padding:12px}.remnant-editor{margin:0 8px 10px;padding:12px}.remnant-edit-grid{grid-template-columns:1fr}.remnant-list-summary{padding:0 12px 10px}}
 </style>
+<link rel="stylesheet" href="./qr-inventory.css">
 </head>
 <body>
 <header class="topbar"><div class="container topbar-inner">
@@ -216,7 +217,7 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
 <div id="remnantOverlay" class="projects-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="remnantHeading">
  <div class="projects-panel">
   <div class="projects-head"><h2 id="remnantHeading">Artık stok envanteri <span class="count" id="remnantModalCount">0</span></h2><button class="btn icononly" id="remnantCloseBtn" aria-label="Kapat" type="button">×</button></div>
-  <div class="projects-tools"><button class="btn" id="remnantExportBtn" type="button">↓ Envanter yedeği</button><button class="btn" id="remnantImportBtn" type="button">↑ Yedek yükle</button><input id="remnantImportFile" type="file" accept=".json,application/json" hidden></div>
+  <div class="projects-tools"><button class="btn" id="remnantExportBtn" type="button">↓ Envanter yedeği</button><button class="btn" id="remnantImportBtn" type="button">↑ Yedek yükle</button><button class="btn" id="remnantScanOpenBtn" type="button">▣ QR tara</button><button class="btn" id="remnantBulkLabelsBtn" type="button">▤ Filtrelenen etiketler</button><input id="remnantImportFile" type="file" accept=".json,application/json" hidden></div>
 
   <div class="remnant-default-location">
    <label for="remnantDefaultLocation">Yeni üretilen artıkların varsayılan rafı</label>
@@ -249,6 +250,33 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
   <div class="projects-bottom"><p class="projects-note">Stok eklemek için doğrulanmış <b>düz kesim planından sonra fiziksel üretimi onaylayın</b>. “Kullanıldı” işaretlenen malzeme sonraki hesaplara katılmaz. Yedek başka cihazda yüklenebilir; otomatik eşitleme yoktur.</p></div>
  </div>
 </div>
+
+<div id="remnantLabelOverlay" class="projects-overlay qr-label-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="remnantLabelHeading">
+ <div class="projects-panel qr-dialog">
+  <div class="projects-head"><h2 id="remnantLabelHeading">QR stok etiketleri</h2><button id="remnantLabelCloseBtn" class="btn icononly" type="button" aria-label="Kapat">×</button></div>
+  <div class="qr-label-content"><div id="remnantLabelPreview" class="qr-label-grid"></div></div>
+  <p class="qr-label-note">Kod yalnızca parça kimliği ve Beythaus Cut bağlantısı içerir. Başka cihazda kaydı açmak için o cihazda envanter yedeği bulunmalıdır.</p>
+  <div class="qr-label-actions"><button class="btn primary" id="remnantLabelPrintBtn" type="button">▤ Etiketleri yazdır</button><button class="btn" id="remnantLabelBackBtn" type="button">Kapat</button></div>
+ </div>
+</div>
+<div id="remnantScanOverlay" class="projects-overlay qr-scan-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="remnantScanHeading">
+ <div class="projects-panel qr-scan-panel">
+  <div class="projects-head"><h2 id="remnantScanHeading">QR ile stok bul</h2><button id="remnantScanCloseBtn" class="btn icononly" type="button" aria-label="Kamerayı kapat">×</button></div>
+  <div class="qr-scan-body">
+   <video id="remnantScanVideo" class="qr-scan-video" playsinline autoplay muted aria-label="QR tarama kamerası"></video>
+   <canvas id="remnantScanCanvas" hidden></canvas>
+   <p id="remnantScanStatus" class="qr-scan-status">Kamera açılması için izin gerekebilir.</p>
+   <div class="qr-scan-fallback">
+    <label for="remnantScanFile">QR fotoğrafı çek veya görüntü seç</label>
+    <input id="remnantScanFile" type="file" accept="image/*" capture="environment">
+    <label for="remnantScanManual">Parça kimliği ya da QR bağlantısı</label>
+    <div class="qr-scan-manual"><input id="remnantScanManual" type="text" placeholder="Beythaus bağlantısı veya ID"><button id="remnantScanManualOpen" class="btn" type="button">Bul</button></div>
+    <p class="qr-scan-footnote">Kamera ve fotoğraflar cihazda işlenir. İzin reddedilirse bağlantıyı veya kod kimliğini elle gir. Diğer cihazdaki kayıtlar için envanter yedeğini yükle.</p>
+   </div>
+  </div>
+ </div>
+</div>
+<div id="remnantLabelPrintRoot" aria-hidden="true"></div>
 <script>
 (()=>{'use strict';
 const byId=id=>document.getElementById(id),qsa=s=>Array.from(document.querySelectorAll(s));
@@ -451,7 +479,7 @@ function renderRemnantList(){
   '<small class="remnant-shelf">Raf: '+esc(p.location||'Belirtilmedi')+'</small>'+
   (p.notes?'<small>Not: '+esc(p.notes)+'</small>':'')+
   '<small>'+esc(p.projectName||'Kayıtsız üretim')+' · '+new Date(p.createdAt).toLocaleDateString('tr-TR')+'</small></div>'+
-  '<div class="project-ops"><button class="btn" data-remnant-action="edit" data-remnant-id="'+esc(p.id)+'">Düzenle</button>'+
+  '<div class="project-ops"><button class="btn" data-remnant-action="label" data-remnant-id="'+esc(p.id)+'">QR etiket</button><button class="btn" data-remnant-action="edit" data-remnant-id="'+esc(p.id)+'">Düzenle</button>'+
   '<button class="btn" data-remnant-action="toggle" data-remnant-id="'+esc(p.id)+'">'+
   (p.status==='available'?'Kullanıldı':'Geri al')+'</button>'+
   '<button class="btn danger" data-remnant-action="delete" data-remnant-id="'+esc(p.id)+'">Sil</button></div></div>'
@@ -641,7 +669,7 @@ byId('useRemnantStockInput').onchange=()=>{
 byId('remnantList').onclick=e=>{
  const button=e.target.closest('button[data-remnant-action]');if(!button)return;
  const id=button.dataset.remnantId;
- if(button.dataset.remnantAction==='edit'){openRemnantEditor(id)}else if(button.dataset.remnantAction==='toggle'){
+ if(button.dataset.remnantAction==='label'){window.BeythausQR?.labelSingle(id)}else if(button.dataset.remnantAction==='edit'){openRemnantEditor(id)}else if(button.dataset.remnantAction==='toggle'){
   const item=remnantDB.pieces.find(p=>p.id===id);
   if(item)setRemnantStatus(id,item.status==='available'?'used':'available')
  }else if(button.dataset.remnantAction==='delete')deleteRemnant(id)
@@ -1686,5 +1714,8 @@ renderRows();syncSettings();showEmpty();renderProjects();
 window.BeythausCut={getRemnantDB:()=>JSON.parse(JSON.stringify(remnantDB)),filterRemnants,editRemnantRecord,setRemnantDefaultLocation,openRemnantEditor,submitRemnantEditor,inventoryStocksForPlan,registerRemnantProduction,setRemnantStatus,mergeRemnantBackup,normalize,optimize,optimizeBaseline:data=>optimize(data,false),refineUsableOffcuts,offcutMetrics,betterOffcuts,offcutOptimizationDescription,enumerateBoardMultisets,exactGrossAreaRefine,grossWasteProofDescription,exactUniformFeasibility,exactVariableFeasibility,exactRefinePlan,minStockCountLowerBound,certifyStockCount,stockProofDescription,validateLayout,auditCutPlan,auditGuillotineCuts,collectOffcuts,defaultData,getLastAudit:()=>lastAudit,getState:()=>state,setState:o=>{state=sanitize(o);renderRows();syncSettings();save();showEmpty()},run};
 })();
 </script>
+<script src="./vendor/qrcode.min.js"></script>
+<script src="./vendor/jsQR.js"></script>
+<script src="./qr-inventory.js"></script>
 <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))}</script>
 </body></html>
