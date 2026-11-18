@@ -332,6 +332,94 @@ byId('printBtn').onclick=()=>{
  if(productionFile()){window.print()}
 };
 
+const pdfSources=[
+ 'https://cdn.jsdelivr.net/npm/pdfmake@0.2.23/build/pdfmake.min.js',
+ 'https://cdn.jsdelivr.net/npm/pdfmake@0.2.23/build/vfs_fonts.js'
+];
+let pdfLoader=null;
+function loadPDFEngine(){
+ if(window.pdfMake?.createPdf&&window.pdfMake?.vfs)return Promise.resolve(window.pdfMake);
+ if(pdfLoader)return pdfLoader;
+ pdfLoader=(async()=>{
+   for(const src of pdfSources){
+     await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src=src;script.async=false;script.onload=resolve;script.onerror=()=>reject(new Error('PDF kitaplığı yüklenemedi'));document.head.appendChild(script)});
+   }
+   if(!window.pdfMake?.createPdf||!window.pdfMake?.vfs)throw new Error('PDF motoru başlatılamadı');
+   return window.pdfMake
+ })().catch(err=>{pdfLoader=null;throw err});
+ return pdfLoader;
+}
+function makePdfDocument(){
+ const d=normalize(),sol=solution;
+ const unit=state.unit,f=dimFactor(),m=x=>fmt(x/f,2)+' '+unit,thick=x=>thicknessText(x);
+ const issue=new Date().toLocaleDateString('tr-TR',{day:'2-digit',month:'long',year:'numeric'});
+ const code='BHC-'+String(activeProjectId||'PROJE').replace(/[^a-zA-Z0-9]/g,'').slice(-8).toUpperCase();
+ const heading=t=>({text:t,style:'section',margin:[0,13,0,7]});
+ const th=text=>({text,fillColor:'#E9F1EA',color:'#3A5745',bold:true,margin:[2,4,2,4],fontSize:8});
+ const cell=text=>({text:String(text),margin:[2,3,2,3],fontSize:8});
+ const table=(heads,rows,widths)=>({table:{headerRows:1,widths,body:[heads.map(th),...rows.map(r=>r.map(cell))]},layout:'lightHorizontalLines',margin:[0,0,0,9]});
+ const notice=state.mode==='nest'
+ ?'Serbest yerleşim, panel testeresinde uygulanabilir bir kesim sırası garanti etmez. Operatör kesim yöntemini doğrulamalıdır.'
+ :'Düz kesim işlemlerinde kesim sırası ve gerçek testere payı üretici tarafından teyit edilmelidir.';
+ const parts=state.parts.filter(p=>val(p.l)>0&&val(p.w)>0&&val(p.qty)>0).map((p,i)=>[p.label||'P'+(i+1),p.material||'Ahşap',fmt(val(p.l),2)+' × '+fmt(val(p.w),2)+' '+unit,state.partsThicknessEnabled?thick(p.t):'Belirtilmedi',fmt(val(p.qty),0),p.rotate?'Serbest':'Sabit']);
+ const stockCounts=new Map();
+ for(const bin of sol.bins){const x=bin.stock,key=[x.material,x.l,x.w,x.t].join('|');const row=stockCounts.get(key)||{x,count:0};row.count++;stockCounts.set(key,row)}
+ const stocks=[...stockCounts.values()].map(({x,count})=>[x.material,m(x.l)+' × '+m(x.w),thick(x.t),String(count)]);
+ const content=[
+  {columns:[{text:'BEYTHAUS  /  CUT',style:'brand'}, {text:'ÜRETİM DOSYASI · '+code,alignment:'right',fontSize:10,bold:true,color:'#64836A'}]},
+  {canvas:[{type:'line',x1:0,y1:0,x2:766,y2:0,lineColor:'#365D46',lineWidth:1.5}],margin:[0,12,0,14]},
+  {text:state.project||'Kesim projesi',style:'title'},
+  {text:issue+'  |  '+sol.placedCount+' parça  |  '+sol.bins.length+' stok  |  %'+fmt(sol.stockArea?sol.partArea/sol.stockArea*100:0,1)+' verim',style:'metadata',margin:[0,3,0,13]},
+  heading('01 / PARÇA LİSTESİ'),
+  table(['Etiket','Malzeme','Net ölçü','Kalınlık','Adet','Yön'],parts,[55,90,125,84,42,'*']),
+  heading('02 / GEREKLİ STOKLAR'),
+  table(['Malzeme','Panel ölçüsü','Kalınlık','Adet'],stocks,[110,170,110,'*']),
+  heading('03 / ÜRETİM PARAMETRELERİ'),
+  {text:'Testere payı: '+fmt(val(state.kerf),1)+' mm     |     Kenar payı: '+fmt(val(state.trim),1)+' mm/kenar     |     Yöntem: '+(state.mode==='nest'?'Serbest yerleşim':'Düz kesim'),fontSize:9,color:'#465F4C',margin:[0,2,0,8]},
+  {text:notice,fontSize:9,color:'#7A573E',margin:[0,3,0,8]}
+ ];
+ if(sol.unplaced.length)content.push({text:'UYARI: '+sol.unplaced.length+' parça yerleştirilemedi.',bold:true,color:'#AE4E44',fontSize:10,margin:[0,4,0,6]});
+ for(let i=0;i<sol.bins.length;i++){
+  const b=sol.bins[i],placed=b.placed,used=placed.reduce((a,p)=>a+p.w*p.h,0),yieldPct=100*used/(b.stock.l*b.stock.w);
+  const group=new Map();
+  for(const p of placed){const key=[p.label,p.w,p.h,p.t,p.rotated].join('|');const item=group.get(key)||{p,count:0};item.count++;group.set(key,item)}
+  const rows=[...group.values()].map(({p,count})=>[p.label,m(p.w)+' × '+m(p.h),thick(p.t),String(count),p.rotated?'90°':'—']);
+  let svg=svgFor(b,1600).replace(/<title>[\s\S]*?<\/title>/g,'');
+  const view=svg.match(/viewBox="0 0 (\d+) (\d+)"/);
+  if(view)svg=svg.replace('<svg ','<svg width="'+view[1]+'" height="'+view[2]+'" ');
+  content.push(
+   {text:'STOK '+(i+1)+' / '+sol.bins.length+'    ·    KESİM YERLEŞİMİ',style:'section',pageBreak:'before'},
+   {text:b.stock.material+'  ·  '+m(b.stock.l)+' × '+m(b.stock.w)+'  ·  '+thick(b.stock.t)+'  ·  '+placed.length+' parça  ·  %'+fmt(yieldPct,1)+' verim',fontSize:9,color:'#667C6B',margin:[0,5,0,15]},
+   {svg,width:750,margin:[0,0,0,10]},
+   {text:'Testere payı '+fmt(val(state.kerf),1)+' mm · Kenar payı '+fmt(val(state.trim),1)+' mm / kenar',fontSize:8,color:'#84988A',margin:[0,5,0,11]},
+   heading('BU STOKTAN ÜRETİLECEK PARÇALAR'),
+   table(['Etiket','Net ölçü','Kalınlık','Adet','Dönüş'],rows,[85,170,100,55,'*']),
+   {text:notice,fontSize:8,color:'#6D816F',margin:[0,8,0,0]}
+  );
+ }
+ return {pageSize:'A4',pageOrientation:'landscape',pageMargins:[38,34,38,44],content,
+  info:{title:(state.project||'Kesim projesi')+' · Beythaus Cut',author:'Beythaus Cut',subject:'Üretim ve kesim planı'},
+  defaultStyle:{font:'Roboto',fontSize:9,color:'#253B2B'},
+  styles:{brand:{fontSize:16,bold:true,color:'#244832',characterSpacing:1},title:{fontSize:22,bold:true,color:'#244A33'},section:{fontSize:12,bold:true,color:'#31573E'},metadata:{fontSize:9,color:'#7C9180'}},
+  footer:(page,pages)=>({columns:[{text:'BEYTHAUS CUT · '+code,color:'#849A8B'}, {text:String(page)+' / '+String(pages),alignment:'right',color:'#849A8B'}],margin:[38,0,38,0],fontSize:8})
+ };
+}
+byId('downloadPdfTopBtn').onclick=async()=>{
+ if(!solution?.bins.length||dirty){toast('Önce kesim yerleşimini hesaplayın.');return}
+ const button=byId('downloadPdfTopBtn'),before=button.innerHTML;
+ button.disabled=true;button.textContent='PDF…';
+ try{
+   const engine=await loadPDFEngine();
+   const name=(state.project||'Kesim-Plani').replace(/[^\p{L}\p{N}._-]+/gu,'-').slice(0,65)||'Kesim-Plani';
+   engine.createPdf(makePdfDocument()).download('Beythaus-Cut-'+name+'.pdf');
+ }catch(err){
+   console.error(err);
+   toast('Doğrudan PDF indirilemedi. Safari yazdırma görünümü açılıyor.');
+   if(productionFile())window.print()
+ }finally{button.disabled=false;button.innerHTML=before}
+};
+
+
 byId('zoomBtn').onclick=()=>{if(!solution?.bins[activeSheet])return;const b=solution.bins[activeSheet];byId('modalTitle').textContent=`Stok ${activeSheet+1} · ${fmt(b.stock.l/dimFactor(),1)} × ${fmt(b.stock.w/dimFactor(),1)} ${state.unit}`;byId('modalBody').innerHTML='<div class="drawing-wrap"><div class="drawing-inner">'+svgFor(b,1600)+'</div></div>';byId('modal').classList.remove('hidden');document.body.classList.add('no-overflow')};
 function closeModal(){byId('modal').classList.add('hidden');document.body.classList.remove('no-overflow')};byId('modalClose').onclick=closeModal;byId('modal').onclick=e=>{if(e.target.id==='modal')closeModal()};document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();run()}});
 let processing=false;function run(){if(processing)return;const data=normalize();if(data.errors.length){toast(data.errors[0]);return}processing=true;byId('runBtn').textContent='Hesaplanıyor…';byId('mobileRunBtn').textContent='Hesaplanıyor…';requestAnimationFrame(()=>setTimeout(()=>{try{const sol=optimize(data),errors=validateLayout(sol,{kerf:data.kerf,trim:data.trim});if(errors.length)throw Error(errors.join(' '));showResult(data,sol);byId('results').scrollIntoView({behavior:'smooth',block:'start'});if(sol.unplaced.length)toast(sol.unplaced.length+' parça yerleştirilemedi.')}catch(err){console.error(err);toast('Hesaplama hatası: '+err.message)}finally{processing=false;byId('runBtn').textContent='▣  Yerleşimi hesapla';byId('mobileRunBtn').textContent='▣  Yerleşimi hesapla'}},15))}
