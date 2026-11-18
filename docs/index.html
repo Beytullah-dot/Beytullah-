@@ -121,6 +121,27 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
 .remnant-detail small{font-size:10px;color:#7a8d7e}
 .remnant-row .project-ops{margin:0}
 .remnant-row.is-used{opacity:.68}
+
+.remnant-default-location{padding:12px 18px 10px;border-bottom:1px solid #edf0ec;display:grid;gap:7px}
+.remnant-default-location label,.remnant-filter-field label,.remnant-editor label{font-size:11px;color:#677e6e;font-weight:650}
+.remnant-default-row{display:flex;gap:8px;align-items:stretch}
+.remnant-default-row input{flex:1;min-width:0}
+.remnant-default-row input,.remnant-filter-field input,.remnant-filter-field select,.remnant-editor input{border:1px solid #dce5df;border-radius:8px;background:#fff;padding:9px 10px;color:#375544;font-size:12px;width:100%;min-height:38px}
+.remnant-default-row .btn{flex:none}
+.remnant-filter-bar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;padding:13px 18px}
+.remnant-filter-field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.remnant-filter-field:first-child{grid-column:span 2}
+.remnant-list-summary{padding:0 18px 11px;display:flex;align-items:center;justify-content:space-between;gap:9px;color:#738579;font-size:11px}
+.remnant-list-summary .btn{font-size:10px}
+.remnant-detail small.remnant-shelf{color:#426d4f;font-weight:650}
+.remnant-editor{padding:15px 18px;margin:0 13px 12px;border:1px solid #cde0d0;border-radius:12px;background:#f7faf6}
+.remnant-editor.hidden{display:none}
+.remnant-editor h3{font-size:13px;color:#335b43;margin:0}
+.remnant-edit-identity{font-size:11px;color:#7c9081;margin:6px 0 12px}
+.remnant-edit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.remnant-edit-grid>div{display:grid;gap:5px}
+.remnant-edit-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+@media(max-width:580px){.remnant-filter-bar{grid-template-columns:repeat(2,minmax(0,1fr));padding:12px}.remnant-filter-field:first-child{grid-column:span 2}.remnant-default-location{padding:12px}.remnant-editor{margin:0 8px 10px;padding:12px}.remnant-edit-grid{grid-template-columns:1fr}.remnant-list-summary{padding:0 12px 10px}}
 </style>
 </head>
 <body>
@@ -195,6 +216,34 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
  <div class="projects-panel">
   <div class="projects-head"><h2 id="remnantHeading">Artık stok envanteri <span class="count" id="remnantModalCount">0</span></h2><button class="btn icononly" id="remnantCloseBtn" aria-label="Kapat" type="button">×</button></div>
   <div class="projects-tools"><button class="btn" id="remnantExportBtn" type="button">↓ Envanter yedeği</button><button class="btn" id="remnantImportBtn" type="button">↑ Yedek yükle</button><input id="remnantImportFile" type="file" accept=".json,application/json" hidden></div>
+
+  <div class="remnant-default-location">
+   <label for="remnantDefaultLocation">Yeni üretilen artıkların varsayılan rafı</label>
+   <div class="remnant-default-row"><input id="remnantDefaultLocation" type="text" maxlength="80" placeholder="Örn. Raf A / Göz 2"><button id="remnantDefaultSave" class="btn" type="button">Kaydet</button></div>
+  </div>
+  <div class="remnant-filter-bar">
+   <div class="remnant-filter-field"><label for="remnantSearch">Parça ara</label><input id="remnantSearch" type="search" placeholder="Ölçü, raf, not, proje…"></div>
+   <div class="remnant-filter-field"><label for="remnantStatusFilter">Durum</label><select id="remnantStatusFilter"><option value="available">Mevcut</option><option value="all">Tümü</option><option value="used">Kullanıldı</option></select></div>
+   <div class="remnant-filter-field"><label for="remnantMaterialFilter">Malzeme türü</label><select id="remnantMaterialFilter"><option value="all">Tüm malzemeler</option></select></div>
+   <div class="remnant-filter-field"><label for="remnantThicknessFilter">Kalınlık</label><select id="remnantThicknessFilter"><option value="all">Tüm kalınlıklar</option></select></div>
+   <div class="remnant-filter-field"><label for="remnantLocationFilter">Raf / konum</label><select id="remnantLocationFilter"><option value="all">Tüm raflar</option></select></div>
+   <div class="remnant-filter-field"><label for="remnantMinLength">Minimum boy (mm)</label><input id="remnantMinLength" type="text" inputmode="decimal" placeholder="—"></div>
+   <div class="remnant-filter-field"><label for="remnantMinWidth">Minimum en (mm)</label><input id="remnantMinWidth" type="text" inputmode="decimal" placeholder="—"></div>
+  </div>
+  <div class="remnant-list-summary"><span id="remnantFilteredCount">0 parça gösteriliyor</span><button class="btn small" type="button" id="remnantClearFilters">Filtreleri temizle</button></div>
+  <form id="remnantEditForm" class="remnant-editor hidden">
+   <h3>Artık parça bilgilerini düzelt</h3>
+   <p id="remnantEditIdentity" class="remnant-edit-identity"></p>
+   <div class="remnant-edit-grid">
+    <div><label for="remnantEditLength">Boy (mm)</label><input id="remnantEditLength" inputmode="decimal" type="text" required></div>
+    <div><label for="remnantEditWidth">En (mm)</label><input id="remnantEditWidth" inputmode="decimal" type="text" required></div>
+    <div><label for="remnantEditThickness">Kalınlık (mm)</label><input id="remnantEditThickness" inputmode="decimal" type="text" placeholder="Bilinmiyor"></div>
+    <div><label for="remnantEditMaterial">Malzeme türü</label><input id="remnantEditMaterial" type="text" maxlength="80" required></div>
+    <div><label for="remnantEditLocation">Raf / konum</label><input id="remnantEditLocation" type="text" maxlength="80" placeholder="Örn. Raf A / Göz 2"></div>
+    <div><label for="remnantEditNotes">Not</label><input id="remnantEditNotes" type="text" maxlength="220" placeholder="Damar yönü, kusur, etiket…"></div>
+   </div>
+   <div class="remnant-edit-actions"><button id="remnantEditSave" class="btn primary" type="submit">Kaydet</button><button id="remnantEditCancel" class="btn" type="button">Vazgeç</button></div>
+  </form>
   <div id="remnantList" class="projects-list"></div>
   <div class="projects-bottom"><p class="projects-note">Stok eklemek için doğrulanmış <b>düz kesim planından sonra fiziksel üretimi onaylayın</b>. “Kullanıldı” işaretlenen malzeme sonraki hesaplara katılmaz. Yedek başka cihazda yüklenebilir; otomatik eşitleme yoktur.</p></div>
  </div>
@@ -229,6 +278,8 @@ function cleanRemnant(raw){
     (t===null||Number.isFinite(t)&&t>0&&t<=1e5)))return null;
  return {id:String(raw.id).slice(0,90),l,w,t,
   material:String(raw.material||'Ahşap').slice(0,80),
+  location:String(raw.location??'').trim().slice(0,80),
+  notes:String(raw.notes??'').trim().slice(0,220),
   sourceKey:String(raw.sourceKey||'').slice(0,180),
   projectName:String(raw.projectName||'').slice(0,60),
   status:raw.status==='used'?'used':'available',
@@ -238,14 +289,14 @@ function cleanRemnant(raw){
 function readRemnantDB(){
  try{
   const obj=JSON.parse(localStorage.getItem(REMNANT_KEY)||'null');
-  if(!obj||obj.version!==1||!Array.isArray(obj.pieces))return {version:1,pieces:[],batches:[]};
+  if(!obj||obj.version!==1||!Array.isArray(obj.pieces))return {version:1,pieces:[],batches:[],defaultLocation:''};
   const pieces=[],seen=new Set();
   for(const item of obj.pieces.slice(0,MAX_REMNANTS)){
    const p=cleanRemnant(item);
    if(p&&!seen.has(p.id)){seen.add(p.id);pieces.push(p)}
   }
-  return {version:1,pieces,batches:Array.isArray(obj.batches)?obj.batches.slice(-900):[]}
- }catch{return {version:1,pieces:[],batches:[]}}
+  return {version:1,pieces,batches:Array.isArray(obj.batches)?obj.batches.slice(-900):[],defaultLocation:String(obj.defaultLocation??'').trim().slice(0,80)}
+ }catch{return {version:1,pieces:[],batches:[],defaultLocation:''}}
 }
 let remnantDB=readRemnantDB();
 function availableRemnants(){return remnantDB.pieces.filter(x=>x.status==='available')}
@@ -272,6 +323,107 @@ function commitRemnants(next){
   return false
  }
 }
+
+// Pure inventory selectors; filtering never reserves or consumes stock.
+// Minimum dimensions may be matched after physically rotating the rectangle.
+function filterRemnants(pieces,filters={}){
+ const q=String(filters.query||'').trim().toLocaleLowerCase('tr-TR'),
+ status=filters.status||'available',material=filters.material||'all',
+ thickness=filters.thickness||'all',location=filters.location||'all',
+ minL=Number(filters.minL)||0,minW=Number(filters.minW)||0;
+ return pieces.filter(p=>{
+  if(status!=='all'&&p.status!==status)return false;
+  if(material!=='all'&&p.material!==material)return false;
+  if(thickness!=='all'&&(thickness==='unknown'?p.t!==null:String(p.t)!==thickness))return false;
+  if(location!=='all'&&p.location!==location)return false;
+  if(minL>0||minW>0){
+   const straight=p.l>=minL&&p.w>=minW,rotated=p.w>=minL&&p.l>=minW;
+   if(!straight&&!rotated)return false
+  }
+  if(!q)return true;
+  const searchable=[p.id,p.material,p.location,p.notes,p.projectName,
+   String(p.l),String(p.w),p.t===null?'':String(p.t)].join(' ').toLocaleLowerCase('tr-TR');
+  return searchable.includes(q)
+ }).sort((a,b)=>b.createdAt-a.createdAt)
+}
+function remnantFiltersFromUI(){
+ const length=val(byId('remnantMinLength').value),width=val(byId('remnantMinWidth').value);
+ return {query:byId('remnantSearch').value,status:byId('remnantStatusFilter').value||'available',
+  material:byId('remnantMaterialFilter').value||'all',
+  thickness:byId('remnantThicknessFilter').value||'all',
+  location:byId('remnantLocationFilter').value||'all',
+  minL:Number.isFinite(length)&&length>0?length:0,
+  minW:Number.isFinite(width)&&width>0?width:0}
+}
+function updateRemnantFilterOptions(){
+ const keep=(id,options)=>{const node=byId(id),selected=node.value||'all';
+  node.innerHTML=options.map(x=>'<option value="'+esc(x[0])+'">'+esc(x[1])+'</option>').join('');
+  node.value=options.some(x=>x[0]===selected)?selected:'all'
+ };
+ const pieces=remnantDB.pieces,
+  materials=[...new Set(pieces.map(p=>p.material))].sort((a,b)=>a.localeCompare(b,'tr')),
+  thicknesses=[...new Set(pieces.map(p=>p.t))].sort((a,b)=>a===null?1:b===null?-1:a-b),
+  locations=[...new Set(pieces.map(p=>p.location))].sort((a,b)=>a.localeCompare(b,'tr'));
+ keep('remnantMaterialFilter',[['all','Tüm malzemeler'],...materials.map(m=>[m,m])]);
+ keep('remnantThicknessFilter',[['all','Tüm kalınlıklar'],...thicknesses.map(t=>t===null?['unknown','Bilinmeyen']:[String(t),fmt(t,1)+' mm'])]);
+ keep('remnantLocationFilter',[['all','Tüm raflar'],...locations.map(loc=>[loc,loc||'Raf belirtilmedi'])]);
+}
+function setRemnantDefaultLocation(location){
+ const clean=String(location??'').trim();
+ if(clean.length>80)return false;
+ if(!commitRemnants({...remnantDB,defaultLocation:clean}))return false;
+ byId('remnantDefaultLocation').value=clean;
+ return true
+}
+function editRemnantRecord(id,changes){
+ const current=remnantDB.pieces.find(p=>p.id===id);
+ if(!current)return false;
+ const updated=cleanRemnant({...current,...changes,id:current.id});
+ if(!updated)return false;
+ if(!updated.material.trim())return false;
+ if(updated.location.length>80||updated.notes.length>220)return false;
+ const changedData=remnantDB.pieces.map(p=>p.id===id?updated:p);
+ if(!commitRemnants({...remnantDB,pieces:changedData}))return false;
+ changed();
+ return true
+}
+let selectedRemnantEditId=null;
+function openRemnantEditor(id){
+ const piece=remnantDB.pieces.find(p=>p.id===id);
+ if(!piece)return false;
+ selectedRemnantEditId=id;
+ byId('remnantEditLength').value=piece.l;
+ byId('remnantEditWidth').value=piece.w;
+ byId('remnantEditThickness').value=piece.t??'';
+ byId('remnantEditMaterial').value=piece.material;
+ byId('remnantEditLocation').value=piece.location;
+ byId('remnantEditNotes').value=piece.notes;
+ byId('remnantEditIdentity').textContent='Kimlik '+piece.id+' · '+(piece.status==='available'?'Mevcut':'Kullanıldı');
+ byId('remnantEditForm').classList.remove('hidden');
+ byId('remnantEditLocation').focus();
+ return true
+}
+function closeRemnantEditor(){
+ selectedRemnantEditId=null;byId('remnantEditForm').classList.add('hidden')
+}
+function submitRemnantEditor(){
+ if(!selectedRemnantEditId)return false;
+ const length=val(byId('remnantEditLength').value),width=val(byId('remnantEditWidth').value),
+ t=optionalThickness(byId('remnantEditThickness').value),
+ material=byId('remnantEditMaterial').value.trim(),
+ location=byId('remnantEditLocation').value.trim(),notes=byId('remnantEditNotes').value.trim();
+ if(!(length>0&&width>0&&Number.isFinite(length)&&Number.isFinite(width)&&
+      (t===null||Number.isFinite(t)&&t>0))||!material||
+    material.length>80||location.length>80||notes.length>220){
+  toast('Ölçü, kalınlık veya malzeme bilgisi geçersiz.');return false
+ }
+ const saved=editRemnantRecord(selectedRemnantEditId,{l:length,w:width,t,material,location,notes});
+ if(!saved){toast('Artık kaydı düzenlenemedi.');return false}
+ closeRemnantEditor();
+ toast('Artık malzeme bilgileri güncellendi.');
+ return true
+}
+
 function refreshRemnantUI(){
  const current=availableRemnants(),count=current.length,area=current.reduce((n,p)=>n+p.l*p.w,0);
  byId('remnantCount').textContent=count;
@@ -280,19 +432,28 @@ function refreshRemnantUI(){
  byId('useRemnantStockInput').checked=state.useRemnantStock;
  byId('remnantConfirmProductionBtn').disabled=!!(dirty||!lastAudit?.ok||!solution||
   solution.productionRecorded||solution.unplaced.length||state.mode!=='guillotine'||!solution.bins.length);
+ // Avoid overwriting a default-shelf draft while the user is typing.
+ if(document.activeElement!==byId('remnantDefaultLocation'))
+  byId('remnantDefaultLocation').value=remnantDB.defaultLocation||'';
+ updateRemnantFilterOptions();
  renderRemnantList()
 }
 function renderRemnantList(){
- const list=remnantDB.pieces.slice().sort((a,b)=>b.createdAt-a.createdAt);
+ const list=filterRemnants(remnantDB.pieces,remnantFiltersFromUI());
+ const area=list.filter(p=>p.status==='available').reduce((n,p)=>n+p.l*p.w,0);
+ byId('remnantFilteredCount').textContent=list.length+' parça gösteriliyor · mevcut alan '+fmt(area/1e6,3)+' m²';
  byId('remnantList').innerHTML=list.length?list.map(p=>
   '<div class="remnant-row '+(p.status==='used'?'is-used':'')+'"><div class="project-symbol">▦</div>'+
   '<div class="remnant-detail"><strong>'+fmt(p.l,1)+' × '+fmt(p.w,1)+' mm · '+esc(p.material)+'</strong>'+
   '<small>Kalınlık: '+esc(thicknessText(p.t))+' · '+(p.status==='available'?'Mevcut':'Kullanıldı')+'</small>'+
+  '<small class="remnant-shelf">Raf: '+esc(p.location||'Belirtilmedi')+'</small>'+
+  (p.notes?'<small>Not: '+esc(p.notes)+'</small>':'')+
   '<small>'+esc(p.projectName||'Kayıtsız üretim')+' · '+new Date(p.createdAt).toLocaleDateString('tr-TR')+'</small></div>'+
-  '<div class="project-ops"><button class="btn" data-remnant-action="toggle" data-remnant-id="'+esc(p.id)+'">'+
+  '<div class="project-ops"><button class="btn" data-remnant-action="edit" data-remnant-id="'+esc(p.id)+'">Düzenle</button>'+
+  '<button class="btn" data-remnant-action="toggle" data-remnant-id="'+esc(p.id)+'">'+
   (p.status==='available'?'Kullanıldı':'Geri al')+'</button>'+
   '<button class="btn danger" data-remnant-action="delete" data-remnant-id="'+esc(p.id)+'">Sil</button></div></div>'
- ).join(''):'<div class="empty-state" style="min-height:130px"><strong>Henüz kayıtlı artık yok.</strong><p>Düz kesim üretimini onayladığınızda uygun parçalar burada listelenecek.</p></div>';
+ ).join(''):'<div class="empty-state" style="min-height:130px"><strong>Bu filtreyle eşleşen artık yok.</strong><p>Filtreleri temizleyebilir veya yeni üretimden sonra envantere parça ekleyebilirsiniz.</p></div>';
 }
 function setRemnantStatus(id,status){
  const existing=remnantDB.pieces.find(p=>p.id===id);
@@ -354,7 +515,7 @@ function registerRemnantProduction(){
  const now=Date.now(),created=recovered.map(p=>cleanRemnant({
   id:'R'+Date.now().toString(36)+uid()+p.boardIndex+p.pieceIndex,
   l:p.l,w:p.w,t:p.t,material:p.material,sourceKey:batchId+':'+p.boardIndex+':'+p.pieceIndex,
-  projectName:state.project,status:'available',createdAt:now
+  projectName:state.project,location:remnantDB.defaultLocation||'',notes:'',status:'available',createdAt:now
  }));
  if(created.some(x=>!x)){toast('Artık ölçülerinden biri geçersiz.');return false}
  const next={...remnantDB,
@@ -396,6 +557,7 @@ function mergeRemnantBackup(payload){
  }
  if(!additions.length&&!newBatches.length)return 0;
  if(!commitRemnants({...remnantDB,pieces:remnantDB.pieces.concat(additions),
+   defaultLocation:remnantDB.defaultLocation||String(payload.defaultLocation||'').trim().slice(0,80),
    batches:remnantDB.batches.concat(newBatches).slice(-900)}))
   throw Error('Envanter yedeği kaydedilemedi.');
  changed();return additions.length
@@ -461,6 +623,12 @@ byId('projectsImportBtn').onclick=()=>byId('fileInput').click();
 
 
 byId('remnantManageBtn').onclick=()=>{refreshRemnantUI();byId('remnantOverlay').classList.remove('hidden')};
+byId('remnantDefaultSave').onclick=()=>{if(setRemnantDefaultLocation(byId('remnantDefaultLocation').value))toast('Varsayılan raf kaydedildi.')};
+for(const id of ['remnantSearch','remnantMinLength','remnantMinWidth'])byId(id).oninput=renderRemnantList;
+for(const id of ['remnantStatusFilter','remnantMaterialFilter','remnantThicknessFilter','remnantLocationFilter'])byId(id).onchange=renderRemnantList;
+byId('remnantClearFilters').onclick=()=>{byId('remnantSearch').value='';byId('remnantStatusFilter').value='available';byId('remnantMaterialFilter').value='all';byId('remnantThicknessFilter').value='all';byId('remnantLocationFilter').value='all';byId('remnantMinLength').value='';byId('remnantMinWidth').value='';renderRemnantList()};
+byId('remnantEditForm').onsubmit=e=>{e?.preventDefault?.();return submitRemnantEditor()};
+byId('remnantEditCancel').onclick=closeRemnantEditor;
 byId('remnantCloseBtn').onclick=()=>byId('remnantOverlay').classList.add('hidden');
 byId('remnantOverlay').onclick=e=>{if(e.target===byId('remnantOverlay'))byId('remnantOverlay').classList.add('hidden')};
 byId('remnantConfirmProductionBtn').onclick=registerRemnantProduction;
@@ -470,14 +638,14 @@ byId('useRemnantStockInput').onchange=()=>{
 byId('remnantList').onclick=e=>{
  const button=e.target.closest('button[data-remnant-action]');if(!button)return;
  const id=button.dataset.remnantId;
- if(button.dataset.remnantAction==='toggle'){
+ if(button.dataset.remnantAction==='edit'){openRemnantEditor(id)}else if(button.dataset.remnantAction==='toggle'){
   const item=remnantDB.pieces.find(p=>p.id===id);
   if(item)setRemnantStatus(id,item.status==='available'?'used':'available')
  }else if(button.dataset.remnantAction==='delete')deleteRemnant(id)
 };
 byId('remnantExportBtn').onclick=()=>{
  const backup={kind:'beythaus-cut-remnant-backup',version:1,
-  exportedAt:new Date().toISOString(),pieces:remnantDB.pieces,batches:remnantDB.batches};
+  exportedAt:new Date().toISOString(),defaultLocation:remnantDB.defaultLocation||'',pieces:remnantDB.pieces,batches:remnantDB.batches};
  download(new Blob([JSON.stringify(backup,null,2)],{type:'application/json;charset=utf-8'}),
   'Beythaus-Cut-Artik-Stok-Yedek-'+new Date().toISOString().slice(0,10)+'.json');
  toast('Envanter yedeği indirildi.')
@@ -1512,7 +1680,7 @@ function closeModal(){byId('modal').classList.add('hidden');document.body.classL
 let processing=false;function run(){if(processing)return;const data=normalize();if(data.errors.length){toast(data.errors[0]);return}processing=true;byId('runBtn').textContent='Hesaplanıyor…';byId('mobileRunBtn').textContent='Hesaplanıyor…';requestAnimationFrame(()=>setTimeout(()=>{try{const sol=optimize(data),errors=validateLayout(sol,{kerf:data.kerf,trim:data.trim});if(errors.length)throw Error(errors.join(' '));showResult(data,sol);byId('results').scrollIntoView({behavior:'smooth',block:'start'});if(sol.unplaced.length)toast(sol.unplaced.length+' parça yerleştirilemedi.')}catch(err){console.error(err);toast('Hesaplama hatası: '+err.message)}finally{processing=false;byId('runBtn').textContent='▣  Yerleşimi hesapla';byId('mobileRunBtn').textContent='▣  Yerleşimi hesapla'}},15))}
 byId('runBtn').onclick=run;byId('mobileRunBtn').onclick=run;
 renderRows();syncSettings();showEmpty();renderProjects();
-window.BeythausCut={getRemnantDB:()=>JSON.parse(JSON.stringify(remnantDB)),inventoryStocksForPlan,registerRemnantProduction,setRemnantStatus,mergeRemnantBackup,normalize,optimize,optimizeBaseline:data=>optimize(data,false),refineUsableOffcuts,offcutMetrics,betterOffcuts,offcutOptimizationDescription,enumerateBoardMultisets,exactGrossAreaRefine,grossWasteProofDescription,exactUniformFeasibility,exactVariableFeasibility,exactRefinePlan,minStockCountLowerBound,certifyStockCount,stockProofDescription,validateLayout,auditCutPlan,auditGuillotineCuts,collectOffcuts,defaultData,getLastAudit:()=>lastAudit,getState:()=>state,setState:o=>{state=sanitize(o);renderRows();syncSettings();save();showEmpty()},run};
+window.BeythausCut={getRemnantDB:()=>JSON.parse(JSON.stringify(remnantDB)),filterRemnants,editRemnantRecord,setRemnantDefaultLocation,openRemnantEditor,submitRemnantEditor,inventoryStocksForPlan,registerRemnantProduction,setRemnantStatus,mergeRemnantBackup,normalize,optimize,optimizeBaseline:data=>optimize(data,false),refineUsableOffcuts,offcutMetrics,betterOffcuts,offcutOptimizationDescription,enumerateBoardMultisets,exactGrossAreaRefine,grossWasteProofDescription,exactUniformFeasibility,exactVariableFeasibility,exactRefinePlan,minStockCountLowerBound,certifyStockCount,stockProofDescription,validateLayout,auditCutPlan,auditGuillotineCuts,collectOffcuts,defaultData,getLastAudit:()=>lastAudit,getState:()=>state,setState:o=>{state=sanitize(o);renderRows();syncSettings();save();showEmpty()},run};
 })();
 </script>
 <script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))}</script>
