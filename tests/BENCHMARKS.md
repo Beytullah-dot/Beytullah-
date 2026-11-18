@@ -50,6 +50,22 @@ Bu ifade testere talaşını, temizleme payını, küçük kırpıntıları ve y
 
 Düz (giyotin) kesim, damar yönü, CNC araç yolu, kullanılabilir artıkların ekonomik değeri, **en az maliyet** ve **kullanılabilir artık şekillerinin optimumluğu** kesin kanıt kapsamı dışındadır. Geometrik planın ayrıca üretim makinesinde kontrol edilmesi gerekir.
 
+## Kullanılabilir artık şekli — sezgisel iyileştirme
+
+**Düz kesim modunda** kesim ağacındaki boş yapraklar fiziksel olarak bağımsız dikdörtgen artıklardır. Kullanıcı tarafından ayarlanan iki eşik (minimum kısa kenar mm ve minimum alan cm²) karşılandığında bu artıklar saklanabilir kabul edilir. Bu eşikler ekonomik talep, damar yönü veya kusur gibi üretim faktörlerini modellemez.
+
+Mevcut algoritma, ilk geçerli giyotin planından sonra **aynı stok panelleri ve aynı parça listesini** koruyarak farklı parça sıralamaları, yönler ve yatay/düşey kesim seçeneklerini dener. Sezgisel öncelikler:
+
+1. Eşiği geçen kullanılabilir artıkların **toplam alanını en çok artırmak**.
+2. Toplam alan eşitse **en büyük tek artık parçayı artırmak**.
+3. Bunlar da eşitse **daha az parçaya bölünmüş artığı** tercih etmek.
+
+Yalnızca stok sayısı, stok tür/adetleri, satın alma maliyeti ve toplam stok alanı değişmeyen planlar değerlendirilebilir. Aday plan, bağımsız geometrik kontrolden ve kesim adımlarının kesim ağacında yeniden canlandırılmasından geçmeden kabul edilmez.
+
+Arama bir malzeme grubu için en fazla 65 parça ve 6 kullanılan stokla çalışır. En fazla 48–160 alternatif (parça sayısına göre) ve yaklaşık 95 ms süre bütçesi vardır. Test paketi ayrıca 75 deterministik rastgele senaryoda üretim sırasını bağımsız kontrol eder.
+
+**Bu bir optimumluk kanıtı değildir.** En iyi artık düzenini bulma garantisi vermez. Toplam kullanılabilir alan öncelikli olduğundan, bazı projelerde daha çok kullanılabilir toplam alan elde edilirken en büyük tek artık parça küçülebilir. Çıktıda toplam kullanılabilir alan ve en büyük artık alanı ayrı gösterilir. Minimum brüt fire ile yeniden kullanılabilir artıklar farklı amaçlardır; testere talaşı veya ekonomik stok değeriyle karıştırılmamalıdır.
+
 ## Genişletme notu
 
 2DPackLib'de çok daha fazla örnek ve farklı matematiksel problem sınıfları bulunmaktadır. Bu projeye eklenmiş **11 örneğin tamamının** 2DPackLib'in bütün koleksiyonunda başarı göstermeyi temsil ettiği iddia edilmez. Sonraki aşama, bütün standart örnekleri dönüştüren ayrı bir içe aktarıcı ve resmi sonuç dosyalarıyla performans kıyaslamasıdır.
