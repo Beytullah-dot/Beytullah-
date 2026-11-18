@@ -20,12 +20,34 @@
 @media(max-width:850px){.workspace{grid-template-columns:minmax(0,1fr);max-width:690px;margin:0 auto}.sidebar{gap:13px}.main-area{gap:13px}.topbar-inner{min-height:70px}.drawing-inner{min-width:840px}.info-grid{grid-template-columns:repeat(2,1fr)}.card-head{padding:17px 20px 13px}.metrics{grid-template-columns:repeat(4,1fr)}}
 @media(max-width:580px){.container{width:calc(100% - 26px)}.topbar-inner{min-height:68px}.brand-name{font-size:17px}.brand-meta{font-size:9px}.brand-mark{width:34px;height:34px}.toolbar .desktop-text{display:none}.toolbar .btn{padding:8px 9px;font-size:12px}.workspace{padding-top:13px;padding-bottom:100px}.card{border-radius:15px}.card-head{padding:15px 16px 13px}.card-foot{padding:11px 16px}.edit-table td:first-child,.edit-table th:first-child{padding-left:14px}.edit-table{min-width:605px}.settings-body{padding:2px 16px 18px}.hero h1{font-size:23px}.main-area .hero{padding:18px 16px}.metrics{gap:8px}.metric{padding:11px 8px}.metric strong{font-size:18px}.metric span{font-size:10px}.plans-head{padding:15px 16px}.plan-stage{padding:12px 13px 16px}.plan-tabs{padding:11px 13px 0}.details{margin:12px 13px 15px;gap:8px}.detail-card{padding:11px}.detail-card .detail-value{font-size:14px}.info-grid{grid-template-columns:1fr;gap:12px}.info-pad{padding:16px}.runbar{display:none}.mobile-run{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:24;background:#f9fbf9f5;border-top:1px solid var(--line);padding:10px 13px calc(10px + env(safe-area-inset-bottom));backdrop-filter:blur(16px);gap:9px}.mobile-run .btn.primary{flex:1;min-height:47px}.mobile-run .btn.ghost{background:white;border:1px solid var(--line);min-width:47px}.footer{flex-direction:column}.drawing-inner{min-width:730px}}
 @media print{@page{size:A4 landscape;margin:11mm}body{background:white}.topbar,.workspace,.mobile-run,.toast,.modal{display:none!important}#printCollection{display:block!important}.print-sheet{break-after:page;page-break-after:always;color:#233b2e}.print-sheet:last-child{break-after:auto;page-break-after:auto}.print-sheet h2{font-size:21px;margin:0 0 8px}.print-sheet .print-meta{font-size:13px;color:#6f8577;margin-bottom:14px}.print-sheet .cut-svg{width:100%;max-height:270px}.print-sheet table{width:100%;border-collapse:collapse;margin-top:16px;font-size:12px}.print-sheet th,.print-sheet td{border-bottom:1px solid #ddd;padding:6px;text-align:left}.print-sheet th{color:#6a7d71}.print-sheet .print-end{font-size:11px;color:#888;margin-top:12px}}
+
+/* Project archive */
+.projects-overlay{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;background:rgba(14,31,22,.5);padding:16px}
+.projects-panel{width:min(100%,700px);max-height:90dvh;display:flex;flex-direction:column;border:1px solid #dce8dc;border-radius:20px;background:#fff;box-shadow:0 30px 90px #10241b44;overflow:hidden}
+.projects-head{display:flex;align-items:center;justify-content:space-between;padding:19px 22px;border-bottom:1px solid #e8eee9;gap:12px}
+.projects-head h2{margin:0;font-size:19px;letter-spacing:-.5px}
+.projects-tools{padding:15px 20px 12px;display:flex;gap:8px;flex-wrap:wrap}
+.projects-search{display:block;width:100%;padding:11px 13px;border:1px solid #dce7df;border-radius:10px;background:#fafcfa}
+.projects-list{overflow:auto;padding:2px 15px 15px;min-height:60px}
+.project-entry{padding:13px 9px;border-bottom:1px solid #edf1ee;display:flex;align-items:center;gap:12px}
+.project-entry:last-child{border-bottom:none}
+.project-entry.current{background:#f4f9f5;border-radius:10px}
+.project-symbol{width:40px;height:40px;border-radius:11px;background:#e7f0eb;display:grid;place-items:center;color:#41624e;flex:none;font-size:20px}
+.project-detail{flex:1;min-width:0}
+.project-detail strong{font-size:13px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.project-detail small{display:block;color:#87968b;margin-top:3px;font-size:11px}
+.project-ops{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.project-ops .btn{padding:7px 9px;font-size:11px}
+.projects-bottom{border-top:1px solid #e8eee9;padding:14px 20px;background:#fbfcfb}
+.projects-bottom .actions{display:flex;gap:8px;flex-wrap:wrap}
+.projects-note{font-size:11px;color:#839288;line-height:1.55;margin:10px 0 0}
+@media(max-width:580px){.projects-overlay{padding:8px;align-items:flex-end}.projects-panel{max-height:93dvh;border-radius:20px 20px 8px 8px}.projects-head{padding:16px}.projects-tools{padding:12px}.projects-list{padding:0 10px 10px}.project-entry{align-items:flex-start;flex-wrap:wrap;gap:9px}.project-detail{flex-basis:calc(100% - 55px)}.project-ops{margin-left:49px;width:calc(100% - 49px);justify-content:flex-start}.projects-bottom{padding:12px}.projects-note{font-size:10px}}
 </style>
 </head>
 <body>
 <header class="topbar"><div class="container topbar-inner">
   <div class="brand"><div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></div><div><div class="brand-name">Beythaus <span style="font-weight:420;color:#81968a">Cut</span></div><div class="brand-meta">KESİM PLANLAYICI</div></div></div>
-  <div class="toolbar"><button class="btn ghost" id="exampleBtn" title="Örnek projeyi yükle">↺ <span class="desktop-text">Örnek</span></button><button class="btn" id="importBtn" title="JSON projesi aç">⤴ <span class="desktop-text">Aç</span></button><button class="btn" id="exportBtn" title="Projeyi JSON olarak kaydet">↓ <span class="desktop-text">Kaydet</span></button><input id="fileInput" type="file" accept=".json,application/json" hidden></div>
+  <div class="toolbar"><button class="btn primary" id="projectsBtn" title="Projelerim">▣ <span class="desktop-text">Projelerim</span></button><button class="btn ghost" id="exampleBtn" title="Örnek projeyi yükle">↺ <span class="desktop-text">Örnek</span></button><button class="btn" id="importBtn" title="JSON projesi aç">⤴ <span class="desktop-text">Aç</span></button><button class="btn" id="exportBtn" title="Projeyi JSON olarak kaydet">↓ <span class="desktop-text">Kaydet</span></button><input id="fileInput" type="file" accept=".json,application/json" hidden></div>
 </div></header>
 <div class="container workspace">
 <section class="sidebar" aria-label="Proje ayarları">
@@ -62,6 +84,25 @@
 <div class="mobile-run"><button class="btn ghost" id="mobileSettings" title="Ayarlara git">⚙</button><button class="btn primary" id="mobileRunBtn">▣ &nbsp;Yerleşimi hesapla</button></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div><div id="printCollection"></div>
 <div id="modal" class="modal hidden"><div class="modal-card"><div class="modal-head"><strong id="modalTitle">Kesim planı</strong><button id="modalClose" class="btn icononly">✕</button></div><div class="modal-body" id="modalBody"></div></div></div>
+
+<div id="projectsOverlay" class="projects-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="projectsHeading">
+  <div class="projects-panel">
+    <div class="projects-head"><h2 id="projectsHeading">Projelerim <span class="count" id="projectsCount">0</span></h2><button class="btn icononly" id="projectsClose" aria-label="Kapat">×</button></div>
+    <div class="projects-tools">
+      <button id="newProjectBtn" class="btn primary">＋ Yeni proje</button>
+      <button id="manualSaveProjectBtn" class="btn">✓ Kaydet</button>
+      <input id="projectsSearch" class="projects-search" placeholder="Projelerde ara…" aria-label="Projelerde ara">
+    </div>
+    <div id="projectsList" class="projects-list"></div>
+    <div class="projects-bottom">
+      <div class="actions">
+        <button id="icloudBackupBtn" class="btn">☁ iCloud Drive'a yedekle</button>
+        <button id="projectsImportBtn" class="btn">⤴ Yedek yükle</button>
+      </div>
+      <p class="projects-note">Projeler bu cihazda otomatik saklanır. iCloud Drive'a yedekleme dosya üzerinden yapılır; farklı cihazlar arasında henüz otomatik eşitleme yoktur.</p>
+    </div>
+  </div>
+</div>
 <script>
 (()=>{'use strict';
 const byId=id=>document.getElementById(id),qsa=s=>Array.from(document.querySelectorAll(s));
@@ -74,9 +115,15 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const defaultData=()=>({version:2,project:'Atölye projesi',unit:'cm',kerf:3,trim:0,mode:'nest',priceMode:'m3',m3Price:25000,parts:[[40,24,30,2,'Ahşap','P01'],[38,24,30,1,'Ahşap','P02'],[31,24,30,1,'Ahşap','P03'],[180,5,30,2,'Ahşap','P04'],[40,5,30,3,'Ahşap','P05'],[52,12,30,2,'Ahşap','P06']].map(([l,w,t,qty,material,label])=>({id:uid(),l,w,t,qty,material,label,rotate:true})),stocks:[{id:uid(),l:300,w:30,t:30,qty:999,material:'Ahşap',price:0}]});
 let state,solution=null,activeSheet=0,dirty=true,lastSaved='';
 const stored=()=>{try{const txt=localStorage.getItem('beythaus-cut-v2');return txt?JSON.parse(txt):null}catch{return null}};
-const save=()=>{try{localStorage.setItem('beythaus-cut-v2',JSON.stringify(state))}catch{}};
+const save=()=>{try{localStorage.setItem('beythaus-cut-v2',JSON.stringify(state));if(typeof projectLibrary!=='undefined'&&activeProjectId){let p=projectLibrary.find(x=>x.id===activeProjectId);if(p){p.name=String(state.project||'İsimsiz proje').slice(0,60);p.updatedAt=Date.now();p.data=JSON.parse(JSON.stringify(state));localStorage.setItem('beythaus-cut-project-library-v1',JSON.stringify(projectLibrary))}}}catch(err){console.warn('Yerel kayıt yapılamadı',err)}};
 function sanitize(o){if(!o||typeof o!=='object'||!Array.isArray(o.parts)||!Array.isArray(o.stocks))throw Error('Geçersiz proje dosyası');let p=defaultData();p.project=String(o.project||p.project).slice(0,60);p.unit=o.unit==='mm'?'mm':'cm';p.kerf=Number.isFinite(val(o.kerf))?val(o.kerf):3;p.trim=Number.isFinite(val(o.trim))?val(o.trim):0;p.mode=o.mode==='guillotine'?'guillotine':'nest';p.priceMode=o.priceMode==='panel'?'panel':'m3';p.m3Price=Number.isFinite(val(o.m3Price))?val(o.m3Price):25000;p.parts=o.parts.slice(0,250).map(x=>({id:uid(),l:x.l??'',w:x.w??'',t:x.t??'',qty:x.qty??1,material:String(x.material??'Ahşap').slice(0,80),label:String(x.label??'').slice(0,70),rotate:x.rotate!==false}));p.stocks=o.stocks.slice(0,100).map(x=>({id:uid(),l:x.l??'',w:x.w??'',t:x.t??'',qty:x.qty??1,material:String(x.material??'Ahşap').slice(0,80),price:x.price??0}));return p}
 try{state=sanitize(stored()||defaultData())}catch{state=defaultData()}
+let projectLibrary=[],activeProjectId='';
+try{const a=JSON.parse(localStorage.getItem('beythaus-cut-project-library-v1')||'[]');if(Array.isArray(a)){projectLibrary=a.filter(x=>x&&typeof x.id==='string'&&x.data&&Array.isArray(x.data.parts)&&Array.isArray(x.data.stocks)).slice(0,250)}}catch{}
+try{activeProjectId=localStorage.getItem('beythaus-cut-active-project-v1')||''}catch{}
+if(!projectLibrary.length){activeProjectId=uid()+Date.now().toString(36);projectLibrary=[{id:activeProjectId,name:state.project||'İlk projem',updatedAt:Date.now(),data:JSON.parse(JSON.stringify(state))}];try{localStorage.setItem('beythaus-cut-project-library-v1',JSON.stringify(projectLibrary));localStorage.setItem('beythaus-cut-active-project-v1',activeProjectId)}catch{}}
+else{const active=projectLibrary.find(x=>x.id===activeProjectId)||projectLibrary[0];activeProjectId=active.id;try{state=sanitize(active.data);localStorage.setItem('beythaus-cut-active-project-v1',activeProjectId)}catch{}}
+
 const icons={};
 function renderRows(){const unit=state.unit;qsa('.unitLabel').forEach(el=>el.textContent=unit);
 byId('partRows').innerHTML=state.parts.map(r=>`<tr data-id="${esc(r.id)}"><td><input aria-label="Boy" class="cell-input number" data-k="l" inputmode="decimal" value="${esc(r.l)}"></td><td><input aria-label="En" class="cell-input number" data-k="w" inputmode="decimal" value="${esc(r.w)}"></td><td><input aria-label="Kalınlık mm" class="cell-input number" data-k="t" inputmode="decimal" value="${esc(r.t)}"></td><td><input aria-label="Adet" class="cell-input number" data-k="qty" inputmode="numeric" value="${esc(r.qty)}"></td><td><input aria-label="Malzeme" class="cell-input" data-k="material" value="${esc(r.material)}"></td><td><input aria-label="Etiket" class="cell-input" data-k="label" value="${esc(r.label)}" placeholder="Parça adı"></td><td><div class="check-cell"><input class="check" type="checkbox" data-k="rotate" title="90 derece döndürülebilir" ${r.rotate?'checked':''}></div></td><td><button aria-label="Satırı sil" class="rowdel" data-action="delete">×</button></td></tr>`).join('');
@@ -99,7 +146,37 @@ byId('exampleBtn').onclick=()=>{if(!confirm('Örnek proje yüklensin mi? Mevcut 
 byId('clearBtn').onclick=()=>{if(!confirm('Tüm parçalar ve stoklar temizlensin mi?'))return;state.parts=[];state.stocks=[];solution=null;renderRows();save();showEmpty();toast('Proje temizlendi.')};
 function download(blob,filename){const a=document.createElement('a'),url=URL.createObjectURL(blob);a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500)}
 byId('exportBtn').onclick=()=>download(new Blob([JSON.stringify(state,null,2)],{type:'application/json;charset=utf-8'}),(state.project.trim().replace(/[^\p{L}\p{N}-]+/gu,'-')||'kesim-projesi')+'.json');
-byId('importBtn').onclick=()=>byId('fileInput').click();byId('fileInput').onchange=async e=>{const file=e.target.files?.[0];if(!file)return;try{const s=sanitize(JSON.parse(await file.text()));state=s;solution=null;renderRows();syncSettings();save();showEmpty();toast('Proje açıldı.')}catch(err){toast('Dosya okunamadı: '+err.message)}e.target.value=''};
+byId('importBtn').onclick=()=>byId('fileInput').click();
+byId('fileInput').onchange=async e=>{const file=e.target.files?.[0];if(!file)return;try{
+ const data=JSON.parse(await file.text());
+ if(data.kind==='beythaus-cut-project-archive'&&Array.isArray(data.projects)){
+   const incoming=data.projects.slice(0,200);let count=0;
+   for(const p of incoming){try{const d=sanitize(p.data);const id=uid()+Date.now().toString(36)+count;projectLibrary.push({id:id,name:String(p.name||d.project).slice(0,60),updatedAt:Number(p.updatedAt)||Date.now(),data:d});count++}catch{}}
+   if(!count)throw Error('Geçerli proje bulunamadı');persistProjectArchive();renderProjects();showProjects();toast(count+' proje arşive aktarıldı.');
+ }else{const d=sanitize(data);createProject(d,d.project||'İçe aktarılan proje');closeProjects();toast('Proje arşive eklendi.')}
+ }catch(err){toast('Dosya okunamadı: '+err.message)}e.target.value=''};
+
+function persistProjectArchive(){try{localStorage.setItem('beythaus-cut-project-library-v1',JSON.stringify(projectLibrary));localStorage.setItem('beythaus-cut-active-project-v1',activeProjectId);return true}catch(err){toast('Yeterli depolama alanı yok. Lütfen yedek alın.');return false}}
+function openSavedProject(id){const p=projectLibrary.find(x=>x.id===id);if(!p)return;activeProjectId=id;state=sanitize(p.data);solution=null;dirty=true;renderRows();syncSettings();save();showEmpty();persistProjectArchive();closeProjects();toast('Proje açıldı.')}
+function createProject(data,name){const x=sanitize(data);x.project=String(name||'Yeni proje').slice(0,60);const id=uid()+Date.now().toString(36);projectLibrary.unshift({id:id,name:x.project,updatedAt:Date.now(),data:x});activeProjectId=id;state=x;solution=null;dirty=true;renderRows();syncSettings();save();showEmpty();persistProjectArchive();renderProjects();return id}
+function renderProjects(){const q=(byId('projectsSearch').value||'').toLocaleLowerCase('tr-TR').trim();const rows=projectLibrary.slice().sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).filter(p=>String(p.name||'').toLocaleLowerCase('tr-TR').includes(q));byId('projectsCount').textContent=String(projectLibrary.length);byId('projectsList').innerHTML=rows.length?rows.map(p=>{const n=(p.data.parts||[]).reduce((a,x)=>a+(parseInt(x.qty,10)||0),0);const dt=new Date(p.updatedAt||Date.now()).toLocaleString('tr-TR',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});return '<div class="project-entry '+(p.id===activeProjectId?'current':'')+'"><div class="project-symbol">▦</div><div class="project-detail"><strong>'+esc(p.name||'İsimsiz proje')+(p.id===activeProjectId?' · Açık':'')+'</strong><small>'+esc(dt)+' · '+n+' parça</small></div><div class="project-ops"><button class="btn" data-project-action="open" data-project-id="'+esc(p.id)+'">Aç</button><button class="btn" data-project-action="copy" data-project-id="'+esc(p.id)+'">Kopyala</button><button class="btn" data-project-action="rename" data-project-id="'+esc(p.id)+'">Adlandır</button><button class="btn danger" data-project-action="delete" data-project-id="'+esc(p.id)+'">Sil</button></div></div>'}).join(''):'<div class="empty-state" style="min-height:120px"><strong>Proje bulunamadı.</strong></div>'}
+function showProjects(){renderProjects();byId('projectsOverlay').classList.remove('hidden');byId('projectsSearch').focus()}
+function closeProjects(){byId('projectsOverlay').classList.add('hidden')}
+byId('projectsBtn').onclick=showProjects;byId('projectsClose').onclick=closeProjects;
+byId('projectsOverlay').onclick=e=>{if(e.target===byId('projectsOverlay'))closeProjects()};
+byId('projectsSearch').oninput=renderProjects;
+byId('newProjectBtn').onclick=()=>{const d=defaultData();d.parts=[];d.project='Yeni proje';createProject(d,d.project);closeProjects();toast('Yeni proje oluşturuldu.')};
+byId('manualSaveProjectBtn').onclick=()=>{save();renderProjects();toast('Proje kaydedildi.')};
+byId('projectsList').onclick=e=>{const b=e.target.closest('button[data-project-action]');if(!b)return;const id=b.dataset.projectId,p=projectLibrary.find(x=>x.id===id);if(!p)return;const act=b.dataset.projectAction;
+  if(act==='open')openSavedProject(id);
+  if(act==='copy'){createProject(p.data,(p.name+' kopya').slice(0,60));toast('Proje çoğaltıldı.')}
+  if(act==='rename'){const name=prompt('Yeni proje adı:',p.name);if(name===null)return;const newName=name.trim().slice(0,60);if(!newName){toast('Proje adı boş olamaz.');return}p.name=newName;p.data.project=newName;p.updatedAt=Date.now();if(p.id===activeProjectId){state.project=newName;syncSettings();save()}persistProjectArchive();renderProjects()}
+  if(act==='delete'){if(!confirm('"'+p.name+'" projesi silinsin mi? Bu işlem geri alınamaz.'))return;projectLibrary=projectLibrary.filter(x=>x.id!==id);if(!projectLibrary.length){const d=defaultData();d.parts=[];createProject(d,'Yeni proje')}else if(id===activeProjectId){openSavedProject(projectLibrary[0].id)}persistProjectArchive();renderProjects();toast('Proje silindi.')}
+};
+function archivePayload(){save();return {kind:'beythaus-cut-project-archive',version:1,createdAt:new Date().toISOString(),projects:projectLibrary.map(p=>({id:p.id,name:p.name,updatedAt:p.updatedAt,data:p.data}))}}
+byId('icloudBackupBtn').onclick=async()=>{const payload=archivePayload(),filename='Beythaus-Cut-Projelerim-'+new Date().toISOString().slice(0,10)+'.json',txt=JSON.stringify(payload,null,2),file=new File([txt],filename,{type:'application/json'});try{if(navigator.canShare&&navigator.canShare({files:[file]})&&navigator.share){await navigator.share({files:[file],title:'Beythaus Cut proje yedeği'});return}}catch(err){if(err.name==='AbortError')return}download(new Blob([txt],{type:'application/json'}),filename);toast('Yedek indirildi. Dosyalar uygulamasından iCloud Drive’a taşıyın.')};
+byId('projectsImportBtn').onclick=()=>byId('fileInput').click();
+
 byId('mobileSettings').onclick=()=>byId('settingsCard').scrollIntoView({behavior:'smooth',block:'start'});
 const dimFactor=()=>state.unit==='cm'?10:1;
 const mkey=(material,t)=>`${String(material).trim().toLocaleLowerCase('tr-TR')}|${round(t,3)}`;
@@ -155,7 +232,7 @@ byId('zoomBtn').onclick=()=>{if(!solution?.bins[activeSheet])return;const b=solu
 function closeModal(){byId('modal').classList.add('hidden');document.body.classList.remove('no-overflow')};byId('modalClose').onclick=closeModal;byId('modal').onclick=e=>{if(e.target.id==='modal')closeModal()};document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();run()}});
 let processing=false;function run(){if(processing)return;const data=normalize();if(data.errors.length){toast(data.errors[0]);return}processing=true;byId('runBtn').textContent='Hesaplanıyor…';byId('mobileRunBtn').textContent='Hesaplanıyor…';requestAnimationFrame(()=>setTimeout(()=>{try{const sol=optimize(data),errors=validateLayout(sol,{kerf:data.kerf,trim:data.trim});if(errors.length)throw Error(errors.join(' '));showResult(data,sol);byId('results').scrollIntoView({behavior:'smooth',block:'start'});if(sol.unplaced.length)toast(sol.unplaced.length+' parça yerleştirilemedi.')}catch(err){console.error(err);toast('Hesaplama hatası: '+err.message)}finally{processing=false;byId('runBtn').textContent='▣  Yerleşimi hesapla';byId('mobileRunBtn').textContent='▣  Yerleşimi hesapla'}},15))}
 byId('runBtn').onclick=run;byId('mobileRunBtn').onclick=run;
-renderRows();syncSettings();showEmpty();
+renderRows();syncSettings();showEmpty();renderProjects();
 window.BeythausCut={normalize,optimize,validateLayout,defaultData,getState:()=>state,setState:o=>{state=sanitize(o);renderRows();syncSettings();save();showEmpty()},run};
 })();
 </script>
