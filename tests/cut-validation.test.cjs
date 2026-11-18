@@ -1024,10 +1024,10 @@ assert.equal(typeof window.jsQR,'function');
 tests+=2;
 const GeneratedQR=window.QRCode;
 const trackedQR=[];
+let qrRenderingError='';
 window.QRCode=function(target,opts){
- const object=new GeneratedQR(target,opts);
- trackedQR.push({target,opts,object});
- return object
+ try{const object=new GeneratedQR(target,opts);trackedQR.push({target,opts,object});return object}
+ catch(error){qrRenderingError=String(error?.stack||error);throw error}
 };
 window.QRCode.CorrectLevel=GeneratedQR.CorrectLevel;
 vm.runInNewContext(qrInterfaceSource,sandbox,{filename:'docs/qr-inventory.js',timeout:10000});
@@ -1062,7 +1062,7 @@ assert.equal(model.location,'Raf X / Göz 9');
 // The regression suite's DOM stubs need appendChild for the REAL QRCode.js canvas renderer.
 node('qr-preview-0').appendChild=()=>{};
 node('qr-print-0').appendChild=()=>{};
-assert.equal(qrModule.labelSingle(qrRecord.id),true);
+assert.equal(qrModule.labelSingle(qrRecord.id),true,qrRenderingError||'QR label generator unexpectedly rejected fixture');
 assert.equal(trackedQR.length,2,'Every label must render preview and A4-print QR');
 assert.equal(trackedQR[0].opts.text,deepLink);
 assert.equal(trackedQR[1].opts.text,deepLink);
