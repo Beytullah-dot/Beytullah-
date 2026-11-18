@@ -138,6 +138,10 @@ function createClient(device){
   c.el('cloudKey').value='sb_publishable_test-only';
   c.el('cloudEmail').value='test@example.com';
   c.el('cloudPassword').value='test-password';
+  await c.api.signup();
+  assert.match(c.el('cloudStatus').textContent,/Hesabın oluşturuldu/);
+  assert.match(c.el('cloudStatus').textContent,/Spam/);
+  checks+=2;
   await c.api.login();
   await c.api.selectWorkspace('w1');
   assert.equal(c.api.active(),true);
@@ -145,6 +149,11 @@ function createClient(device){
   assert.equal(c.app.pieces[0].status,'available');
   checks+=3;
  }
+ assert.match(a.api.explainAuthError({error_code:'email_not_confirmed'},400),/henüz doğrulanmadı/);
+ assert.match(a.api.explainAuthError({error_code:'over_email_send_rate_limit'},429),/Yeni hesap oluşturma/);
+ assert.match(a.api.explainAuthError({error_code:'email_exists'},422),/Giriş yap/);
+ assert.match(a.api.explainAuthError({error_code:'weak_password'},422),/Daha güçlü/);
+ checks+=4;
  assert.throws(()=>a.api.normalizeConfig('https://attacker.example','sb_publishable_key'),/supabase/);
  assert.throws(()=>a.api.normalizeConfig('http://someproject.supabase.co','sb_publishable_key'),/HTTPS/);
  assert.throws(()=>a.api.normalizeConfig('https://someproject.supabase.co','sb_secret_abc'),/Gizli/);
