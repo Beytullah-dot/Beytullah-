@@ -989,4 +989,118 @@ assert.equal(migrated.defaultLocation,'');
 tests+=6;
 console.log('Shelf inventory: 58+ metadata, responsive UI, filter, rotation, legacy-migration, production, edit and backup assertions passed.');
 
+
+// REAL QR LIBRARY ROUND TRIP AND INVENTORY DEEP-LINK INTEGRATION.
+// Uses self-hosted MIT QRCode.js and Apache-2.0 jsQR (same files as the app).
+const qrGeneratorSource=fs.readFileSync(path.join(__dirname,'../docs/vendor/qrcode.min.js'),'utf8');
+const qrDecoderSource=fs.readFileSync(path.join(__dirname,'../docs/vendor/jsQR.js'),'utf8');
+const qrInterfaceSource=fs.readFileSync(path.join(__dirname,'../docs/qr-inventory.js'),'utf8');
+assert.ok(html.includes('src="./vendor/qrcode.min.js"'));
+assert.ok(html.includes('src="./vendor/jsQR.js"'));
+assert.ok(html.includes('src="./qr-inventory.js"'));
+assert.ok(html.includes('href="./qr-inventory.css"'));
+tests+=4;
+document.documentElement={tagName:'HTML'};
+document.createElement=(type)=>{
+ if(type==='canvas')return {
+  width:0,height:0,style:{},getContext(){return{
+   clearRect(){},fillRect(){},strokeRect(){},drawImage(){},
+   getImageData(){return{data:new Uint8ClampedArray(4),width:1,height:1}}
+  }},toDataURL(){return'data:image/png;base64,AA=='}
+ };
+ if(type==='img')return {style:{},src:''};
+ return node('_qr_'+type)
+};
+sandbox.navigator.userAgent='Mozilla/5.0';
+window.devicePixelRatio=1;
+window.location={protocol:'https:',origin:'https://beytullah-dot.github.io',
+ pathname:'/Beytullah-/',search:''};
+vm.runInNewContext(qrGeneratorSource+'\nwindow.QRCode=QRCode;',sandbox,{
+ filename:'vendor/qrcode.min.js',timeout:10000});
+vm.runInNewContext(qrDecoderSource+'\nwindow.jsQR=jsQR;',sandbox,{
+ filename:'vendor/jsQR.js',timeout:10000});
+assert.equal(typeof window.QRCode,'function');
+assert.equal(typeof window.jsQR,'function');
+tests+=2;
+const GeneratedQR=window.QRCode;
+const trackedQR=[];
+window.QRCode=function(target,opts){
+ const object=new GeneratedQR(target,opts);
+ trackedQR.push({target,opts,object});
+ return object
+};
+window.QRCode.CorrectLevel=GeneratedQR.CorrectLevel;
+vm.runInNewContext(qrInterfaceSource,sandbox,{filename:'docs/qr-inventory.js',timeout:10000});
+const qrModule=window.BeythausQR;
+assert.equal(typeof qrModule.linkFor,'function');
+assert.equal(typeof qrModule.open,'function');
+assert.equal(typeof qrModule.labelSingle,'function');
+assert.equal(typeof qrModule.labelFiltered,'function');
+assert.equal(typeof qrModule.decode,'function');
+tests+=5;
+const qrRecord=app.getRemnantDB().pieces.find(x=>x.id==='shelf-location-backup-copy');
+assert.ok(qrRecord);
+const deepLink=qrModule.linkFor(qrRecord.id);
+assert.equal(deepLink,'https://beytullah-dot.github.io/Beytullah-/?cutRemnant=shelf-location-backup-copy');
+assert.equal(qrModule.parseLink(deepLink),qrRecord.id);
+assert.equal(qrModule.parseLink(qrRecord.id),qrRecord.id);
+assert.equal(qrModule.parseLink('https://evil.example/Beytullah-/?cutRemnant='+qrRecord.id),null);
+assert.equal(qrModule.parseLink('https://beytullah-dot.github.io/Beytullah-/?cutRemnant='+qrRecord.id+'&status=used'),null);
+assert.equal(qrModule.parseLink('javascript:alert(1)'),null);
+assert.equal(qrModule.parseLink('https://beytullah-dot.github.io/Beytullah-/?cutRemnant=%XX'),null);
+assert.equal(qrModule.open('https://beytullah-dot.github.io/Beytullah-/?cutRemnant=not-in-this-browser'),false);
+assert.equal(qrModule.open(deepLink),true);
+assert.ok(node('remnantEditIdentity').textContent.includes(qrRecord.id));
+assert.equal(app.getRemnantDB().pieces.find(x=>x.id===qrRecord.id).status,'available',
+ 'Scanning a QR must never consume or change inventory');
+tests+=13;
+
+const model=qrModule.labelInfo(qrRecord);
+assert.equal(model.id,qrRecord.id);
+assert.ok(model.dimensions.includes('mm'));
+assert.equal(model.location,'Raf X / Göz 9');
+assert.equal(qrModule.labelSingle(qrRecord.id),true);
+assert.equal(trackedQR.length,2,'Every label must render preview and A4-print QR');
+assert.equal(trackedQR[0].opts.text,deepLink);
+assert.equal(trackedQR[1].opts.text,deepLink);
+assert.ok(node('remnantLabelPreview').innerHTML.includes('Raf X / Göz 9'));
+assert.ok(node('remnantLabelPrintRoot').innerHTML.includes('qr-print-0'));
+assert.equal(qrModule.printLabels(),true);
+tests+=9;
+
+// Decode exactly the output of the actual QR generator's internal module
+// matrix, with a correct 4-module quiet-zone and a 6-pixel cell pitch.
+const matrix=trackedQR[0].object._oQRCode,modules=matrix.getModuleCount();
+assert.ok(modules>=21);
+const quiet=4,pitch=6,side=(modules+2*quiet)*pitch;
+const rgba=new Uint8ClampedArray(side*side*4);
+for(let y=0;y<side;y++)for(let x=0;x<side;x++){
+ const column=Math.floor(x/pitch)-quiet,row=Math.floor(y/pitch)-quiet;
+ const dark=row>=0&&column>=0&&row<modules&&column<modules&&matrix.isDark(row,column);
+ const at=(y*side+x)*4,shade=dark?0:255;
+ rgba[at]=shade;rgba[at+1]=shade;rgba[at+2]=shade;rgba[at+3]=255
+}
+assert.equal(qrModule.decode(rgba,side,side),deepLink,
+ 'The actual generated QR must be decoded by the shipped jsQR library');
+tests+=2;
+
+// Batch labels respect on-screen filters and must never label consumed stock
+// in a bulk inventory run. Individual used records can still be labeled for audit.
+node('remnantStatusFilter').value='all';
+node('remnantMaterialFilter').value='Meşe';
+node('remnantThicknessFilter').value='all';
+node('remnantLocationFilter').value='Raf X / Göz 9';
+node('remnantSearch').value='';
+node('remnantMinLength').value='';
+node('remnantMinWidth').value='';
+assert.equal(qrModule.labelFiltered(),true);
+assert.equal(trackedQR.at(-1).opts.text,deepLink);
+node('remnantLocationFilter').value='location-that-does-not-exist';
+assert.equal(qrModule.labelFiltered(),false);
+tests+=3;
+assert.ok(fs.readFileSync(path.join(__dirname,'../docs/sw.js'),'utf8').includes('./vendor/jsQR.js'));
+assert.ok(fs.readFileSync(path.join(__dirname,'../docs/sw.js'),'utf8').includes('./qr-inventory.js'));
+tests+=2;
+console.log('Physical QR labels: real QR encode/decode round trip, 2 rendered labels, 13+ URL/security checks, filtered print and offline files passed.');
+
 console.log('Beythaus Cut: '+tests+' checks passed; invalid plans rejected and unknown prices preserved.');
