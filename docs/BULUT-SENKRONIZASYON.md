@@ -2,7 +2,7 @@
 
 ## Önemli durum
 
-**Bu depoda sunucu kodu, kullanıcı arayüzü ve otomatik test altyapısı bulunmaktadır.** Ancak Supabase projesi oluşturulup SQL kurulumu uygulanmadan hiçbir ortak stok sunucusu çalışmaz. GitHub Pages tek başına veritabanı veya güvenli çok kullanıcılı işlem yönetimi sunmaz. Bulut yapılandırılmadıysa mevcut **yerel envanter** olduğu gibi kullanılmaya devam eder.
+**Gerçek Beythaus Cut Supabase projesi oluşturuldu ve PostgreSQL şeması kuruldu.** Supabase projesi `pdqgpupdqgrxejvjpdzs`, bölgesi Frankfurt (`eu-central-1`). Veritabanı ve otomatik testler sağlıklı; ancak kullanıcı hesabı oluşturulmadan ve ortak atölyeye giriş yapılmadan ortak stok kullanılmaya başlanmaz. GitHub Pages tek başına veritabanı veya güvenli çok kullanıcılı işlem yönetimi sunmaz. Bulut yapılandırılmadıysa mevcut **yerel envanter** olduğu gibi kullanılmaya devam eder.
 
 Bulut kullanımı tamamen isteğe bağlıdır. Kullanıcının yerel stok verileri izinsiz otomatik yüklenmez ve bulut modundan yerel moda dönüldüğünde korunur.
 
@@ -13,10 +13,11 @@ Bulut kullanımı tamamen isteğe bağlıdır. Kullanıcının yerel stok verile
    [\`supabase/migrations/20261118_000001_cloud_inventory.sql\`](../supabase/migrations/20261118_000001_cloud_inventory.sql)
    dosyasını çalıştır. Bu şema, RLS etkin tabloları, üyelik/katılım mekanizmasını ve sunucu tarafı atomik stok işlemlerini kurar.
 3. **Authentication → Providers → Email** bölümünde e-posta/parola ile hesabın açılabildiğini kontrol et. E-posta doğrulaması aktifse doğrulama e-postasındaki bağlantıyı tamamla. Canlı kullanım öncesinde güvenli şifre politikası ve e-posta gönderim ayarlarını düzenle.
-4. **Project Settings → API** ekranından proje URL'sini (\`https://xxxx.supabase.co\`) ve **publishable key** (\`sb_publishable_...\`) ya da eski projelerdeki **anon** anahtarını al. Bunlar tarayıcıda kullanılmak üzere tasarlanmıştır.
-5. Beythaus Cut uygulamasında **Bulut stok envanteri** kartına URL ve publishable/anon anahtarını gir. E-posta/parola ile giriş yap. Ardından yeni bir atölye oluştur veya mevcut bir atölyeyi seç.
-6. İkinci bir çalışanı eklemek için yönetici hesabında **Katılım kodu üret** seçeneğini kullan. Kodu güvenli şekilde paylaş; ikinci kullanıcı kendi e-posta/parola hesabıyla oturum açıp **Kodla katıl** düğmesiyle üyelik alır. Katılım kodu 48 saat geçerlidir ve en fazla 5 defa kullanılabilir.
-7. Aynı veya farklı cihazlarda **Atölyeyi aç** seçildiğinde stoklar sunucudan yüklenir. Uygulama yaklaşık 15 saniyede bir stokları kontrol eder, sekme yeniden görünür olduğunda yeniler ve **Stokları eşitle** düğmesiyle elle yenilenebilir.
+4. **Beythaus Cut projesi bağlı:** https://pdqgpupdqgrxejvjpdzs.supabase.co adresi ve **tarayıcıda kullanılması güvenli publishable API anahtarı** uygulama formuna önceden yerleştirildi. Kullanıcı ayrıca URL veya API anahtarı kopyalamak zorunda değil; gizli `service_role` anahtarına gerek yok.
+5. Supabase Dashboard → **Authentication → URL Configuration** alanında **Site URL** adresini `https://beytullah-dot.github.io/Beytullah-/` olarak ayarla. **Redirect URLs** listesine de bu tam adresi ekle. Böylece e-posta doğrulama bağlantısı varsayılan `http://localhost:3000` adresine gitmez. Kaynak: https://supabase.com/docs/guides/auth/redirect-urls
+6. Uygulamada **Bulut stok envanteri** bölümünde e-posta/parola ile **Hesap oluştur**. Doğrulama gerekiyorsa e-posta bağlantısını onayla, ardından **Giriş yap** ve ortak atölyeni oluştur veya seç.
+7. İkinci bir çalışanı eklemek için yönetici hesabında **Katılım kodu üret** seçeneğini kullan. Kodu güvenli şekilde paylaş; ikinci kullanıcı kendi e-posta/parola hesabıyla oturum açıp **Kodla katıl** düğmesiyle üyelik alır. Katılım kodu 48 saat geçerlidir ve en fazla 5 defa kullanılabilir.
+8. Aynı veya farklı cihazlarda **Atölyeyi aç** seçildiğinde stoklar sunucudan yüklenir. Uygulama yaklaşık 15 saniyede bir stokları kontrol eder, sekme yeniden görünür olduğunda yeniler ve **Stokları eşitle** düğmesiyle elle yenilenebilir.
 
 **Güvenlik:** \`service_role\`, \`sb_secret_...\` veya veritabanı şifresini asla GitHub'a, ChatGPT sohbetine, GitHub Pages HTML/JS dosyasına ya da tarayıcıdaki anahtar alanına koyma. Bu istemci sadece publishable/anon anahtarını kabul etmek üzere tasarlanmıştır. Oturum bilgileri parola yerine tarayıcının oturum depolamasında saklanır; oturum kapatıldığında temizlenir.
 
