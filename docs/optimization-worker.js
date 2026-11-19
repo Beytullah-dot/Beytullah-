@@ -1,9 +1,10 @@
-/* Beythaus Cut — background exact search for FREE rectangular nesting.
+/* Beythaus Cut — background exact search for FREE and GUILLOTINE rectangular nesting.
    No DOM access. The main thread audits every returned candidate geometrically.
    'infeasible' is used as proof only when every search branch was exhausted.
    Time/node exhaustion => 'unknown', NEVER a proof. */
 'use strict';
 const context=typeof self!=='undefined'?self:null;
+if(typeof importScripts==='function')importScripts('./guillotine-exact.js');
 const canon=s=>String(s||'').trim().toLocaleLowerCase('tr-TR');
 const EPS=1e-7;
 const orientations=p=>p.rotate&&Math.abs(p.l-p.w)>EPS?
@@ -123,13 +124,17 @@ function feasible(parts,stockTypes,limit,cfg,deadline,maxNodes){
 }
 
 function run(job){
- const started=Date.now(),budget=Math.min(4500,Math.max(500,job.timeBudgetMs||3200));
- const deadline=started+budget,maxNodes=Math.min(600000,Math.max(20000,job.maxNodes||220000));
+ const started=Date.now(),budget=Math.min(7000,Math.max(500,job.timeBudgetMs||4200));
+ const deadline=started+budget,maxNodes=Math.min(900000,Math.max(20000,job.maxNodes||350000));
  const finish=(status,groups,nodes,reason='')=>({
   type:'finished',requestId:job.requestId,status,groups,nodes,
   elapsedMs:Date.now()-started,reason,mode:job.mode
  });
- if(job.mode!=='nest')return finish('skipped',[],0,'Düz kesim için kesin Worker araması henüz etkin değil.');
+ if(!['nest','guillotine'].includes(job.mode))
+  return finish('skipped',[],0,'Bilinmeyen kesim modu.');
+ const exactFn=job.mode==='guillotine'?context?.GuillotineExact?.feasible:feasible;
+ if(typeof exactFn!=='function')
+  return finish('skipped',[],0,'Giyotin kesim çözümleyicisi yüklenemedi.');
  const data=job.data;
  if(!data||!Array.isArray(data.parts)||!Array.isArray(data.stocks)||
     !Array.isArray(job.incumbentBins)||!Array.isArray(job.bounds))
@@ -155,7 +160,9 @@ function run(job){
    g.status='invalid-bound';allProven=false;continue
   }
   if(incumbent===lower){g.status='bound';g.proven=true;continue}
-  if(parts.length>12||stocks.length>4||incumbent>6||incumbent<2){
+  const maxParts=job.mode==='guillotine'?11:14;
+  const maxBoards=job.mode==='guillotine'?5:7;
+  if(parts.length>maxParts||stocks.length>4||incumbent>maxBoards||incumbent<2){
    g.status='scope-limited';allProven=false;continue
   }
   if(Date.now()>=deadline||nodes>=maxNodes){
@@ -164,7 +171,7 @@ function run(job){
   let groupProven=true;
   for(let target=lower;target<incumbent;target++){
    if(Date.now()>=deadline||nodes>=maxNodes){g.status='limit';groupProven=false;break}
-   const checked=feasible(parts,stocks,target,data,deadline,maxNodes-nodes);
+   const checked=exactFn(parts,stocks,target,data,deadline,maxNodes-nodes);
    g.checked.push({boards:target,status:checked.status,nodes:checked.nodes});
    g.nodes+=checked.nodes;nodes+=checked.nodes;
    if(checked.status==='infeasible')continue;
