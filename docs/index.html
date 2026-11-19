@@ -195,7 +195,8 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
    <div class="card-head"><div><div class="card-title">Artık stok envanteri <span class="count" id="remnantCount">0</span></div><div class="card-sub">Kesimlerden kalan gerçek malzemeler</div></div><div class="card-actions"><button class="btn small" id="remnantManageBtn" type="button">Yönet</button></div></div>
    <div class="remnant-summary" id="remnantSummary">Kayıtlı kullanılabilir artık yok.</div>
    <label class="remnant-enable"><input type="checkbox" id="useRemnantStockInput" checked><span>Mevcut artıkları yeni yerleşimlerde otomatik değerlendir</span></label>
-   <div class="remnant-actions"><button class="btn small" id="remnantConfirmProductionBtn" type="button" disabled>✓ Üretimi onayla · artıkları kaydet</button></div>
+   <div class="material-control" id="productionCostInputs"><label for="productionExtraCost">Ek maliyet (₺, isteğe bağlı)</label><input type="text" inputmode="decimal" id="productionExtraCost" placeholder="0"><label for="productionExtraNote">Açıklama (isteğe bağlı)</label><input type="text" id="productionExtraNote" maxlength="120" placeholder="İşçilik, nakliye vb."></div>
+    <div class="remnant-actions"><button class="btn small" id="remnantConfirmProductionBtn" type="button" disabled>✓ Üretimi onayla · artıkları kaydet</button></div>
    <p class="remnant-warning">Artıklar yalnız fiziksel kesim tamamlandıktan sonra kaydedilir. Plan hesaplamak stok tüketmez. Envanter bu tarayıcıda tutulur; düzenli yedek alın. Artıklar kaynak malzemenin kayıtlı değerini taşır. Değeri eksik kayıtlarda ekonomik optimumluk iddia edilmez.</p>
   </div>
   <div id="cloudSettingsRoot"></div>
@@ -708,59 +709,84 @@ function cloudProductionPayload(){
 function markCloudProductionComplete(){if(solution){solution.productionRecorded=true;refreshRemnantUI()}}
 
 function registerRemnantProduction(){
- if(cloudInventoryActive){toast('Bulut üretimi sunucu tarafından onaylanmalıdır.');return false}
+ if(cloudInventoryActive){toast('Bulut envanterinde tam stok ve maliyet kayıtları için birleşik onay henüz desteklenmiyor.');return false}
  if(dirty||!lastAudit?.ok||!solution||state.mode!=='guillotine'||
   solution.unplaced.length||!solution.bins.length){
-  toast('Önce eksiksiz, geometrisi doğrulanmış düz kesim planı oluşturun.');return false
+  toast('Önce eksiksiz, doğrulanmış düz kesim planı oluşturun.');return false
  }
- if(solution.productionRecorded){toast('Bu hesaplama için üretim zaten onaylandı.');return false}
+ if(solution.productionRecorded){toast('Bu kesim planı zaten tamamlandı.');return false}
+ const extraText=String(byId('productionExtraCost')?.value||'').trim(),extraCost=extraText?val(extraText):0;
+ if(!Number.isFinite(extraCost)||extraCost<0){toast('Ek maliyet sıfır veya pozitif bir tutar olmalı.');return false}
+ const extraNote=String(byId('productionExtraNote')?.value||'').trim().slice(0,120);
  const usedIds=[...new Set(solution.bins.filter(b=>b.stock.isRemnant).map(b=>b.stock.remnantId))];
  if(usedIds.some(id=>!remnantDB.pieces.some(p=>p.id===id&&p.status==='available'))){
-  toast('Planlanmış artık stoklardan biri artık mevcut değil. Tekrar hesaplayın.');return false
+  toast('Bu plandaki bir artık stok artık mevcut değil. Tekrar hesaplayın.');return false
+ }
+ const counts=new Map();
+ for(const b of solution.bins)if(!b.stock.isRemnant)counts.set(b.stock.id,(counts.get(b.stock.id)||0)+1);
+ const currentStocks=Array.isArray(remnantDB.fullStocks)?remnantDB.fullStocks:[];
+ if([...counts].some(([id,qty])=>!currentStocks.some(x=>x.id===id&&Number(val(x.qty))>=qty))){
+  toast('Bu plandaki tam stok miktarı değişmiş. Kesimi tekrar hesaplayın.');return false
  }
  const recovered=[];
  for(let bi=0;bi<solution.bins.length;bi++){
-  const b=solution.bins[bi];
+  const b=solution.bins[bi],sourceValue=binCost(b.stock,{priceMode:state.priceMode,m3:null});
   for(let ri=0,leaves=collectOffcuts(b).pieces;ri<leaves.length;ri++){
-   const p=leaves[ri];
-   const value=binCost(b.stock,{priceMode:state.priceMode,m3:null});
-   recovered.push({boardIndex:bi,pieceIndex:ri,l:p.w,w:p.h,
+   const leaf=leaves[ri];
+   recovered.push({boardIndex:bi,pieceIndex:ri,l:leaf.w,w:leaf.h,
     material:b.stock.displayMaterial||String(b.stock.material).split('|').slice(1).join('|'),
     category:b.stock.category||'panel',grain:b.stock.grain||'',
-    bookValue:value===null?null:value*p.w*p.h/(b.stock.l*b.stock.w),
+    bookValue:sourceValue===null?null:sourceValue*leaf.w*leaf.h/(b.stock.l*b.stock.w),
     t:b.stock.physicalThickness??b.stock.t})
   }
  }
+ if(remnantDB.pieces.length+recovered.length>MAX_REMNANTS){
+  toast('Envanter kapasitesi dolu. Önce envanteri düzenleyin.');return false
+ }
  const signature=remnantPlanSignature(solution);
  const previouslySaved=remnantDB.batches.some(b=>b.projectId===activeProjectId&&b.signature===signature);
- if(previouslySaved&&!confirm('Aynı kesim planının üretimi daha önce kaydedilmiş. Fiziksel olarak ayrı bir yeni üretim partisi mi yaptınız?'))return false;
- if(!confirm('Üretimin FİZİKSEL OLARAK tamamlandığını onaylıyor musunuz? '+recovered.length+
-  ' artık parça envantere eklenecek'+(usedIds.length?', kullanılan '+usedIds.length+' mevcut artık tüketilecek':'')+
-  '. Yalnız planlama yaptıysanız bu işlemi onaylamayın.'))return false;
- if(remnantDB.pieces.length+recovered.length>MAX_REMNANTS){
-  toast('Envanter sınırına ulaşıldı. Önce yedek alın.');return false
- }
- const batchId='B'+Date.now().toString(36)+uid();
- const now=Date.now(),created=recovered.map(p=>cleanRemnant({
-  id:'R'+Date.now().toString(36)+uid()+p.boardIndex+p.pieceIndex,
-  l:p.l,w:p.w,t:p.t,material:p.material,category:p.category,grain:p.grain,bookValue:p.bookValue,sourceKey:batchId+':'+p.boardIndex+':'+p.pieceIndex,
+ if(previouslySaved&&!confirm('Aynı plan daha önce tamamlanmış. Bu fiziksel olarak farklı bir üretim mi?'))return false;
+ if(!confirm('Üretim fiziksel olarak tamamlandı mı? '+solution.bins.length+
+  ' stok kullanıldı, '+recovered.length+' artık envantere eklenecek.'))return false;
+ const now=Date.now(),batchId='B'+now.toString(36)+uid();
+ const created=recovered.map(p=>cleanRemnant({
+  id:'R'+now.toString(36)+uid()+p.boardIndex+p.pieceIndex,
+  l:p.l,w:p.w,t:p.t,material:p.material,category:p.category,grain:p.grain,
+  bookValue:p.bookValue,sourceKey:batchId+':'+p.boardIndex+':'+p.pieceIndex,
   projectName:state.project,location:remnantDB.defaultLocation||'',notes:'',status:'available',createdAt:now
  }));
  if(created.some(x=>!x)){toast('Artık ölçülerinden biri geçersiz.');return false}
- const next={...remnantDB,
+ const costs=solution.bins.map(b=>binCost(b.stock,{priceMode:state.priceMode,m3:null}));
+ const costKnown=costs.every(x=>x!==null&&Number.isFinite(x));
+ const grossStockCost=costKnown?costs.reduce((a,b)=>a+b,0):null;
+ const offcutBookValue=costKnown?created.reduce((sum,r)=>sum+(r.bookValue||0),0):null;
+ const materialCost=costKnown?Math.max(0,grossStockCost-offcutBookValue):null;
+ const totalCost=materialCost===null?null:materialCost+extraCost;
+ const fullStocks=currentStocks.map(stock=>counts.has(stock.id)?
+  {...stock,qty:Number(val(stock.qty))-counts.get(stock.id)}:stock);
+ const usedFullStocks=[...counts].map(([id,qty])=>({id,qty}));
+ const batch={id:batchId,projectId:activeProjectId,projectName:state.project,
+  signature,createdAt:now,usedIds,usedFullStocks,createdIds:created.map(p=>p.id),
+  grossStockCost,offcutBookValue,materialCost,extraCost,extraNote,totalCost,
+  priceBasis:'recorded-stock-value-v1',productionCompleted:true,
+  planSnapshot:{kerf:val(state.kerf),trim:val(state.trim),
+   bins:solution.bins.map(b=>({stockId:b.stock.id,material:b.stock.material,
+    cuts:(b.cuts||[]).map(c=>({axis:c.axis,source:c.source,at:c.at})),
+    pieces:b.placed.map(p=>({id:p.id,label:p.label,x:p.x,y:p.y,w:p.w,h:p.h,rotated:p.rotated}))}))}};
+ const next={...remnantDB,fullStocks,
   pieces:remnantDB.pieces.map(p=>usedIds.includes(p.id)?{...p,status:'used',usedAt:now}:p).concat(created),
-  batches:remnantDB.batches.concat([{id:batchId,projectId:activeProjectId,
-   projectName:state.project,signature,createdAt:now,usedIds,
-   createdIds:created.map(p=>p.id)}]).slice(-900)
- };
+  batches:remnantDB.batches.concat([batch]).slice(-900)};
  const movementEvents=[...usedIds.map(id=>{
   const prev=remnantDB.pieces.find(x=>x.id===id),used=next.pieces.find(x=>x.id===id);
   return newRemnantEvent('consumed',prev,prev,used,'production',{projectName:state.project,batchId})
  }),...created.map(piece=>newRemnantEvent('created',piece,null,piece,'production',{projectName:state.project,batchId}))];
  if(!commitRemnants(appendRemnantEvents(next,movementEvents)))return false;
+ // The ledger commit above is the only authoritative physical/cost transaction.
+ state.stocks=JSON.parse(JSON.stringify(fullStocks));
  solution.productionRecorded=true;
- refreshRemnantUI();
- toast('Üretim kaydedildi: '+created.length+' yeni artık, '+usedIds.length+' tüketilen stok.');
+ renderRows();save();refreshRemnantUI();
+ window.BeythausCutWorkspace?.refresh?.();
+ toast('Üretim kaydedildi: '+solution.bins.length+' stok, '+created.length+' kullanılabilir artık.');
  return true
 }
 function mergeRemnantBackup(payload){
@@ -1905,7 +1931,7 @@ byId('productionSafetySwitch').onclick=()=>{
  syncSettings();changed();run();
 };
 renderRows();syncSettings();showEmpty();renderProjects();
-window.BeythausCut={enterCloudInventory,exitCloudInventory,isCloudInventory:()=>cloudInventoryActive,getSelectedRemnantSource:()=>selectedRemnantEditSource,cloudProductionPayload,markCloudProductionComplete,remnantMovements,cleanRemnantEvent,getRemnantDB:()=>JSON.parse(JSON.stringify(remnantDB)),filterRemnants,editRemnantRecord,setRemnantDefaultLocation,openRemnantEditor,submitRemnantEditor,inventoryStocksForPlan,registerRemnantProduction,setRemnantStatus,mergeRemnantBackup,normalize,optimize,optimizeBaseline:data=>optimize(data,false),refineUsableOffcuts,offcutMetrics,betterOffcuts,offcutOptimizationDescription,enumerateBoardMultisets,exactGrossAreaRefine,grossWasteProofDescription,exactUniformFeasibility,exactVariableFeasibility,exactRefinePlan,minStockCountLowerBound,certifyStockCount,stockProofDescription,validateLayout,auditCutPlan,auditGuillotineCuts,collectOffcuts,defaultData,getLastAudit:()=>lastAudit,getState:()=>state,setState:o=>{state=sanitize(o);renderRows();syncSettings();save();showEmpty()},run};
+window.BeythausCut={enterCloudInventory,exitCloudInventory,isCloudInventory:()=>cloudInventoryActive,getSelectedRemnantSource:()=>selectedRemnantEditSource,cloudProductionPayload,markCloudProductionComplete,remnantMovements,cleanRemnantEvent,getCostRecords:()=>remnantDB.batches.filter(b=>b.productionCompleted).slice().sort((a,b)=>b.createdAt-a.createdAt),getRemnantDB:()=>JSON.parse(JSON.stringify(remnantDB)),filterRemnants,editRemnantRecord,setRemnantDefaultLocation,openRemnantEditor,submitRemnantEditor,inventoryStocksForPlan,registerRemnantProduction,setRemnantStatus,mergeRemnantBackup,normalize,optimize,optimizeBaseline:data=>optimize(data,false),refineUsableOffcuts,offcutMetrics,betterOffcuts,offcutOptimizationDescription,enumerateBoardMultisets,exactGrossAreaRefine,grossWasteProofDescription,exactUniformFeasibility,exactVariableFeasibility,exactRefinePlan,minStockCountLowerBound,certifyStockCount,stockProofDescription,validateLayout,auditCutPlan,auditGuillotineCuts,collectOffcuts,defaultData,getLastAudit:()=>lastAudit,getState:()=>state,setState:o=>{state=sanitize(o);renderRows();syncSettings();save();showEmpty()},run};
 })();
 </script>
 <script src="./vendor/qrcode.min.js"></script>
