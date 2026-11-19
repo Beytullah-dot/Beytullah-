@@ -370,7 +370,11 @@ function nextPartLabel(rows){const used=new Set(rows.map(p=>String(p.label??'').
 function ensurePartLabels(rows){const used=new Set(rows.map(p=>String(p.label??'').trim().toLocaleUpperCase('tr-TR')).filter(Boolean));let i=1;for(const p of rows){if(String(p.label??'').trim())continue;let code;do{code='P'+String(i++).padStart(2,'0')}while(used.has(code));p.label=code;used.add(code)}}
 const round=(n,d=3)=>Math.round(n*10**d)/10**d;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const defaultData=()=>({version:2,partsThicknessEnabled:true,stocksThicknessEnabled:true,project:'Atölye projesi',unit:'cm',kerf:3,trim:0,offcutMinEdgeMm:50,offcutMinAreaCm2:100,offcutValuePerM2:'',useRemnantStock:true,mode:'guillotine',priceMode:'m3',m3Price:25000,materialMode:'single',singleMaterial:'Ahşap',allowedStockIds:null,parts:[[40,24,30,2,'Ahşap','P01'],[38,24,30,1,'Ahşap','P02'],[31,24,30,1,'Ahşap','P03'],[180,5,30,2,'Ahşap','P04'],[40,5,30,3,'Ahşap','P05'],[52,12,30,2,'Ahşap','P06']].map(([l,w,t,qty,material,label])=>({id:uid(),l,w,t,qty,material,label,category:'masif',grain:'',rotate:true})),stocks:[{id:uid(),l:300,w:30,t:30,qty:999,material:'Ahşap',category:'masif',priceUnit:'m3',grain:'',price:25000}]});
+const defaultData=()=>({version:2,partsThicknessEnabled:true,stocksThicknessEnabled:true,
+ project:'Yeni proje',unit:'cm',kerf:3,trim:0,offcutMinEdgeMm:50,offcutMinAreaCm2:100,
+ offcutValuePerM2:'',useRemnantStock:true,mode:'guillotine',
+ priceMode:'panel',m3Price:25000,materialMode:'single',singleMaterial:'',
+ singleCategory:'panel',allowedStockIds:null,parts:[],stocks:[]});
 let state,solution=null,activeSheet=0,dirty=true,lastSaved='';
 const stored=()=>{try{const txt=localStorage.getItem('beythaus-cut-v2');return txt?JSON.parse(txt):null}catch{return null}};
 const save=()=>{try{
@@ -1026,7 +1030,7 @@ byId('projectsBtn').onclick=showProjects;byId('projectsClose').onclick=closeProj
 byId('projectsOverlay').onclick=e=>{if(e.target===byId('projectsOverlay'))closeProjects()};
 byId('projectsSearch').oninput=renderProjects;
 byId('projectsSearchToggle').onclick=()=>{const inp=byId('projectsSearch'),open=inp.classList.toggle('hidden')===false;byId('projectsSearchToggle').setAttribute('aria-expanded',String(open));if(open)inp.focus();else{inp.value='';renderProjects()}};
-function newBlankProject(){const d=defaultData();d.parts=[];d.partsThicknessEnabled=false;d.stocksThicknessEnabled=false;d.stocks=[{id:uid(),l:'',w:'',t:'',qty:999,material:'Ahşap',price:0}];d.project='Yeni proje';createProject(d,d.project);closeProjects();toast('Yeni proje oluşturuldu.')}
+function newBlankProject(){const d=defaultData();createProject(d,d.project);closeProjects();toast('Yeni proje oluşturuldu. Ortak stok envanteri korunur.')}
 byId('newProjectBtn').onclick=newBlankProject;byId('newProjectTopBtn').onclick=newBlankProject;
 byId('manualSaveProjectBtn').onclick=()=>{save();renderProjects();toast('Proje kaydedildi.')};
 byId('projectsList').onclick=e=>{const b=e.target.closest('button[data-project-action]');if(!b)return;const id=b.dataset.projectId,p=projectLibrary.find(x=>x.id===id);if(!p)return;const act=b.dataset.projectAction;
