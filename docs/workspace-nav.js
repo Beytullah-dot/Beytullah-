@@ -36,7 +36,8 @@ drawer.innerHTML=[
   '<nav class="bh-navitems" aria-label="Çalışma alanları">',
    '<button class="bh-navitem" type="button" data-bh-view="plan"><span class="bh-navglyph">▧</span><span>Kesim Planı</span><span class="bh-navarrow" aria-hidden="true">›</span></button>',
    '<button class="bh-navitem" type="button" data-bh-view="inventory"><span class="bh-navglyph">▦</span><span>Stok Envanteri</span><span class="bh-navarrow" aria-hidden="true">›</span></button>',
-   '<button class="bh-navitem" type="button" data-bh-view="account"><span class="bh-navglyph">♙</span><span>Hesap Ayarları</span><span class="bh-navarrow" aria-hidden="true">›</span></button>',
+   '<button class="bh-navitem" type="button" data-bh-view="costs"><span class="bh-navglyph">▤</span><span>Maliyet Kayıtları</span><span class="bh-navarrow" aria-hidden="true">›</span></button>',
+    '<button class="bh-navitem" type="button" data-bh-view="account"><span class="bh-navglyph">♙</span><span>Hesap Ayarları</span><span class="bh-navarrow" aria-hidden="true">›</span></button>',
   '</nav>',
  '</div>'
 ].join('');
@@ -54,7 +55,8 @@ screen.innerHTML=[
    '<div class="bh-stacks"><div id="bhFullHost"></div><div id="bhRemnantHost"></div></div>',
    '<p class="bh-finenote">Tam paneller şu an kesim girdisidir; artıklar ise tekil raf/QR kayıtlarıdır. Tam panellerin tekil QR takibine geçmesi ayrı veri modeli güncellemesi gerektirir.</p>',
   '</section>',
-  '<section class="bh-page" id="bhAccount" aria-label="Hesap Ayarları"><div class="bh-intro">Yönetici ve kullanıcı oturumları, parola işlemleri, ortak atölye erişimleri ve kullanıcı katılım kodları burada yönetilir.</div><div id="bhAccountHost"></div></section>',
+  '<section class="bh-page" id="bhCosts" aria-label="Maliyet kayıtları"><div class="bh-intro">Tamamlanan üretimlerin malzeme maliyetleri ve isteğe bağlı ek giderleri otomatik kaydedilir. Satış ve kâr hesabı yapılmaz.</div><div id="bhCostRecords" aria-live="polite"></div></section>',
+   '<section class="bh-page" id="bhAccount" aria-label="Hesap Ayarları"><div class="bh-intro">Yönetici ve kullanıcı oturumları, parola işlemleri, ortak atölye erişimleri ve kullanıcı katılım kodları burada yönetilir.</div><div id="bhAccountHost"></div></section>',
  '</div>'
 ].join('');
 document.body.append(shade,screen,drawer);
@@ -77,11 +79,30 @@ sidebar.insertBefore(shortcuts,$('partsCard'));
 
 const meta={
  inventory:['ENVANTER','Stok Envanteri','Malzemeler, artıklar, raflar ve QR'],
+ costs:['MALİYET KAYITLARI','Maliyet Kayıtları','Tamamlanan kesimler, stok değeri ve ek maliyetler'],
  account:['HESAP VE YETKİLER','Hesap Ayarları','Yönetici, kullanıcı, parola ve ortak atölye']
 };
 let selected='plan';
 let focusBeforeOpen=null;
+function refreshCosts(){
+ const records=app.getCostRecords?.()||[];
+ const amount=v=>Number.isFinite(v)?new Intl.NumberFormat('tr-TR',{style:'currency',currency:'TRY',maximumFractionDigits:2}).format(v):'Fiyat eksik';
+ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const container=$('bhCostRecords');
+ if(!records.length){container.innerHTML='<div class="bh-intro">Henüz tamamlanmış üretim kaydı yok.</div>';return}
+ const known=records.filter(r=>Number.isFinite(r.materialCost));
+ const material=known.reduce((n,r)=>n+r.materialCost,0);
+ const extra=records.reduce((n,r)=>n+(Number(r.extraCost)||0),0);
+ container.innerHTML='<div class="bh-numbers"><div class="bh-number"><b>'+records.length+'</b><span>Tamamlanan üretim</span></div><div class="bh-number"><b>'+amount(material)+'</b><span>Bilinen malzeme maliyeti</span></div><div class="bh-number"><b>'+amount(extra)+'</b><span>Ek maliyet</span></div></div>'+
+  (known.length<records.length?'<p class="bh-finenote">Fiyatı bilinmeyen '+(records.length-known.length)+' üretim toplam maliyete dahil edilmedi.</p>':'')+
+  records.map(r=>'<div class="auto-material-group"><strong>'+esc(r.projectName||'Üretim')+'</strong> · <span class="material-tag">'+esc(new Date(r.createdAt).toLocaleDateString('tr-TR'))+'</span>'+
+   '<div class="stock-overview-item">Malzeme maliyeti: <b>'+amount(r.materialCost)+'</b></div>'+
+   '<div class="stock-overview-item">Ek maliyet: '+amount(r.extraCost||0)+(r.extraNote?' · '+esc(r.extraNote):'')+'</div>'+
+   '<div class="stock-overview-item">Toplam maliyet: <b>'+amount(r.totalCost)+'</b></div>'+
+   '<div class="stock-overview-item">Tüketilen tam stok: '+(r.usedFullStocks||[]).reduce((n,x)=>n+x.qty,0)+' · Artık stok: '+(r.usedIds||[]).length+' · Oluşan artık: '+(r.createdIds||[]).length+'</div></div>').join('')
+}
 function refresh(){
+ refreshCosts();
  const raw=app.getState?.().stocks||[];
  const pieces=app.getRemnantDB?.().pieces||[];
  const available=pieces.filter(p=>p.status==='available');
@@ -112,6 +133,7 @@ function selectView(name){
  if(workspaceEl)workspaceEl.inert=!isPlan;
  $('bhInventory').classList.toggle('active',name==='inventory');
  $('bhAccount').classList.toggle('active',name==='account');
+ $('bhCosts').classList.toggle('active',name==='costs');
  drawer.querySelectorAll('[data-bh-view]').forEach(b=>{
   if(b.dataset.bhView===name)b.setAttribute('aria-current','page');
   else b.removeAttribute('aria-current');
