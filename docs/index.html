@@ -771,7 +771,10 @@ function registerRemnantProduction(){
   priceBasis:'recorded-stock-value-v1',productionCompleted:true,
   planSnapshot:{kerf:val(state.kerf),trim:val(state.trim),
    bins:solution.bins.map(b=>({stockId:b.stock.id,material:b.stock.material,
-    cuts:(b.cuts||[]).map(c=>({axis:c.axis,source:c.source,at:c.at})),
+    stock:{id:b.stock.id,l:b.stock.l,w:b.stock.w,t:b.stock.physicalThickness??b.stock.t,
+     material:b.stock.displayMaterial||String(b.stock.material).split('|').slice(1).join('|'),
+     category:b.stock.category||'panel',isRemnant:!!b.stock.isRemnant},
+    cuts:(b.cuts||[]).map(c=>({axis:c.axis,source:c.source,at:c.at,number:c.number,label:c.label})),
     pieces:b.placed.map(p=>({id:p.id,label:p.label,x:p.x,y:p.y,w:p.w,h:p.h,rotated:p.rotated}))}))}};
  const next={...remnantDB,fullStocks,
   pieces:remnantDB.pieces.map(p=>usedIds.includes(p.id)?{...p,status:'used',usedAt:now}:p).concat(created),
