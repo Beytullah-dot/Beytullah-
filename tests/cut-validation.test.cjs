@@ -11,7 +11,8 @@ const auditSource = fs.readFileSync(
  path.join(__dirname, '../docs/engine/production-audit.js'), 'utf8');
 const engineSource = fs.readFileSync(
  path.join(__dirname, '../docs/engine/cutting-engine.js'), 'utf8');
-const script = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)][0]?.[1];
+const script = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)]
+ .map(match=>match[1]).find(source=>source.includes("(()=>{'use strict';"));
 assert.ok(script, 'Application script must exist');
 
 const nodes = new Map();
