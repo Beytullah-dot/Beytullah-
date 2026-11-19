@@ -141,17 +141,18 @@ const manyParts=Array.from({length:13},(_,i)=>({
  id:'m'+i,l:1,w:1,t:null,material:'MDF',label:'M'+i,rotate:false
 }));
 const manyStocks=[
- {id:'expensive',l:20,w:20,qty:1,price:2000,t:null,material:'MDF'},
- ...[0,1,2].map(i=>({
+ {id:'expensive',l:20,w:20,qty:7,price:100,t:null,material:'MDF'},
+ ...[0,1].map(i=>({
   id:'cheap'+i,l:20,w:20,qty:13,price:1,t:null,material:'MDF'
  }))
 ];
 const overScope=direct.solve({
  type:'economy',requestId:71,cutMode:'nest',priceMode:'panel',
  data:{parts:manyParts,stocks:manyStocks,trim:0,kerf:0},
- incumbentBins:[{stockId:'expensive',material:'MDF'}]
+ incumbentBins:Array.from({length:7},()=>({stockId:'expensive',material:'MDF'}))
 },()=>({status:'infeasible',nodes:1}));
-assert.equal(overScope.status,'partial','Out-of-scope enumeration cannot certify');
+assert.equal(overScope.status,'partial','Truncated candidate enumeration cannot certify');
+assert.equal(overScope.groups[0].status,'enumeration-limit');
 assert.equal(overScope.groups[0].proven,false);
 unknown++;
 
