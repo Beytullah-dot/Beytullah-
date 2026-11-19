@@ -20,13 +20,16 @@ const GuillotineExact=(()=>{
   const width=stock.l-2*trim,height=stock.w-2*trim;
   const root={x:trim,y:trim,w:width,h:height};
   const tolerance=1e-6;
-  function perform(rect,axis,firstSize){
+  function firstLabel(node){
+   return node.index!==undefined?String(node.piece.label||'Parça'):firstLabel(node.a)
+  }
+  function perform(rect,axis,firstSize,label){
    const alongX=axis==='vertical',total=alongX?rect.w:rect.h;
    const secondSize=total-firstSize-k;
    if(firstSize<=tolerance||secondSize< -tolerance)return null;
    const at=(alongX?rect.x:rect.y)+firstSize+k/2;
    cuts.push({axis,at,source:{...rect},number:cuts.length+1,
-    label:pattern.label||'Kesin kesim',
+    label:label||'Kesim grubu',
     x1:alongX?at:rect.x,y1:alongX?rect.y:at,
     x2:alongX?at:rect.x+rect.w,y2:alongX?rect.y+rect.h:at});
    const a=alongX?{x:rect.x,y:rect.y,w:firstSize,h:rect.h}:
@@ -41,13 +44,13 @@ const GuillotineExact=(()=>{
    if(node.index!==undefined){
     let active=box;
     if(active.w>node.w+tolerance){
-     const cut=perform(active,'vertical',node.w);
+     const cut=perform(active,'vertical',node.w,node.piece.label);
      if(!cut)return false;
      active=cut.a;
      if(cut.b.w>tolerance)free.push(cut.b);
     }
     if(active.h>node.h+tolerance){
-     const cut=perform(active,'horizontal',node.h);
+     const cut=perform(active,'horizontal',node.h,node.piece.label);
      if(!cut)return false;
      active=cut.a;
      if(cut.b.h>tolerance)free.push(cut.b)
@@ -60,7 +63,7 @@ const GuillotineExact=(()=>{
    }
    const vertical=node.axis==='x';
    const cut=perform(box,vertical?'vertical':'horizontal',
-    vertical?node.a.w:node.a.h);
+    vertical?node.a.w:node.a.h,firstLabel(node.a));
    if(!cut)return false;
    return emit(node.a,cut.a)&&emit(node.b,cut.b)
   }
