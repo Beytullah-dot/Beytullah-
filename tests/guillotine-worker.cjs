@@ -154,6 +154,24 @@ for(const n of [9,10,11]){
  largeProofs++;
 }
 
+// A time/node budget never turns an unfinished search into a proof.
+const capped=context.GuillotineExact.feasible(
+ Array.from({length:4},(_,i)=>({
+  id:'cap'+i,l:50,w:50,t:null,material:'MDF',label:'Cap'+i,rotate:true
+ })),
+ [{id:'cap-stock',l:100,w:100,t:null,material:'MDF',qty:4}],
+ 1,{kerf:0,trim:0},Date.now()+5000,1
+);
+assert.equal(capped.status,'unknown','Interrupted search must be unknown');
+// A relaxed pattern whose last strip is thinner than the blade must never
+// be advertised as a physically feasible or mathematically impossible cut.
+const sliver=context.GuillotineExact.feasible(
+ [{id:'sliver',l:50,w:99,t:null,material:'MDF',rotate:false,label:'Sliver'}],
+ [{id:'stock',l:50,w:100,t:null,material:'MDF',qty:1}],
+ 1,{kerf:2,trim:0},Date.now()+5000,50000
+);
+assert.equal(sliver.status,'unknown','Uncuttable residual is not a proof');
+
 assert.ok(improvements>=1,'Must demonstrate at least one guillotine stock saving');
 console.log('Exact guillotine validation: '+fixtures.length+' reference scenarios + '+largeProofs+' larger analytical proofs; '+
  feasibleCases+' feasible, '+infeasibleCases+' infeasible, '+
