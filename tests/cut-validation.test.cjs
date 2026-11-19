@@ -22,7 +22,7 @@ function node(id) {
     id, value:'', textContent:'', innerHTML:'', disabled:false, className:'',
     classList:emptyClasses(), dataset:{}, style:{},
     addEventListener(){}, setAttribute(){}, removeAttribute(){},
-    querySelectorAll(){return []}, scrollIntoView(){}, focus(){},
+    querySelector(){return node(id+'_child')}, querySelectorAll(){return []}, scrollIntoView(){}, focus(){},
     click(){}, append(){}, remove(){},
     get lastElementChild(){return null}
   });
