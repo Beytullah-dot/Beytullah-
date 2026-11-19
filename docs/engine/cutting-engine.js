@@ -692,12 +692,15 @@ function minStockCountLowerBound(data){
   // An omitted kerf must relax the constraint, never force false incompatibility.
   const kerf=Number.isFinite(data.kerf)?Math.max(0,data.kerf):0;
   const geometry=incompatibleCliqueLowerBound(parts,stocks,data.trim,kerf);
-  const lowerBound=Math.max(areaLB,geometry.count);
-  if(geometry.count>areaLB)geometricUsed=true;
+  const cardinality=root.BeythausOptimalityCertificate?.countBoundForGroup(
+   parts,stocks,data.trim,kerf);
+  const itemBound=cardinality?.status==='optimal-relaxation'?cardinality.lowerBound:0;
+  const lowerBound=Math.max(areaLB,geometry.count,itemBound);
+  if(geometry.count>areaLB||itemBound>areaLB)geometricUsed=true;
   total+=lowerBound;
   details.push({material,requiredArea:required,lowerBound,areaLowerBound:areaLB,
-   incompatibilityLowerBound:geometry.count,inspectedPieces:geometry.examined,
-   totalPieces:geometry.total});
+   incompatibilityLowerBound:geometry.count,itemCapacityLowerBound:itemBound,
+   inspectedPieces:geometry.examined,totalPieces:geometry.total});
  }
  return {lowerBound:total,method:geometricUsed?'pairwise-incompatibility':'area',reason:null,details};
 }
