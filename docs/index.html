@@ -375,14 +375,16 @@ const defaultData=()=>({version:2,partsThicknessEnabled:true,stocksThicknessEnab
  offcutValuePerM2:'',useRemnantStock:true,mode:'guillotine',
  priceMode:'panel',m3Price:25000,materialMode:'single',singleMaterial:'',
  singleCategory:'panel',allowedStockIds:null,parts:[],stocks:[]});
-let state,solution=null,activeSheet=0,dirty=true,lastSaved='';
+let state,solution=null,activeSheet=0,dirty=true,lastSaved='',localFullStockShadow=null;
 const stored=()=>{try{const txt=localStorage.getItem('beythaus-cut-v2');return txt?JSON.parse(txt):null}catch{return null}};
 const save=()=>{try{
  if(typeof remnantDB!=='undefined'&&!cloudInventoryActive){
   remnantDB.fullStocks=JSON.parse(JSON.stringify(state.stocks));
   localStorage.setItem(REMNANT_KEY,JSON.stringify(remnantDB))
  }
- localStorage.setItem('beythaus-cut-v2',JSON.stringify(state));if(typeof projectLibrary!=='undefined'&&activeProjectId){let p=projectLibrary.find(x=>x.id===activeProjectId);if(p){p.name=String(state.project||'İsimsiz proje').slice(0,60);p.updatedAt=Date.now();p.data=JSON.parse(JSON.stringify(state));localStorage.setItem('beythaus-cut-project-library-v1',JSON.stringify(projectLibrary))}}}catch(err){console.warn('Yerel kayıt yapılamadı',err)}};
+ const localState=cloudInventoryActive&&localFullStockShadow?
+ {...state,stocks:JSON.parse(JSON.stringify(localFullStockShadow))}:state;
+ localStorage.setItem('beythaus-cut-v2',JSON.stringify(localState));if(typeof projectLibrary!=='undefined'&&activeProjectId){let p=projectLibrary.find(x=>x.id===activeProjectId);if(p){p.name=String(state.project||'İsimsiz proje').slice(0,60);p.updatedAt=Date.now();p.data=JSON.parse(JSON.stringify(localState));localStorage.setItem('beythaus-cut-project-library-v1',JSON.stringify(projectLibrary))}}}catch(err){console.warn('Yerel kayıt yapılamadı',err)}};
 function sanitize(o){if(!o||typeof o!=='object'||!Array.isArray(o.parts)||!Array.isArray(o.stocks))throw Error('Geçersiz proje dosyası');let p=defaultData();p.project=String(o.project||p.project).slice(0,60);p.unit=o.unit==='mm'?'mm':'cm';p.kerf=Number.isFinite(val(o.kerf))?val(o.kerf):3;p.trim=Number.isFinite(val(o.trim))?val(o.trim):0;p.offcutMinEdgeMm=Number.isFinite(val(o.offcutMinEdgeMm))?val(o.offcutMinEdgeMm):50;p.offcutMinAreaCm2=Number.isFinite(val(o.offcutMinAreaCm2))?val(o.offcutMinAreaCm2):100;
 p.offcutValuePerM2=String(o.offcutValuePerM2??'').trim()!==''&&
  Number.isFinite(val(o.offcutValuePerM2))&&val(o.offcutValuePerM2)>=0?
@@ -478,16 +480,33 @@ function readRemnantDB(){
 }
 let remnantDB=readRemnantDB(),cloudInventoryActive=false;
 function enterCloudInventory(snapshot){
- if(!snapshot||!Array.isArray(snapshot.pieces)||!snapshot.workspace)throw Error('Bulut stok verisi geçersiz');
+ if(!snapshot||!Array.isArray(snapshot.pieces)||!Array.isArray(snapshot.fullStocks)||!snapshot.workspace)
+  throw Error('Bulut stok verisi eksik.');
  const pieces=snapshot.pieces.map(cleanRemnant);
- if(pieces.some(x=>!x)||pieces.length>MAX_REMNANTS)throw Error('Bulut stok sınırı aşıldı veya ölçüler geçersiz');
+ if(pieces.some(x=>!x)||pieces.length>MAX_REMNANTS)throw Error('Bulut artık stokları geçersiz.');
+ if(!cloudInventoryActive)localFullStockShadow=JSON.parse(JSON.stringify(state.stocks));
+ const f=state.unit==='cm'?10:1;
+ const full=snapshot.fullStocks.map(x=>({
+  id:String(x.id),l:Number(x.l)/f,w:Number(x.w)/f,t:x.t===null?'':Number(x.t),
+  qty:Number(x.qty),price:x.price===null?'':Number(x.price),
+  category:x.category==='masif'?'masif':'panel',material:String(x.material),
+  grain:materialPolicy.grain(x.grain),priceUnit:x.priceUnit,
+  location:String(x.location||''),notes:String(x.notes||''),version:Number(x.version)
+ }));
+ if(full.some(x=>!x.id||!(x.l>0&&x.w>0)||!(x.qty>=0)||!(x.version>=1)))
+  throw Error('Bulut tam stok bilgisi geçersiz.');
  remnantDB={version:1,pieces,batches:Array.isArray(snapshot.batches)?snapshot.batches:[],
-  movements:Array.isArray(snapshot.movements)?snapshot.movements.slice(-MAX_REMNANT_HISTORY).map(cleanRemnantEvent).filter(Boolean):[],
+  fullStocks:full,movements:Array.isArray(snapshot.movements)?
+   snapshot.movements.slice(-MAX_REMNANT_HISTORY).map(cleanRemnantEvent).filter(Boolean):[],
   defaultLocation:String(snapshot.workspace.defaultLocation||'').slice(0,80)};
- cloudInventoryActive=true;
- changed();return true
+ state.stocks=full;cloudInventoryActive=true;renderRows();changed();return true
 }
-function exitCloudInventory(){cloudInventoryActive=false;remnantDB=readRemnantDB();changed();return true}
+function exitCloudInventory(){
+ cloudInventoryActive=false;remnantDB=readRemnantDB();
+ state.stocks=localFullStockShadow||
+  (Array.isArray(remnantDB.fullStocks)?JSON.parse(JSON.stringify(remnantDB.fullStocks)):state.stocks);
+ localFullStockShadow=null;renderRows();changed();return true
+}
 function availableRemnants(){return remnantDB.pieces.filter(x=>x.status==='available')}
 function inventoryStocksForPlan(){
  if(!state.useRemnantStock)return [];
@@ -1137,7 +1156,7 @@ function normalize(){
   if(state.materialMode==='auto'&&state.allowedStockIds!==null&&!state.allowedStockIds.includes(s.id))continue;
   stocks.push({id:s.id,l,w,t,qty,price:Number.isFinite(price)?price:null,category:stockKind(s),
    priceUnit:stockKind(s)==='masif'?'m3':'panel',grain:materialPolicy.grain(s.grain),
-   material:groupIdentity(s),displayMaterial:String(s.material),order:i})
+   material:groupIdentity(s),displayMaterial:String(s.material),version:Number.isInteger(Number(s.version))?Number(s.version):null,order:i})
  }
  for(const s of inventoryStocksForPlan()){
   if(state.materialMode==='auto'&&state.allowedStockIds!==null&&!state.allowedStockIds.includes(s.id))continue;
@@ -1972,7 +1991,7 @@ byId('productionSafetySwitch').onclick=()=>{
  syncSettings();changed();run();
 };
 renderRows();syncSettings();showEmpty();renderProjects();
-window.BeythausCut={enterCloudInventory,exitCloudInventory,isCloudInventory:()=>cloudInventoryActive,getSelectedRemnantSource:()=>selectedRemnantEditSource,cloudProductionPayload,markCloudProductionComplete,remnantMovements,cleanRemnantEvent,exportCostRecordPdf,getCostRecords:()=>remnantDB.batches.filter(b=>b.productionCompleted).slice().sort((a,b)=>b.createdAt-a.createdAt),getRemnantDB:()=>JSON.parse(JSON.stringify(remnantDB)),filterRemnants,editRemnantRecord,setRemnantDefaultLocation,openRemnantEditor,submitRemnantEditor,inventoryStocksForPlan,registerRemnantProduction,setRemnantStatus,mergeRemnantBackup,normalize,optimize,optimizeBaseline:data=>optimize(data,false),refineUsableOffcuts,offcutMetrics,betterOffcuts,offcutOptimizationDescription,enumerateBoardMultisets,exactGrossAreaRefine,grossWasteProofDescription,exactUniformFeasibility,exactVariableFeasibility,exactRefinePlan,minStockCountLowerBound,certifyStockCount,stockProofDescription,validateLayout,auditCutPlan,auditGuillotineCuts,collectOffcuts,defaultData,getLastAudit:()=>lastAudit,getState:()=>state,setState:o=>{state=sanitize(o);renderRows();syncSettings();save();showEmpty()},run};
+window.BeythausCut={enterCloudInventory,exitCloudInventory,getLocalFullStocks:()=>JSON.parse(JSON.stringify(localFullStockShadow||state.stocks)),isCloudInventory:()=>cloudInventoryActive,getSelectedRemnantSource:()=>selectedRemnantEditSource,cloudProductionPayload,markCloudProductionComplete,remnantMovements,cleanRemnantEvent,exportCostRecordPdf,getCostRecords:()=>remnantDB.batches.filter(b=>b.productionCompleted).slice().sort((a,b)=>b.createdAt-a.createdAt),getRemnantDB:()=>JSON.parse(JSON.stringify(remnantDB)),filterRemnants,editRemnantRecord,setRemnantDefaultLocation,openRemnantEditor,submitRemnantEditor,inventoryStocksForPlan,registerRemnantProduction,setRemnantStatus,mergeRemnantBackup,normalize,optimize,optimizeBaseline:data=>optimize(data,false),refineUsableOffcuts,offcutMetrics,betterOffcuts,offcutOptimizationDescription,enumerateBoardMultisets,exactGrossAreaRefine,grossWasteProofDescription,exactUniformFeasibility,exactVariableFeasibility,exactRefinePlan,minStockCountLowerBound,certifyStockCount,stockProofDescription,validateLayout,auditCutPlan,auditGuillotineCuts,collectOffcuts,defaultData,getLastAudit:()=>lastAudit,getState:()=>state,setState:o=>{state=sanitize(o);renderRows();syncSettings();save();showEmpty()},run};
 })();
 </script>
 <script src="./vendor/qrcode.min.js"></script>
