@@ -120,72 +120,53 @@ button,.btn,.bh-navitem,.sheet-tab,summary{touch-action:manipulation}
  .toast{bottom:calc(76px + env(safe-area-inset-bottom,0px));max-width:calc(100vw - 28px);overflow-wrap:anywhere}
  body.bh-editing .toast,body.bh-page-mode .toast{bottom:calc(15px + env(safe-area-inset-bottom,0px))}
 
- /* Keep data entry usable without horizontal scrolling: each original table row becomes a card.
-    Inputs remain inside their original table rows, so event delegation and saving are unchanged. */
- #partsCard .table-wrap,#stocksCard .table-wrap{overflow:visible;width:100%}
+ /* A single editable list per section (not one card per row).
+    Preserve real table semantics and the existing delegated input handlers.
+    All fields stay in their left-to-right order; only the list itself scrolls. */
+ #partsCard .table-wrap,#stocksCard .table-wrap{
+  display:block;width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;scrollbar-width:thin;
+  overscroll-behavior-x:contain;touch-action:pan-x pan-y;
+ }
  #partsCard .edit-table,#stocksCard .edit-table{
-  display:block;width:100%!important;min-width:0!important;white-space:normal;
-  border-collapse:separate
+  display:table;width:100%;border-collapse:collapse;
+  table-layout:fixed;white-space:nowrap;
  }
- #partsCard .edit-table colgroup,#stocksCard .edit-table colgroup,
- #partsCard .edit-table thead,#stocksCard .edit-table thead{display:none}
- #partRows,#stockRows{display:grid;gap:10px;padding:3px 11px 14px}
- #partRows{counter-reset:bh-part}
- #stockRows{counter-reset:bh-stock}
- #partRows tr,#stockRows tr{
-  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:8px 10px;padding:11px;border:1px solid #e1e9e1;
-  border-radius:13px;background:#fbfdfb;min-width:0;
-  box-shadow:0 1px 4px #1b3c2710
+ #partsCard .edit-table{min-width:635px!important}
+ #stocksCard .edit-table{min-width:605px!important}
+ #partsCard.thickness-off .edit-table{min-width:535px!important}
+ #stocksCard.thickness-off .edit-table{min-width:510px!important}
+ #partsCard .edit-table colgroup,#stocksCard .edit-table colgroup{display:table-column-group}
+ #partsCard .edit-table thead,#stocksCard .edit-table thead{display:table-header-group}
+ #partRows,#stockRows{display:table-row-group}
+ #partRows tr,#stockRows tr{display:table-row;background:#fff}
+ #partRows tr:nth-child(even),#stockRows tr:nth-child(even){background:#f9fbf9}
+ #partsCard .edit-table th,#stocksCard .edit-table th{
+  white-space:nowrap;font-size:11px;padding:10px 6px;
+  background:#f6f9f6;color:#667b6d;
  }
- #partRows tr{counter-increment:bh-part}
- #stockRows tr{counter-increment:bh-stock}
- #partRows tr::before,#stockRows tr::before{
-  grid-column:1/-1;display:block;
-  padding:0 0 5px;border-bottom:1px solid #e4ebe4;
-  color:#426650;font-size:12px;font-weight:770;letter-spacing:.1px
- }
- #partRows tr::before{content:"Parça " counter(bh-part)}
- #stockRows tr::before{content:"Stok paneli " counter(bh-stock)}
  #partsCard .edit-table td,#stocksCard .edit-table td{
-  border:0!important;min-width:0;display:flex;flex-direction:column;
-  align-items:stretch;justify-content:flex-end;gap:5px;
-  padding:0!important
+  display:table-cell;min-width:0;border-bottom:1px solid #ebf0eb!important;
+  vertical-align:middle;padding:5px 3px!important;
  }
- #partsCard .edit-table td::before,#stocksCard .edit-table td::before{
-  display:block;color:#657d6d;font-size:11px;font-weight:680;line-height:1.25
+ #partsCard .edit-table th:first-child,#stocksCard .edit-table th:first-child{padding-left:12px}
+ #partsCard .edit-table td:first-child,#stocksCard .edit-table td:first-child{padding-left:9px!important}
+ #partsCard .edit-table td:last-child,#stocksCard .edit-table td:last-child{padding-right:8px!important}
+ #partsCard .edit-table .cell-input,#stocksCard .edit-table .cell-input{
+  display:block;width:100%;max-width:100%;height:45px;min-height:45px;
+  border:1px solid #e1e9e3;background:#fff;border-radius:8px;
+  padding:7px 5px;color:#28382f;font-size:16px!important;
+  text-overflow:clip;
  }
- #partsCard .edit-table td:nth-child(1)::before,#stocksCard .edit-table td:nth-child(1)::before{content:"Boy"}
- #partsCard .edit-table td:nth-child(2)::before,#stocksCard .edit-table td:nth-child(2)::before{content:"En"}
- #partsCard .edit-table td:nth-child(3)::before,#stocksCard .edit-table td:nth-child(3)::before{content:"Kalınlık (mm)"}
- #partsCard .edit-table td:nth-child(4)::before{content:"Adet"}
- #stocksCard .edit-table td:nth-child(4)::before{content:"Stok adedi"}
- #partsCard .edit-table td:nth-child(5)::before,#stocksCard .edit-table td:nth-child(5)::before{content:"Malzeme"}
- #partsCard .edit-table td:nth-child(6)::before{content:"Parça etiketi"}
- #partsCard .edit-table td:nth-child(7)::before{content:"90° döndürülebilir"}
- #stocksCard .edit-table td:nth-child(6)::before{content:"Panel fiyatı (₺)"}
- #partsCard .edit-table td:nth-child(5),#partsCard .edit-table td:nth-child(6),
- #stocksCard .edit-table td:nth-child(5){grid-column:1/-1}
- #partsCard .edit-table td:nth-child(7){flex-direction:row;align-items:center;justify-content:space-between;padding:6px 8px!important;background:#f1f6f1;border-radius:9px}
- #partsCard .edit-table td:nth-child(7)::before{flex:1}
- #partsCard .edit-table .check{width:24px;height:24px;flex:none}
- #partsCard .edit-table .check-cell{min-width:32px;min-height:37px;align-items:center}
- #partsCard .edit-table td:last-child,#stocksCard .edit-table td:last-child{justify-content:flex-end}
- #partsCard .edit-table td:last-child::before,#stocksCard .edit-table td:last-child::before{display:none}
+ #partsCard .edit-table .check-cell{display:flex;min-height:45px;align-items:center;justify-content:center}
+ #partsCard .edit-table .check{width:21px;height:21px;flex:none}
  #partsCard .edit-table .rowdel,#stocksCard .edit-table .rowdel{
-  display:flex;align-items:center;justify-content:center;gap:4px;
-  width:100%;min-width:0;min-height:45px;
-  border:1px solid #f0deda;border-radius:9px;background:#fff5f3;
-  color:#a44f45;font-size:23px
+  width:34px;height:44px;min-height:44px;
+  display:inline-flex;align-items:center;justify-content:center;
+  border:0;background:transparent;color:#a44f45;
+  font-size:22px;border-radius:8px;
  }
- #partsCard .edit-table .rowdel::after,#stocksCard .edit-table .rowdel::after{
-  content:"Sil";font-size:12px;font-weight:700
- }
- #partsCard .cell-input,#stocksCard .cell-input{
-  min-height:45px;height:45px;width:100%;max-width:100%;
-  border:1px solid #dfe8df;border-radius:9px;background:#fff;
-  padding:8px 10px;font-size:16px!important
- }
+ #partsCard .edit-table .rowdel:focus-visible,#stocksCard .edit-table .rowdel:focus-visible{background:#fff0ed}
  #partsCard.thickness-off .edit-table td:nth-child(3),
  #stocksCard.thickness-off .edit-table td:nth-child(3){display:none!important}
  .thickness-toggle{min-height:43px;font-size:11px!important}
