@@ -8,8 +8,7 @@ const root=path.join(__dirname,'..');
 const html=fs.readFileSync(path.join(root,'docs/index.html'),'utf8');
 const gcode=fs.readFileSync(path.join(root,'docs/guillotine-exact.js'),'utf8');
 const G=new Function('self',gcode+';return GuillotineExact')({});
-const coreStart=html.indexOf('function intersect('),coreEnd=html.indexOf('const colors=',coreStart);
-const core=html.slice(coreStart,coreEnd);
+const {createEngine}=require('./engine-harness.cjs');
 const state={mode:'nest',kerf:'3',priceMode:'m3',m3Price:25000,
  project:'Atölye projesi',unit:'cm',
  offcutMinEdgeMm:50,offcutMinAreaCm2:100,
@@ -17,8 +16,7 @@ const state={mode:'nest',kerf:'3',priceMode:'m3',m3Price:25000,
 const number=x=>Number(String(x).replace(',','.'));
 const mkey=x=>String(x||'').trim().toLocaleLowerCase('tr-TR');
 const fmt=(x,d)=>Number(x).toFixed(d??0);
-const app=new Function('state','val','mkey','fmt',core+
- ';return {optimize,auditCutPlan,certifyStockCount};')(state,number,mkey,fmt);
+const app=createEngine(state,number,mkey,fmt);
 const specs=[
  ['P01',400,240,2],['P02',380,240,1],
  ['P03',310,240,1],['P04',1800,50,2],
@@ -109,7 +107,9 @@ const refresh=new Function('state','byId',html.slice(bannerFrom,bannerTo)+
 state.mode='nest';refresh();
 state.mode='guillotine';refresh();
 assert.deepEqual(toggle,[{name:'hidden',hidden:false},{name:'hidden',hidden:true}]);
-assert.ok(html.includes("mode:'guillotine',priceMode:'m3'"),'New projects should default to physical cutting');
+const defaultAt=html.indexOf('const defaultData=');
+assert.ok(defaultAt>0&&html.slice(defaultAt,defaultAt+800).includes("mode:'guillotine'"),'New projects must default to physical cutting');
+assert.ok(!html.slice(defaultAt,defaultAt+800).includes('qty:999'),'New projects must not create fake physical stock');
 console.log('Atelier 11-part PDF: free=1 stock / no cuts, guillotine=2 stocks with valid full cuts; '+
  '1-stock guillotine impossibility proved ('+exact.nodes+' nodes). '+
  'Forged partial cut rejected. Free PDF marked NOT FOR PRODUCTION.');

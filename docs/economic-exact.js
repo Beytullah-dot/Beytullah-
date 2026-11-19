@@ -8,6 +8,7 @@
 const EconomicExact=(()=>{
  const EPS=1e-6, canon=s=>String(s||'').trim().toLocaleLowerCase('tr-TR');
  const price=(s,cfg)=>{
+  if(typeof BeythausMaterialPolicy!=='undefined')return BeythausMaterialPolicy.stockPrice(s,cfg);
   if(s.isRemnant)return 0;
   if(cfg.priceMode==='panel')return Number.isFinite(s.price)&&s.price>0?s.price:null;
   if(cfg.priceMode==='m3')

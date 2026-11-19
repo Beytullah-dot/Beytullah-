@@ -6,13 +6,12 @@ const {solve,audit}=require('./optimization-oracle.cjs');
 const ROOT=path.join(__dirname,'..');
 const html=fs.readFileSync(path.join(ROOT,'docs/index.html'),'utf8');
 const workerScript=fs.readFileSync(path.join(ROOT,'docs/optimization-worker.js'),'utf8');
-const first=html.indexOf('function intersect('),last=html.indexOf('const colors=',first);
-assert.ok(first>=0&&last>first);
+const {createEngine}=require('./engine-harness.cjs');
 const state={mode:'nest',kerf:'0',offcutMinEdgeMm:50,offcutMinAreaCm2:100,priceMode:'panel'};
-const engine=new Function('state','val','mkey','fmt',html.slice(first,last)+
- ';return {optimize,auditCutPlan,certifyStockCount};')(
- state,v=>Number(String(v).replace(',','.')),
- v=>String(v).trim().toLocaleLowerCase('tr-TR'),(v,n)=>Number(v).toFixed(n??0)
+const engine=createEngine(state,
+ v=>Number(String(v).replace(',','.')),
+ v=>String(v).trim().toLocaleLowerCase('tr-TR'),
+ (v,n)=>Number(v).toFixed(n??0)
 );
 const ctx={onmessage:null,last:null,postMessage(message){this.last=message}};
 new Function('self',workerScript)(ctx);

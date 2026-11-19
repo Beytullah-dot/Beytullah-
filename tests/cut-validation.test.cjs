@@ -7,7 +7,14 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const html = fs.readFileSync(path.join(__dirname, '../docs/index.html'), 'utf8');
-const script = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)][0]?.[1];
+const policySource=fs.readFileSync(path.join(__dirname,'../docs/engine/material-policy.js'),'utf8');
+const allocationSource=fs.readFileSync(path.join(__dirname,'../docs/engine/material-allocator.js'),'utf8');
+const auditSource = fs.readFileSync(
+ path.join(__dirname, '../docs/engine/production-audit.js'), 'utf8');
+const engineSource = fs.readFileSync(
+ path.join(__dirname, '../docs/engine/cutting-engine.js'), 'utf8');
+const script = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)]
+ .map(match=>match[1]).find(source=>source.includes("(()=>{'use strict';"));
 assert.ok(script, 'Application script must exist');
 
 const nodes = new Map();
@@ -17,7 +24,7 @@ function node(id) {
     id, value:'', textContent:'', innerHTML:'', disabled:false, className:'',
     classList:emptyClasses(), dataset:{}, style:{},
     addEventListener(){}, setAttribute(){}, removeAttribute(){},
-    querySelectorAll(){return []}, scrollIntoView(){}, focus(){},
+    querySelector(){return node(id+'_child')}, querySelectorAll(){return []}, scrollIntoView(){}, focus(){},
     click(){}, append(){}, remove(){},
     get lastElementChild(){return null}
   });
@@ -40,6 +47,15 @@ const sandbox = {
   setTimeout(){return 1},clearTimeout(){},requestAnimationFrame(){},
   confirm(){return true},prompt(){return null}
 };
+vm.runInNewContext(policySource,{window},{filename:'material-policy.js'});
+vm.runInNewContext(allocationSource,{window},{filename:'material-allocator.js'});
+vm.runInNewContext(auditSource,{window},{
+ filename:'docs/engine/production-audit.js',timeout:10000
+});
+vm.runInNewContext(engineSource,{window},{
+ filename:'docs/engine/cutting-engine.js',timeout:10000
+});
+assert.equal(window.BeythausCutEngine.contractVersion,1);
 vm.runInNewContext(script.replace('window.BeythausCut={','window.__testHooks={showResult,makePdfDocument,productionFile};window.BeythausCut={'), sandbox, {filename:'docs/index.html', timeout:10000});
 const app = window.BeythausCut;
 assert.ok(app?.normalize && app?.optimize && app?.auditCutPlan);
@@ -80,22 +96,23 @@ assert.equal(app.auditCutPlan(overlap,base.input).ok,false,'Overlaps must be cau
 const badRotation=clone(base.result);badRotation.bins[0].placed[0].rotated=!badRotation.bins[0].placed[0].rotated;
 assert.equal(app.auditCutPlan(badRotation,base.input).ok,false,'Invalid rotation must be caught');tests++;
 
+// Per-stock m³ pricing and required thickness for real masif entries.
 const pricing=state({
-  priceMode:'m3',stocksThicknessEnabled:true,
-  parts:[{l:80,w:30,t:'',qty:1,material:'Wood',label:'A',rotate:true}],
-  stocks:[
-    {l:100,w:50,t:20,qty:1,material:'Wood',price:0},
-    {l:100,w:50,t:'',qty:1,material:'Wood',price:0}
-  ]
+ priceMode:'m3',partsThicknessEnabled:true,stocksThicknessEnabled:true,
+ parts:[{l:80,w:30,t:20,qty:1,category:'masif',material:'Wood',label:'A',rotate:true}],
+ stocks:[
+  {l:100,w:50,t:20,qty:1,category:'masif',material:'Wood',priceUnit:'m3',price:25000},
+  {l:100,w:50,t:25,qty:1,category:'masif',material:'Wood',priceUnit:'m3',price:15000}
+ ]
 });
 const a=verify(pricing);
-assert.equal(a.result.bins[0].stock.t,20,'Known-priced stock should be preferred');
+assert.equal(a.result.bins[0].stock.t,20,'Masif thickness must match exactly');
 assert.equal(a.result.unknownCostBins,0);
 assert.ok(a.result.cost>0);tests++;
-pricing.stocks=[pricing.stocks[1]];
+pricing.stocks=[{l:100,w:50,t:20,qty:1,category:'masif',
+ material:'Wood',priceUnit:'m3',price:''}];
 const b=verify(pricing);
-assert.equal(b.result.bins[0].stock.t,null);
-assert.equal(b.result.cost,null,'Unknown cost must NOT be reported as zero');
+assert.equal(b.result.cost,null,'Missing user stock price must remain unknown');
 assert.equal(b.result.unknownCostBins,1);tests++;
 
 let seed=713;
@@ -225,11 +242,13 @@ const exactTwo=certificate(state({kerf:0,trim:0,
 assert.equal(exactTwo.proof.proven,true);
 assert.equal(exactTwo.proof.lowerBound,2);
 assert.equal(exactTwo.result.bins.length,2);
-const weakArea=certificate(state({kerf:0,trim:0,
+// Geometric incompatibility now provides a stronger, VALID lower bound
+// than the original area-only certificate expected by this legacy test.
+const geometricBound=certificate(state({kerf:0,trim:0,
   parts:[certPart(60,60),certPart(60,60)],stocks:[certStock(100,100),certStock(120,120,0),certStock(130,130,0),certStock(140,140,0)]}));
-assert.equal(weakArea.proof.proven,false);
-assert.equal(weakArea.proof.lowerBound,1);
-assert.equal(weakArea.result.bins.length,2);
+assert.equal(geometricBound.proof.proven,true);
+assert.equal(geometricBound.proof.lowerBound,2);
+assert.equal(geometricBound.result.bins.length,2);
 const materialGroups=certificate(state({kerf:0,trim:0,
   parts:[certPart(100,100,'Birch'),certPart(100,100,'Pine')],
   stocks:[certStock(100,100,5,'Birch'),certStock(100,100,5,'Pine')]}));
@@ -246,10 +265,10 @@ const certificatePdf=window.__testHooks.makePdfDocument();
 assert.ok(certificatePdf.content.some(x=>String(x.text||'').includes('STOK SAYISI KANITI')));
 assert.equal(window.__testHooks.productionFile(),true);
 assert.ok(node('printCollection').innerHTML.includes('Minimum stok sayısı kanıtlandı'));
-window.__testHooks.showResult(weakArea.input,weakArea.result);
-assert.ok(node('optimalityRow').textContent.includes('henüz kanıtlanmadı'));
+window.__testHooks.showResult(notAllPlaced.input,notAllPlaced.result);
+assert.ok(node('optimalityRow').textContent.includes('kanıtlanamaz'));
 tests+=11;
-console.log('Stock-count certificate checks: 1-stock, 2-stock, unsupported mixed-stock scope, distinct materials, incomplete and PDF labeling.');
+console.log('Stock-count certificate checks: 1-stock, 2-stock, geometric incompatibility, distinct materials, incomplete and PDF labeling.');
 
 
 // Exhaustive disjunctive solver vs a SEPARATE integer-grid brute-force oracle.
@@ -319,13 +338,13 @@ const geometricProof=state({
 app.setState(geometricProof);
 const gpIn=app.normalize(),gpPlan=app.optimize(gpIn);
 const gpCert=app.certifyStockCount(gpPlan,gpIn,app.auditCutPlan(gpPlan,gpIn));
-assert.equal(gpCert.lowerBound,1);
+assert.equal(gpCert.lowerBound,2);
 assert.equal(gpCert.usedStockCount,2);
-assert.equal(gpCert.method,'exhaustive-geometry');
+assert.equal(gpCert.method,'geometric-incompatibility');
 assert.equal(gpCert.proven,true);
 window.__testHooks.showResult(gpIn,gpPlan);
-assert.ok(node('optimalityRow').textContent.includes('Kesin geometrik arama'));
-assert.ok(window.__testHooks.makePdfDocument().content.some(x=>String(x.text||'').includes('Kesin geometrik arama')));
+assert.ok(node('optimalityRow').textContent.includes('Parçaların birlikte sığma zorunlulukları'));
+assert.ok(window.__testHooks.makePdfDocument().content.some(x=>String(x.text||'').includes('Parçaların birlikte sığma zorunlulukları')));
 tests+=7;
 
 let oracleSeed=91501;
@@ -367,7 +386,7 @@ tests+=4;
 const impossibleOne=verify(multiCase([[60,60],[60,60]],[[100,100,2],[110,60,1]]));
 assert.equal(impossibleOne.result.bins.length,2);
 const cannot=app.certifyStockCount(impossibleOne.result,impossibleOne.input,app.auditCutPlan(impossibleOne.result,impossibleOne.input));
-assert.equal(cannot.method,'exhaustive-geometry');
+assert.equal(cannot.method,'geometric-incompatibility');
 assert.equal(cannot.proven,true);
 tests+=3;
 
@@ -378,7 +397,7 @@ const twoMaterials=verify(multiCase(
 assert.equal(twoMaterials.result.bins.length,3);
 assert.equal(twoMaterials.result.exact.groups.length,2);
 const materialProof=app.certifyStockCount(twoMaterials.result,twoMaterials.input,app.auditCutPlan(twoMaterials.result,twoMaterials.input));
-assert.equal(materialProof.method,'exhaustive-geometry');
+assert.equal(materialProof.method,'geometric-incompatibility');
 assert.equal(materialProof.proven,true);
 tests+=4;
 
@@ -536,7 +555,8 @@ const unprovenArea=verify(areaCase([[60,60],[60,60]],
  [[100,100,2,'Wood',1],[65,65,2,'Wood',50],
   [66,66,2,'Wood',50],[67,67,2,'Wood',50]]));
 assert.equal(unprovenArea.result.areaProof.proven,false);
-assert.ok(['stock-count-unproven','scope-limited'].includes(unprovenArea.result.areaProof.status));
+assert.equal(unprovenArea.result.areaProof.status,'partial');
+assert.equal(unprovenArea.result.areaProof.groups[0].status,'scope-limited');
 tests+=2;
 window.__testHooks.showResult(areaSmall.input,areaSmall.result);
 assert.ok(node('grossWasteProofRow').textContent.includes('Minimum brüt alan kaybı kanıtlandı'));
@@ -718,7 +738,21 @@ tests+=2;
 window.__testHooks.showResult(production.input,production.result);
 assert.equal(node('remnantConfirmProductionBtn').disabled,false);
 assert.equal(app.getRemnantDB().pieces.length,0,'Calculating plans must not mint physical stock');
+node('productionExtraCost').value='125';
+node('productionExtraNote').value='Nakliye';
 assert.equal(app.registerRemnantProduction(),true);
+node('productionExtraCost').value='';
+node('productionExtraNote').value='';
+assert.equal(app.getRemnantDB().fullStocks[0].qty,0,'Production must deduct a full physical stock');
+const costRecord=app.getCostRecords()[0];
+assert.equal(costRecord.grossStockCost,250);
+assert.ok(costRecord.offcutBookValue>0);
+assert.ok(Math.abs(costRecord.materialCost+costRecord.offcutBookValue-250)<1e-7);
+assert.equal(costRecord.extraCost,125);
+assert.equal(costRecord.extraNote,'Nakliye');
+assert.ok(Math.abs(costRecord.totalCost-costRecord.materialCost-125)<1e-7);
+assert.equal(costRecord.usedFullStocks[0].qty,1);
+assert.ok(costRecord.planSnapshot.bins[0].cuts.length>0,'Completed cut tree is archived');
 let ledger=app.getRemnantDB();
 assert.equal(ledger.pieces.length,2);
 assert.equal(ledger.batches.length,1);
@@ -738,8 +772,9 @@ const reuseJob=verify(nextPart);
 assert.equal(reuseJob.input.stocks.length,2,'Inventory must supply stock without manual stock rows');
 assert.equal(reuseJob.result.bins.length,1);
 assert.equal(reuseJob.result.bins[0].stock.isRemnant,true);
-assert.equal(reuseJob.result.bins[0].stock.price,0);
-assert.equal(reuseJob.result.cost,0,'Already acquired remnants have zero additional acquisition expense');
+assert.equal(reuseJob.result.bins[0].stock.price,null);
+assert.ok(reuseJob.result.bins[0].stock.bookValue>0,'Recovered stock inherits recorded value');
+assert.ok(reuseJob.result.cost>0,'Reusing existing stock transfers recorded value; it is not a new cash purchase');
 const originalId=reuseJob.result.bins[0].stock.remnantId;
 assert.equal(ledger.pieces.find(p=>p.id===originalId).status,'available');
 const reuseProof=app.certifyStockCount(reuseJob.result,reuseJob.input,app.auditCutPlan(reuseJob.result,reuseJob.input));
@@ -968,7 +1003,7 @@ const historical={version:1,pieces:[
   createdAt:1730000000000,sourceKey:'legacy:one',projectName:'Eski kayıt'}
 ],batches:[]};
 const oldStore=new Map([['beythaus-cut-remnant-library-v1',JSON.stringify(historical)]]);
-const oldWindow={addEventListener(){}},oldDocument={
+const oldWindow={addEventListener(){},BeythausCutEngine:window.BeythausCutEngine,BeythausCutProductionAudit:window.BeythausCutProductionAudit,BeythausMaterialPolicy:window.BeythausMaterialPolicy,BeythausMaterialAllocator:window.BeythausMaterialAllocator},oldDocument={
  getElementById:id=>node('_legacy_'+id),querySelectorAll(){return []},
  addEventListener(){},createElement(){return node('_legacy_temp')},
  head:{appendChild(){}},body:{classList:emptyClasses(),append(){}}
@@ -1259,7 +1294,7 @@ const remotePhysical={id:'REMOTE-STOCK-001',l:300,w:200,t:18,version:7,
  material:'Wood',location:'Ortak Raf',notes:'Server record',status:'available',
  sourceKey:'remote:one',projectName:'Ortak Atölye',createdAt:1730000000000};
 const remoteSnapshot={workspace:{id:'workspace-1',name:'Beythaus',defaultLocation:'Ortak Raf'},
- pieces:[remotePhysical],batches:[],movements:[]};
+ pieces:[remotePhysical],fullStocks:[],batches:[],movements:[]};
 app.setState(state({project:'Cloud-only stock',mode:'guillotine',unit:'mm',
  parts:[{l:150,w:100,t:'',qty:1,material:'Wood',label:'CloudPart',rotate:false}],
  stocks:[],useRemnantStock:true,kerf:3,trim:0,offcutMinEdgeMm:50,offcutMinAreaCm2:100}));
@@ -1282,11 +1317,13 @@ assert.equal(app.auditCutPlan(cloudPlan,cloudInput).ok,true);
 window.__testHooks.showResult(cloudInput,cloudPlan);
 const cloudRequest=app.cloudProductionPayload();
 assert.ok(cloudRequest);
-assert.equal(cloudRequest.kind,'production');
+assert.equal(cloudRequest.kind,'production_v2');
 assert.equal(cloudRequest.payload.consumed.length,1);
 assert.equal(cloudRequest.payload.consumed[0].id,'REMOTE-STOCK-001');
 assert.equal(cloudRequest.payload.consumed[0].expectedVersion,7);
 assert.ok(cloudRequest.payload.created.length>=1);
+assert.equal(cloudRequest.payload.created[0].binIndex,0);
+assert.deepEqual(Array.from(cloudRequest.payload.usedFull),[]);
 assert.equal(app.cloudProductionPayload().operationId,cloudRequest.operationId,
  'Retries of a physical production must reuse the same idempotency key');
 assert.equal(app.registerRemnantProduction(),false,
@@ -1298,6 +1335,44 @@ assert.equal(app.isCloudInventory(),false);
 assert.equal(JSON.stringify(app.getRemnantDB()),beforeCloudLedger);
 assert.equal(localStorage.getItem('beythaus-cut-remnant-library-v1'),originalLocalBytes);
 tests+=4;
+// Server full-stock board is used by the actual guillotine engine, with
+// a version-checked full-stock quantity in its physical production payload.
+app.setState(state({project:'Cloud panel cut',mode:'guillotine',unit:'mm',
+ parts:[{l:400,w:200,t:18,qty:1,category:'panel',material:'Wood',
+  grain:'',label:'CloudFullPart',rotate:false}],
+ stocks:[],singleCategory:'panel',singleMaterial:'Wood',materialMode:'single',
+ useRemnantStock:false,kerf:3,trim:0,offcutMinEdgeMm:50,offcutMinAreaCm2:100}));
+const fullCloudSnapshot={workspace:{id:'workspace-1',name:'Beythaus',defaultLocation:'Ortak Raf'},
+ pieces:[],fullStocks:[{id:'F-CLOUD-1',l:1000,w:500,t:18,
+  qty:2,category:'panel',material:'Wood',grain:'',price:900,priceUnit:'panel',
+  location:'Ortak Raf',notes:'',version:4}],batches:[],movements:[]};
+assert.equal(app.enterCloudInventory(fullCloudSnapshot),true);
+assert.equal(app.getState().stocks[0].l,1000);
+assert.equal(app.getState().stocks[0].version,4);
+const fullCloudData=app.normalize(),fullCloudPlan=app.optimize(fullCloudData);
+assert.equal(fullCloudPlan.unplaced.length,0);
+assert.equal(app.auditCutPlan(fullCloudPlan,fullCloudData).ok,true);
+window.__testHooks.showResult(fullCloudData,fullCloudPlan);
+const fullCloudRequest=app.cloudProductionPayload();
+assert.ok(fullCloudRequest);
+assert.equal(fullCloudRequest.kind,'production_v2');
+assert.equal(fullCloudRequest.payload.usedFull.length,1);
+assert.equal(fullCloudRequest.payload.usedFull[0].id,'F-CLOUD-1');
+assert.equal(fullCloudRequest.payload.usedFull[0].expectedVersion,4);
+assert.equal(fullCloudRequest.payload.usedFull[0].qty,1);
+assert.equal(fullCloudRequest.payload.planSnapshot.bins[0].sourceType,'full');
+assert.equal(fullCloudRequest.payload.planSnapshot.bins[0].sourceId,'F-CLOUD-1');
+assert.equal(fullCloudRequest.payload.planSnapshot.bins[0].stock.material,'Wood');
+// A display-unit change must never alter the server's canonical millimetres.
+node('unitSelect').onchange({target:{value:'cm'}});
+assert.equal(app.getState().unit,'cm');
+assert.equal(app.getState().stocks[0].l,100);
+assert.equal(app.normalize().stocks[0].l,1000);
+assert.equal(app.enterCloudInventory(fullCloudSnapshot),true);
+assert.equal(app.getState().stocks[0].l,100);
+assert.equal(app.exitCloudInventory(),true);
+assert.equal(JSON.stringify(app.getRemnantDB()),beforeCloudLedger);
+tests+=20;
 console.log('Real app cloud guard: local inventory isolated, stale local writes refused, stock version 7 preserved and production RPC payload verified.');
 
 console.log('Beythaus Cut: '+tests+' checks passed; invalid plans rejected and unknown prices preserved.');

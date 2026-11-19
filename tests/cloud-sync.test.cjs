@@ -33,7 +33,7 @@ assert.ok(html.includes('href="./cloud-inventory.css"'));
 assert.ok(sw.includes('./cloud-inventory.js')&&sw.includes('./cloud-inventory.css'));
 checks+=4;
 const clone=x=>JSON.parse(JSON.stringify(x));
-const server={items:[
+const server={fullStocks:[],items:[
  {id:'R-shared-1',l:150,w:90,t:18,material:'Wood',location:'Raf A',
  notes:'',status:'available',version:1,sourceKey:'existing:1',projectName:'Başlangıç',
  createdAt:1700000000000,updatedAt:1700000000000,usedAt:null}
@@ -61,12 +61,24 @@ function fakeFetch(url,options){
  if(!options.headers.Authorization?.startsWith('Bearer '))return Promise.resolve(fail(401,'Login required'));
  if(ending.endsWith('/beythaus_cloud_workspaces'))return Promise.resolve(okay([
   {id:'w1',name:'Beythaus Atölye',role:'owner'}]));
- if(ending.endsWith('/beythaus_cloud_snapshot')){
+ if(ending.endsWith('/beythaus_cloud_snapshot_v2')){
   if(request.p_workspace!=='w1')return Promise.resolve(fail(403,'No membership'));
   return Promise.resolve(okay({workspace:server.workspace,pieces:server.items,
-   batches:[],movements:server.movements}));
+   batches:[],fullStocks:server.fullStocks,movements:server.movements}));
  }
- if(ending.endsWith('/beythaus_cloud_mutate')){
+ if(ending.endsWith('/beythaus_cloud_save_full_stock')){
+   if(request.p_workspace!=='w1')return Promise.resolve(fail(403,'No workspace access'));
+   const old=server.fullStocks.find(x=>x.id===request.p_payload.id);
+   if(old&&old.version!==request.p_payload.expectedVersion)
+    return Promise.resolve(fail(409,'Full stock changed on another device; refresh'));
+   if(!old&&request.p_payload.expectedVersion!==null)
+    return Promise.resolve(fail(409,'Unknown full stock record'));
+   if(old){Object.assign(old,request.p_payload);old.version++}
+   else server.fullStocks.push({...request.p_payload,version:1});
+   return Promise.resolve(okay({ok:true,id:request.p_payload.id,kind:'full_stock_save',
+    version:old?old.version:1}))
+  }
+  if(ending.endsWith('/beythaus_cloud_mutate')){
   if(request.p_workspace!=='w1')return Promise.resolve(fail(403,'No workspace access'));
   const op=request.p_operation;
   if(server.operations.has(op))return Promise.resolve(okay(server.operations.get(op)));
@@ -116,8 +128,11 @@ function createClient(device,hash=''){
  const el=id=>{
   if(!nodes.has(id))nodes.set(id,{id,value:'',innerHTML:'',textContent:'',
    dataset:{},style:{},classList:className(id==='cloudRecoveryArea'?'cloud-hidden':''),disabled:false,
-   appendChild(child){this.lastAppended=child},click(){},select(){},focus(){},
-   closest(){return null}});
+   appendChild(child){this.lastAppended=child},append(child){this.lastAppended=child},
+   prepend(child){this.lastPrepended=child},before(child){this.lastBefore=child},after(child){this.lastAfter=child},insertBefore(child){this.lastAppended=child},
+   querySelector(selector){return el(id+':'+selector)},querySelectorAll(){return []},
+   addEventListener(){},setAttribute(){},removeAttribute(){},remove(){},
+   click(){},select(){},focus(){},closest(){return null}});
   return nodes.get(id)
  };
  const listeners={},doc={getElementById:el,addEventListener(type,handler,capture){
@@ -196,6 +211,30 @@ function createClient(device,hash=''){
  assert.throws(()=>a.api.normalizeConfig('http://someproject.supabase.co','sb_publishable_key'),/HTTPS/);
  assert.throws(()=>a.api.normalizeConfig('https://someproject.supabase.co','sb_secret_abc'),/Gizli/);
  checks+=3;
+ // Full-stock RPC: cross-device create, update and stale rejection.
+ const fields={cloudFullLength:'1000',cloudFullWidth:'500',cloudFullThickness:'18',
+  cloudFullQty:'3',cloudFullCategory:'panel',cloudFullMaterial:'White oak',
+  cloudFullGrain:'length',cloudFullPrice:'1250',cloudFullLocation:'Shelf A',
+  cloudFullNotes:'Panel batch'};
+ for(const [id,value] of Object.entries(fields))a.el(id).value=value;
+ a.el('cloudFullStockSelect').value='__new__';
+ await a.api.saveCloudFullStock();
+ assert.equal(server.fullStocks.length,1);
+ assert.equal(server.fullStocks[0].version,1);
+ assert.equal(server.fullStocks[0].price,1250);
+ assert.equal(server.fullStocks[0].grain,'length');
+ const fullId=server.fullStocks[0].id;
+ await b.api.synchronize(true);
+ for(const [id,value] of Object.entries({...fields,cloudFullQty:'2'}))b.el(id).value=value;
+ b.el('cloudFullStockSelect').value=fullId;
+ await b.api.saveCloudFullStock();
+ assert.equal(server.fullStocks[0].version,2);
+ assert.equal(server.fullStocks[0].qty,2);
+ for(const [id,value] of Object.entries(fields))a.el(id).value=value;
+ a.el('cloudFullStockSelect').value=fullId;
+ await assert.rejects(()=>a.api.saveCloudFullStock(),/Full stock changed/);
+ assert.equal(server.fullStocks[0].qty,2);
+ checks+=7;
  // First phone consumes the unique physical board. Second phone is stale.
  await a.api.mutate('consume',{id:'R-shared-1',expectedVersion:1,source:'qr'});
  assert.equal(server.items[0].status,'used');

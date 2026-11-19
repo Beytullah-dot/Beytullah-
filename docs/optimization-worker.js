@@ -4,7 +4,7 @@
    Time/node exhaustion => 'unknown', NEVER a proof. */
 'use strict';
 const context=typeof self!=='undefined'?self:null;
-if(typeof importScripts==='function')importScripts('./guillotine-exact.js','./economic-exact.js');
+if(typeof importScripts==='function')importScripts('./engine/material-policy.js','./guillotine-exact.js','./economic-exact.js');
 const canon=s=>String(s||'').trim().toLocaleLowerCase('tr-TR');
 const EPS=1e-7;
 const orientations=p=>p.rotate&&Math.abs(p.l-p.w)>EPS?

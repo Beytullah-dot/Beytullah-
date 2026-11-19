@@ -6,6 +6,50 @@
 
 Bulut kullanımı tamamen isteğe bağlıdır. Kullanıcının yerel stok verileri izinsiz otomatik yüklenmez ve bulut modundan yerel moda dönüldüğünde korunur.
 
+## Geliştirme dalı — tam stok ve maliyet V2 (19 Kasım 2026)
+
+Bu bölüm `architecture/engine-boundaries-v1` geliştirme dalının durumunu
+tanımlar; `master` veya GitHub Pages yayınına alınmış olduğunu **iddia etmez**.
+
+- `20261119_000002_full_stock_production.sql` Supabase'de uygulanmıştır.
+  Eski 7 tablo korunmuş, tam stok, tam stok hareketi ve tamamlanmış üretim
+  kayıtları için 3 tablo eklenmiştir. Toplam 10 tablo RLS korumalıdır.
+- `beythaus_cloud_snapshot_v2`: ortak atölye tam stok adedi, stok sürümü,
+  stok başı fiyat, değerli artıklar ve tamamlanan maliyet arşivlerini okur.
+- `beythaus_cloud_save_full_stock`: tam stokun yeni kayıt ve düzenlemesini
+  sunucu sürümüyle doğrular; eski sürümden işlem kabul etmez.
+- `beythaus_cloud_production_v2`: fiziksel üretim onayından sonra tam stok
+  adedi, kullanılan artıklar, yeni artıklar, stok değerleri, ek maliyet ve
+  arşiv kaydını **tek PostgreSQL işleminde** işler. Stok fiyatı sunucudan
+  okunur; tarayıcının gönderdiği maliyet toplamı güvenilir sayılmaz.
+- Bulut modu yerel tam stokların üzerine yazmaz. Bulut stokları sunucuda mm
+  tutulur; kesim ekranında seçilen cm/mm birimine dönüştürülür.
+- Bulut tam stok düzenleme/kopyalama açık sunucu işlemiyle yapılır.
+  Yerel stokları toplu kopyalama otomatik değildir ve açık onay gerektirir.
+- Başarılı GitHub Actions regresyonları PostgreSQL RLS, operasyon kimliğiyle
+  tekrarlı isteği reddetme, eski stok sürümü, panel/masif değerleme,
+  geçmiş ve tam stok sınamalarını içerir.
+
+**Güvenlik ve üretim sınırları:**
+
+1. Sunucu stok sürümünü ve muhasebeyi doğrular, ancak gerçek giyotin
+   kesim ağacının geometrisini bağımsız tekrar oynatmaz. Kesim ağacı,
+   çakışma, testere payı ve damar uyumu mevcut istemci denetleyicisinden
+   geçer. Bu nedenle kötü niyetli istemciye karşı sunucu tarafı
+   fiziksel kesim kanıtı henüz kapsam dışıdır.
+2. Stok tablolarına doğrudan tarayıcı erişimi kapalıdır; yetkili
+   `SECURITY DEFINER` RPC fonksiyonları üyelik kontrolünden sonra çalışır.
+   Supabase güvenlik danışmanının bu RPC erişimi hakkındaki uyarıları
+   izlenmeli ve periyodik olarak gözden geçirilmelidir.
+3. Gerçek iki cihazlı iOS/Safari testi, ağ kesintisi, gerçek bulut yetkisi,
+   PDF paylaşımı ve kullanıcı kabul testi tamamlanmadan `master` dalına
+   birleştirme yapılmamalıdır.
+4. Eski bulut stoklarının veya geçmiş üretimlerin otomatik olarak V2
+   maliyet kaydına dönüştürülmesi yapılmaz; geçmiş maliyetler uydurulmaz.
+5. Tam stokta miktar sıfıra düşse dahi kayıt ve hareket geçmişi silinmez.
+   Arşiv, tamamlanan üretimin sunucuda kaydedilen kesim anı verilerinden
+   PDF'yi yeniden üretir; PDF ikili dosyası Supabase'de saklanmaz.
+
 ## Tek seferlik kurulum
 
 1. **Tamamlandı:** Beythaus organizasyonunda, Frankfurt bölgesinde **Beythaus Cut** Supabase projesi oluşturuldu; proje sağlıklı çalışıyor.

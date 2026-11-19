@@ -58,7 +58,128 @@ const uuid=()=>window.crypto?.randomUUID?.();
 // Public browser-safe project URL and publishable key, never a secret/service_role.
 const DEFAULT_CLOUD_CONFIG={url:"https://pdqgpupdqgrxejvjpdzs.supabase.co",key:"sb_publishable_g9p81j1QltETxGBQmhHTxA_VLktGLm_"};
 let config={...DEFAULT_CLOUD_CONFIG,...(read(localStorage,KEY)||{})},session=read(storage,SESSION),
- workspace='',active=false,busy=false,poll=null,syncing=false,fingerprint='', memberWorkspaces=[];
+ workspace='',active=false,busy=false,poll=null,syncing=false,fingerprint='', memberWorkspaces=[],remoteFullStocks=[];
+
+/* Cloud full-stock editor: explicit remote writes only. The ordinary stock
+   grid becomes read-only while cloud inventory is authoritative. */
+const stockPanel=document.createElement('section');
+stockPanel.id='cloudFullStockPanel';
+stockPanel.className='cloud-workspace-control cloud-hidden';
+stockPanel.innerHTML=[
+ '<div class="cloud-separator"></div><div class="cloud-subheading">Bulut tam stok düzenleyici</div>',
+ '<p class="cloud-hint">Üstteki stok tablosu bulut modunda salt okunur. Buradaki değişiklikler sunucu tarafından onaylandıktan sonra görünür. Ölçüler mm cinsindedir.</p>',
+ '<form id="cloudFullStockForm">',
+ '<div class="cloud-field"><label for="cloudFullStockSelect">Stok seç</label><select id="cloudFullStockSelect"></select></div>',
+ '<div class="cloud-form-grid">',
+ '<div class="cloud-field"><label for="cloudFullLength">Boy (mm)</label><input id="cloudFullLength" type="number" min="0.001" step="any" required></div>',
+ '<div class="cloud-field"><label for="cloudFullWidth">En (mm)</label><input id="cloudFullWidth" type="number" min="0.001" step="any" required></div>',
+ '<div class="cloud-field"><label for="cloudFullThickness">Kalınlık (mm)</label><input id="cloudFullThickness" type="number" min="0.001" step="any"></div>',
+ '<div class="cloud-field"><label for="cloudFullQty">Adet</label><input id="cloudFullQty" type="number" min="0" step="1" required></div>',
+ '<div class="cloud-field"><label for="cloudFullCategory">Tür</label><select id="cloudFullCategory"><option value="panel">Panel</option><option value="masif">Masif</option></select></div>',
+ '<div class="cloud-field"><label for="cloudFullMaterial">Renk / ağaç türü</label><input id="cloudFullMaterial" maxlength="80" required></div>',
+ '<div class="cloud-field"><label for="cloudFullGrain">Damar yönü</label><select id="cloudFullGrain"><option value="">Serbest</option><option value="width">= En boyunca</option><option value="length">Ⅱ Boy boyunca</option></select></div>',
+ '<div class="cloud-field"><label for="cloudFullPrice">Birim fiyat (₺; boşsa bilinmiyor)</label><input id="cloudFullPrice" type="number" min="0" step="any"></div>',
+ '<div class="cloud-field"><label for="cloudFullLocation">Raf / göz</label><input id="cloudFullLocation" maxlength="80"></div>',
+ '<div class="cloud-field"><label for="cloudFullNotes">Not</label><input id="cloudFullNotes" maxlength="220"></div>',
+ '</div>',
+ '<div class="cloud-buttons"><button id="cloudFullSave" class="btn primary" type="submit">Stok kaydını sunucuya yaz</button></div>',
+ '</form>',
+ '<p class="cloud-hint">Birim fiyat panel için ₺/adet, masif için ₺/m³. Stok sayımı düzeltmeleri, önceki üretim maliyet kayıtlarını değiştirmez.</p>'
+].join('');
+$('stocksCard')?.append(stockPanel);
+const localFullImportBtn=document.createElement('button');
+localFullImportBtn.type='button';localFullImportBtn.id='cloudImportFullBtn';
+localFullImportBtn.className='btn';localFullImportBtn.textContent='Yerel tam stokları buluta aktar (yönetici)';
+$('cloudImportLocalBtn')?.parentNode?.append(localFullImportBtn);
+function setStockUiLocked(on){
+ stockPanel.classList.toggle('cloud-hidden',!on);
+ const stockRows=$('stockRows');
+ if(stockRows)for(const el of stockRows.querySelectorAll('input,select,button'))el.disabled=on;
+ const add=$('addStock');if(add)add.disabled=on;
+}
+function refreshCloudFullStockEditor(){
+ const select=$('cloudFullStockSelect');if(!select)return;
+ const prev=select.value||'__new__';select.innerHTML='';
+ const option=(value,label)=>{const o=document.createElement('option');o.value=value;o.textContent=label;select.appendChild(o)};
+ option('__new__','+ Yeni tam stok');
+ for(const s of remoteFullStocks)option(s.id,s.material+' · '+s.l+' × '+s.w+' mm · '+s.qty+' adet');
+ select.value=remoteFullStocks.some(s=>s.id===prev)?prev:'__new__';
+ loadCloudFullStock(select.value);
+}
+function loadCloudFullStock(id){
+ const s=remoteFullStocks.find(x=>x.id===id)||null;
+ const put=(k,v)=>{const el=$(k);if(el)el.value=v??''};
+ put('cloudFullLength',s?.l);put('cloudFullWidth',s?.w);
+ put('cloudFullThickness',s?.t);put('cloudFullQty',s?.qty??1);
+ put('cloudFullCategory',s?.category||'panel');put('cloudFullMaterial',s?.material||'');
+ put('cloudFullGrain',s?.grain||'');put('cloudFullPrice',s?.price);
+ put('cloudFullLocation',s?.location||'');put('cloudFullNotes',s?.notes||'');
+ updateCloudPriceUnit();
+}
+function updateCloudPriceUnit(){
+ const cat=$('cloudFullCategory').value;
+ const label=$('cloudFullPrice')?.closest('.cloud-field')?.querySelector('label');
+ if(label)label.textContent=cat==='masif'?'Fiyat (₺/m³; boşsa bilinmiyor)':'Fiyat (₺/adet; boşsa bilinmiyor)';
+}
+function readCloudFullStockForm(){
+ const txt=id=>String($(id).value??'').trim(),n=id=>Number(txt(id).replace(',','.'));
+ const category=txt('cloudFullCategory'),l=n('cloudFullLength'),w=n('cloudFullWidth'),
+  t=txt('cloudFullThickness')?n('cloudFullThickness'):null,
+  qty=n('cloudFullQty'),p=txt('cloudFullPrice')?n('cloudFullPrice'):null;
+ const material=txt('cloudFullMaterial'),grain=txt('cloudFullGrain'),
+  location=txt('cloudFullLocation'),notes=txt('cloudFullNotes');
+ if(!(l>0&&l<=1e7&&w>0&&w<=1e7&&Number.isInteger(qty)&&qty>=0&&qty<=1e5)||
+  (t!==null&&!(t>0&&t<=1e5))||(category==='masif'&&!(t>0))||
+  !['panel','masif'].includes(category)||!['','width','length'].includes(grain)||
+  !material||material.length>80||location.length>80||notes.length>220||
+  (p!==null&&!(p>=0&&p<=1e12)))throw Error('Tam stok alanlarını kontrol et; ölçüler milimetre olmalı.');
+ const existing=remoteFullStocks.find(x=>x.id===$('cloudFullStockSelect').value);
+ return {id:existing?.id||'S'+uuid().replace(/-/g,''),
+  expectedVersion:existing?.version??null,l,w,t,qty,price:p,
+  category,priceUnit:category==='masif'?'m3':'panel',material,grain,location,notes}
+}
+async function saveCloudFullStock(){
+ if(!active||!workspace)throw Error('Önce bulut atölyesini aç.');
+ const payload=readCloudFullStockForm(),op=uuid();
+ if(!op)throw Error('Güvenli işlem kimliği üretilemedi.');
+ const saved=await rpc('beythaus_cloud_save_full_stock',{
+  p_workspace:workspace,p_operation:op,p_payload:payload});
+ if(!saved?.ok)throw Error('Tam stok sunucuda kaydedilemedi.');
+ await synchronize(true);
+ const selector=$('cloudFullStockSelect');selector.value=payload.id;loadCloudFullStock(payload.id);
+ status('Tam stok güncellendi. Sunucu sürümü: '+saved.version+'.');
+}
+async function importLocalFullStocks(){
+ if(!active||!workspace||!memberWorkspaces.some(x=>x.id===workspace&&x.role==='owner'))
+  throw Error('Yerel tam stok aktarımı için yönetici olmalısın.');
+ const local=app.getLocalFullStocks?.()||[];
+ const factor=app.getState?.().unit==='cm'?10:1;
+ const missing=local.filter(s=>s?.id&&!remoteFullStocks.some(r=>r.id===s.id));
+ if(!missing.length)throw Error('Aktarılabilecek yeni yerel tam stok yok.');
+ if(!confirm(missing.length+' yerel tam stok türünü buluta KOPYALAMAK istiyor musun? Mevcut bulut stokları değiştirilmez.'))return;
+ let added=0;
+ for(const s of missing){
+  const n=x=>Number(String(x??'').replace(',','.'));
+  const category=s.category==='masif'?'masif':'panel',priceText=String(s.price??'').trim();
+  const payload={id:s.id,expectedVersion:null,l:n(s.l)*factor,w:n(s.w)*factor,
+   t:String(s.t??'').trim()?n(s.t):null,qty:n(s.qty),
+   category,priceUnit:category==='masif'?'m3':'panel',
+   material:String(s.material||'').trim(),grain:s.grain||'',
+   price:priceText?n(s.price):null,location:String(s.location||''),notes:''};
+  if(!(payload.l>0&&payload.w>0)||!Number.isInteger(payload.qty)||payload.qty<0||
+    (category==='masif'&&!(payload.t>0)))throw Error('Yerel stok verisi eksik; aktarım durdu. Aktarılan kayıt: '+added);
+  await rpc('beythaus_cloud_save_full_stock',{p_workspace:workspace,
+   p_operation:uuid(),p_payload:payload});
+  added++;
+ }
+ await synchronize(true);
+ status(added+' yerel tam stok buluta kopyalandı; cihazdaki kayıtlar korunuyor.');
+}
+$('cloudFullStockSelect')?.addEventListener('change',e=>loadCloudFullStock(e.target.value));
+$('cloudFullCategory')?.addEventListener('change',updateCloudPriceUnit);
+$('cloudFullStockForm')?.addEventListener('submit',e=>{e.preventDefault();run(saveCloudFullStock)});
+localFullImportBtn.addEventListener('click',()=>run(importLocalFullStocks));
+
 function normalizeConfig(url,key){
  const base=String(url||'').trim().replace(/\/+$/,''),k=String(key||'').trim();
  if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(base))throw Error('Geçerli *.supabase.co HTTPS adresi gerekli.');
@@ -247,7 +368,7 @@ async function changePassword(){
 function stopPoll(){if(poll)clearInterval(poll);poll=null}
 function leave(){
  stopPoll();active=false;workspace='';fingerprint='';
- app.exitCloudInventory();status('Yerel envantere döndün; bulut stokları silinmedi.');draw()
+ app.exitCloudInventory();remoteFullStocks=[];setStockUiLocked(false);status('Yerel envantere döndün; bulut stokları silinmedi.');draw()
 }
 async function signout(){
  if(active)leave();
@@ -259,16 +380,16 @@ async function synchronize(force=false){
  if(!workspace||!session||syncing)return false;
  syncing=true;
  try{
-  const result=await rpc('beythaus_cloud_snapshot',{p_workspace:workspace});
-  if(!result||!Array.isArray(result.pieces)||!result.workspace)throw Error('Stok yanıtı eksik.');
+  const result=await rpc('beythaus_cloud_snapshot_v2',{p_workspace:workspace});
+  if(!result||!Array.isArray(result.pieces)||!Array.isArray(result.fullStocks)||!result.workspace)throw Error('Stok yanıtı eksik.');
   const next=JSON.stringify({
    pieces:result.pieces.map(x=>[x.id,x.version,x.status,x.l,x.w,x.t,x.material,x.location,x.notes]),
-   events:result.movements?.[0]?.id,defaultLocation:result.workspace.defaultLocation
+   events:result.movements?.[0]?.id,full:result.fullStocks.map(x=>[x.id,x.version,x.qty,x.price]),batches:result.batches?.[0]?.id,defaultLocation:result.workspace.defaultLocation
   });
-  if(force||next!==fingerprint){app.enterCloudInventory(result);fingerprint=next}
-  active=true;updateAccessUI();
-  status('Ortak atölye bağlı · '+result.pieces.filter(x=>x.status==='available').length+
-   ' mevcut parça · sunucu denetimi açık.');
+  if(force||next!==fingerprint){app.enterCloudInventory(result);remoteFullStocks=result.fullStocks;fingerprint=next;refreshCloudFullStockEditor()}
+  active=true;setStockUiLocked(true);updateAccessUI();
+  status('Ortak atölye bağlı · '+result.fullStocks.length+' tam stok türü · '+result.pieces.filter(x=>x.status==='available').length+
+   ' mevcut artık · sunucu denetimi açık.');
   return true
  }catch(e){status('Bulut eşitlenemedi: '+e.message,true);return false}
  finally{syncing=false}
@@ -346,9 +467,11 @@ function interceptClick(e){
    const plan=app.cloudProductionPayload();
    if(!plan)throw Error('Tamamlanmış, doğrulanmış ve güncel düz kesim planı gerekli.');
    if(!confirm('Fiziksel üretim TAMAMLANDI mı? '+plan.payload.created.length+
-     ' artık eklenecek, '+plan.payload.consumed.length+' stok sunucuda tüketilecek.'))return;
-   const done=await mutate(plan.kind,plan.payload,plan.operationId);
-   if(done.ok)app.markCloudProductionComplete();
+     ' artık eklenecek, '+(plan.payload.consumed.length+plan.payload.usedFull.reduce((n,x)=>n+x.qty,0))+' fiziksel stok sunucuda tüketilecek.'))return;
+   const done=await rpc('beythaus_cloud_production_v2',{
+     p_workspace:workspace,p_operation:plan.operationId,p_payload:plan.payload});
+    if(!done?.ok)throw Error('Üretim işlemi sunucu tarafından onaylanmadı.');
+   app.markCloudProductionComplete();if(!await synchronize(true))status('Üretim kaydedildi fakat güncel stok alınamadı.',true);
    return
   }
   if(target==='remnantEditStatusAction'){
@@ -421,5 +544,5 @@ if(session&&config.url&&config.key){
  }).catch(()=>{session=null;draw();status('Oturum yenilemek için yeniden giriş yap.',true)})
 }
 window.BeythausCloud={sendPasswordResetEmail,finishPasswordRecovery,showRecoveryFromUrl,explainAuthError,active:()=>active,normalizeConfig,selectWorkspace,synchronize,mutate,login,
- signup,leave,signout,importLocal,changePassword};
+ signup,leave,signout,importLocal,changePassword,saveCloudFullStock,importLocalFullStocks};
 })();

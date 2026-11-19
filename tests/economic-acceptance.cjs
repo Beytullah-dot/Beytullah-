@@ -7,12 +7,10 @@ const html=fs.readFileSync(path.join(root,'docs/index.html'),'utf8');
 const workerJS=fs.readFileSync(path.join(root,'docs/optimization-worker.js'),'utf8');
 const economyJS=fs.readFileSync(path.join(root,'docs/economic-exact.js'),'utf8');
 const guillotineJS=fs.readFileSync(path.join(root,'docs/guillotine-exact.js'),'utf8');
-const first=html.indexOf('function intersect('),last=html.indexOf('const colors=',first);
+const {createEngine}=require('./engine-harness.cjs');
 const state={mode:'nest',kerf:'0',offcutMinEdgeMm:10,offcutMinAreaCm2:0,priceMode:'panel'};
 const mkey=x=>String(x||'').trim().toLocaleLowerCase('tr-TR');
-const engine=new Function('state','val','mkey','fmt',html.slice(first,last)+
- ';return {mkBin,binCost,auditCutPlan,collectOffcuts,certifyStockCount};')(
- state,x=>Number(x),mkey,(x,d)=>Number(x).toFixed(d??0));
+const engine=createEngine(state,x=>Number(x),mkey,(x,d)=>Number(x).toFixed(d??0));
 const a=html.indexOf('function acceptEconomyWorkerResult(');
 const b=html.indexOf('function startEconomyWorker(',a);
 assert.ok(a>0&&b>a,'Economic acceptance hook must be present');
