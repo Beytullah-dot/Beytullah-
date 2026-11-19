@@ -89,3 +89,43 @@ ayrı tarayıcı iş parçacığında geometrik dal-ayırma araması yürütür.
 Yeni test koşucusu Worker kaynağını sahte Worker ortamında doğrudan çalıştırır;
 ayrıca aynı problemler için bağımsız tam sayılı referans çözümleyicisinin
 bulduğu optimumu ve bağımsız yerleşim denetimini kontrol eder.
+
+## V4: Kesin giyotin kesim ağacı araması
+
+`docs/guillotine-exact.js` artık Düz Kesim modu için ayrı ve sınırlı
+**kesin alt problem çözümleyicisi** sunar. Serbest yerleşim çözümleyicisini
+giyotin kesime yanlış biçimde uyarlamak yerine, ikiye ayrılabilen parçaların
+kesim ağacını ayrı modelleyerek tüm uygun aday ağaçları tarar.
+
+- Parçalar 90 derece döndürme izinleriyle (varsa) ele alınır.
+- Her iç kesim yatay veya düşeydir ve kaynak dikdörtgenin tamamından geçer.
+- Testere kalınlığı, kenar payı, malzeme/kalınlık ve stok miktarı uygulanır.
+- Alt küme dinamik programlaması ve Pareto boyut sınırlarıyla gereksiz geometrik
+  desenler elenir. Aynı minimum stok sayısında daha düşük maliyet kanıtlanmaz.
+- Kesin arama **fiziksel kesim sırasını, parça koordinatlarını ve artık
+  dikdörtgenlerini** birlikte üretir. Ana uygulama çıkan her kesim adımını
+  bağımsız giyotin denetleyicisinde yeniden oynatır.
+- Kesim deseni uygun görünüyor fakat fiziksel kesim ağacı üretilemiyorsa
+  sonuç **UNKNOWN** olur; bu durum matematiksel imkânsızlık olarak sunulmaz.
+- Süre/düğüm sınırına takılan sonuç asla `infeasible` veya `optimal` sayılmaz.
+- Malzeme grubu başına sınır **11 parça, 4 stok türü, 5 mevcut stok**;
+  serbest yerleşim Worker sınırı **14 parça, 4 stok türü, 7 mevcut stok**.
+- Düz kesimin daha kapsamlı araması 6,5 saniye / 500.000 düğümle
+  sınırlandırılır ve tarayıcıda ayrı iş parçacığında çalışır.
+- Yeni alternatif daha pahalıysa veya maliyet bilinmiyorsa kullanıcı onaylamadan
+  mevcut kesim planının yerine geçirilmez.
+
+Test komutu:
+
+    node tests/guillotine-worker.cjs
+
+Bu testler bağımsız Oracle'ın giyotin ağacı araştırmasıyla karşılaştırma,
+kesim adımlarının yeniden oynatılması, kasıtlı bozuk kesimin reddi ve
+9, 10, 11 parçalık daha büyük geometrik örneklerin optimumluğunun
+kanıtlanmasını kapsar.
+
+**Kapsam sınırı:** Bu kanıt, yazılımdaki sınırsız seviyeli, tam yatay/düşey
+kesimli giyotin modeline ilişkindir. Endüstrideki iki/üç aşamalı kesim,
+kesim yönüne bağlı lif yönü, makine çeneleri veya fiziksel parça tutma
+zorunlulukları ayrıca modellenmelidir. Dolayısıyla geometrik kesim ağacı
+sertifikası tek başına atölye iş güvenliği sertifikası değildir.
