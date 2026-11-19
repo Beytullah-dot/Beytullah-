@@ -2305,9 +2305,19 @@ function startEconomyWorker(data,initial){
     const extra=result.boardDelta>0?' · '+result.boardDelta+' panel daha fazla':
      result.boardDelta<0?' · '+(-result.boardDelta)+' panel daha az':' · aynı panel sayısı';
     let scrap='';
-    if(result.salvageBefore!==null)
+    if(result.salvageBefore!==null){
      scrap=' · Kullanılabilir artık alanı '+fmt(result.salvageBefore/1e6,3)+
-      ' → '+fmt(result.salvageAfter/1e6,3)+' m² (parasal değer değildir)';
+      ' → '+fmt(result.salvageAfter/1e6,3)+' m²';
+     const valueInput=String(state.offcutValuePerM2??'').trim();
+     const unitValue=valueInput!==''?val(valueInput):null;
+     if(Number.isFinite(unitValue)&&unitValue>=0){
+      const estimatedBefore=initial.cost-result.salvageBefore/1e6*unitValue;
+      const estimatedAfter=candidate.cost-result.salvageAfter/1e6*unitValue;
+      scrap+=' · Varsayımsal net değer '+money(estimatedBefore)+
+       ' → '+money(estimatedAfter)+
+       ' (yeniden kullanım değerine ilişkin senaryo, optimumluk kanıtı değildir)';
+     }else scrap+=' (parasal değer girilmedi)';
+    }
     economySearchStatus('Daha düşük ek stok maliyeti bulundu: '+
      money(initial.cost)+' → '+money(candidate.cost)+' (tasarruf '+money(result.savings)+')'+
      extra+'. '+(proven?'Minimum maliyet kanıtlandı.':'Daha iyisi olmadı henüz kanıtlanamadı.')+
