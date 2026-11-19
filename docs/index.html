@@ -166,7 +166,7 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
 .auto-material-group{padding:9px 10px;border:1px solid #dbe8de;border-radius:8px;margin:6px 0;background:#fff}.auto-material-group summary{cursor:pointer;font-size:12px;font-weight:650}.auto-stock-line{display:flex;align-items:center;gap:8px;margin:9px 0;font-size:11px}.auto-stock-line input{width:17px;height:17px;flex:none}.auto-stock-line span{color:#6d8272}
 .grain-cycle{min-width:32px;min-height:34px;border:1px solid #cbdacb;border-radius:7px;background:#f4f7f2;color:#304f3d;font-size:18px;font-weight:700;cursor:pointer}
 .material-inline-select,.category-inline-select{width:100%;min-width:87px;padding:7px 2px;border-radius:5px;border:1px solid #e1e9df;font-size:11px;background:#fff}
-.material-tag{font-size:10px;color:#6c866f}.legacy-cut-mode,.legacy-price-mode{display:none!important}
+.material-tag{font-size:10px;color:#6c866f}#singleMaterialWrap.hidden,#autoMaterialWrap.hidden{display:none!important}.legacy-cut-mode,.legacy-price-mode{display:none!important}
 </style>
 <link rel="stylesheet" href="./qr-inventory.css">
 <link rel="stylesheet" href="./remnant-history.css">
@@ -240,10 +240,10 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
     </div>
   </section>
   <section class="card" id="planCard"><div class="plans-head"><div><div class="card-title">Kesim yerleşimi</div><div class="card-sub" id="planSub">Stok başına plan</div></div><div class="card-actions"><button class="btn small plan-backup-icon" id="icloudBackupBtn" type="button" title="Bu projeyi iCloud Drive’a yedekle" aria-label="Bu projeyi yedekle">☁</button><button class="btn small" id="zoomBtn" disabled>⤢ Büyüt</button><button class="hidden" id="printBtn" disabled aria-hidden="true" tabindex="-1">PDF</button></div></div>
-    <div class="plan-tabs" id="planTabs"></div><div id="planBody" class="empty-state"><div class="empty-icon">▤</div><strong>Kesim planı burada görünecek</strong><p>Parça ve stok ölçülerini girip yerleşimi hesaplayın. Kalınlık isteğe bağlıdır.</p></div>
+    <div id="planMaterialList" class="stock-overview hidden"></div><div class="plan-tabs" id="planTabs"></div><div id="planBody" class="empty-state"><div class="empty-icon">▤</div><strong>Kesim planı burada görünecek</strong><p>Parça ve stok ölçülerini girip yerleşimi hesaplayın. Masif parçalarında kalınlık zorunludur.</p></div>
   </section>
   <div class="info-grid"><div class="card info-pad"><div class="card-title">Malzeme hesabı</div><div id="costDetails" class="empty-state" style="min-height:115px;padding:10px"><p>Hesaplama bekleniyor.</p></div></div><div class="card info-pad"><div class="card-title">Kesim özeti</div><div id="cutDetails" class="empty-state" style="min-height:115px;padding:10px"><p>Hesaplama bekleniyor.</p></div></div></div>
-  <div class="helpnote"><b>Kalınlık isteğe bağlıdır:</b> Boş bırakıldığında yerleşim 2 boyutlu hesaplanır. Kalınlık belirtilmişse aynı kalınlıktaki stok aranır. Stok kalınlığı olmadan m³ maliyeti hesaplanmaz. <b>Düz kesim</b> baştan sona testere kesimlerine uygun bir plan üretir; <b>serbest yerleşim</b> bunu garanti etmez. Sonucu uygulamadan önce kesim sırasını ve makine koşullarını kontrol edin.</div>
+  <div class="helpnote">Panel ve masif kesimleri, karşı kenara ulaşan <b>giyotin kesim</b> kuralıyla planlanır. Masif parçalarda kalınlık zorunlu ve stok kalınlığıyla eşit olmalıdır. Damar yönü tuşu: boş = serbest, = = en boyunca, Ⅱ = boy boyunca. Kesimi gerçekleştirmeden önce makine ve bağlama koşullarını kontrol edin.</div>
   <div class="footer"><span>Beythaus Cut · Verileriniz bu tarayıcıda saklanır.</span><span>Çevrimdışı · Kurulumsuz</span></div>
 </main>
 </div>
@@ -1182,7 +1182,7 @@ function planHtml(bin){
  '<p>Net mesafe, kesilecek alt parçanın sol veya üst kenarından ölçülür; testere kalınlığı ayrıca hesaba katılmıştır. Bağlama ve kesme güvenliği operatör tarafından doğrulanmalıdır.</p></div></details>';
  return base+'<div class="offcut-panels">'+offcutPanel+stepsPanel+'</div>';
 }
-function showEmpty(){cancelExactSearch(true);cancelEconomySearch(true);dirty=true;lastAudit=null;refreshRemnantUI();refreshProductionSafety();byId('planCard').querySelector('.card-title').textContent=state.mode==='nest'?'Yerleşim taslağı · Üretime uygun değil':'Kesim yerleşimi';byId('optimalityRow').textContent='Minimum stok sayısı: hesaplama bekleniyor.';byId('optimalityRow').classList.remove('is-proven');byId('grossWasteProofRow').textContent='Brüt fire optimumluğu: hesaplama bekleniyor.';byId('grossWasteProofRow').classList.remove('is-proven');invalidateCachedPdf();byId('mSheets').textContent='—';byId('mYield').textContent='—';byId('mCost').textContent='—';byId('mParts').textContent='—';byId('summarySub').textContent='Parçalar ve stok hazır.';byId('status').className='status-line';byId('status').innerHTML='<span class="status-dot"></span><span>Hesaplamak için düğmeye basın.</span>';byId('planTabs').innerHTML='';byId('planBody').className='empty-state';byId('planBody').innerHTML='<div class="empty-icon">▤</div><strong>Kesim planı burada görünecek</strong><p>Parça ve stok ölçülerini girip yerleşimi hesaplayın. Kalınlık isteğe bağlıdır.</p>';byId('costDetails').innerHTML='<p style="color:#8a968d;font-size:12px">Hesaplama bekleniyor.</p>';byId('cutDetails').innerHTML='<p style="color:#8a968d;font-size:12px">Hesaplama bekleniyor.</p>';for(const id of ['zoomBtn','downloadPdfTopBtn','printBtn'])byId(id).disabled=true}
+function showEmpty(){cancelExactSearch(true);cancelEconomySearch(true);dirty=true;lastAudit=null;refreshRemnantUI();refreshProductionSafety();byId('planCard').querySelector('.card-title').textContent=state.mode==='nest'?'Yerleşim taslağı · Üretime uygun değil':'Kesim yerleşimi';byId('optimalityRow').textContent='Minimum stok sayısı: hesaplama bekleniyor.';byId('optimalityRow').classList.remove('is-proven');byId('grossWasteProofRow').textContent='Brüt fire optimumluğu: hesaplama bekleniyor.';byId('grossWasteProofRow').classList.remove('is-proven');invalidateCachedPdf();byId('mSheets').textContent='—';byId('mYield').textContent='—';byId('mCost').textContent='—';byId('mParts').textContent='—';byId('summarySub').textContent='Parçalar ve stok hazır.';byId('status').className='status-line';byId('status').innerHTML='<span class="status-dot"></span><span>Hesaplamak için düğmeye basın.</span>';byId('planTabs').innerHTML='';byId('planBody').className='empty-state';byId('planBody').innerHTML='<div class="empty-icon">▤</div><strong>Kesim planı burada görünecek</strong><p>Parça ve stok ölçülerini girip yerleşimi hesaplayın. Masif parçalarında kalınlık zorunludur.</p>';byId('costDetails').innerHTML='<p style="color:#8a968d;font-size:12px">Hesaplama bekleniyor.</p>';byId('cutDetails').innerHTML='<p style="color:#8a968d;font-size:12px">Hesaplama bekleniyor.</p>';for(const id of ['zoomBtn','downloadPdfTopBtn','printBtn'])byId(id).disabled=true}
 function kv(k,v){return`<div class="kv"><span>${esc(k)}</span><strong>${v}</strong></div>`}
 let lastAudit=null;
 function refreshProductionSafety(){
@@ -1198,6 +1198,14 @@ const netCost=sol.bins.some(b=>binCost(b.stock,{priceMode:state.priceMode,m3:nul
   const price=binCost(b.stock,{priceMode:state.priceMode,m3:null});
   return sum+price*b.placed.reduce((x,p)=>x+p.w*p.h,0)/(b.stock.l*b.stock.w)
  },0);
+const planSource=byId('planMaterialList');
+const materialLines=sol.bins.map((b,i)=>{
+ const name=b.stock.displayMaterial||String(b.stock.material).split('|').slice(1).join('|');
+ const labels=[...new Set(b.placed.map(p=>p.label))].join(', ');
+ return '<div class="stock-overview-item"><b>Stok '+(i+1)+' · '+esc(name)+'</b> · '+esc(b.stock.l+' × '+b.stock.w+' mm')+'<div>'+esc(labels)+'</div></div>'
+});
+planSource.innerHTML='<strong>Malzeme ve parça dağılımı</strong>'+materialLines.join('');
+planSource.classList.toggle('hidden',!sol.bins.length);
 const yieldPct=sol.stockArea?sol.partArea/sol.stockArea*100:0,all=sol.unplaced.length===0;
 const priceKnown=sol.bins.length>0&&sol.bins.every(b=>binCost(b.stock,{priceMode:state.priceMode,m3:null})!==null);
 const missingThicknessCost=sol.bins.some(b=>b.stock.priceUnit==='m3'&&b.stock.t===null);
@@ -1246,10 +1254,11 @@ function productionFile(){
  const warning=!productionReady?
   'ÜRETİME UYGUN DEĞİL: Serbest yerleşim veya tamamlanmamış kesim planı. Kenardan karşı kenara ulaşan doğrulanmış kesim sırası yoktur. Bu dosyayı atölye kesim talimatı olarak kullanmayın.':
   'DÜZ KESİM: Her adım o anda kesilen alt dikdörtgenin karşı kenarına uzanır. Makine, bağlama ve gerçek testere payını operatör ayrıca doğrulamalıdır.';
- const parts=state.parts.filter(p=>val(p.l)>0&&val(p.w)>0&&val(p.qty)>0).map((p,i)=>'<tr><td>'+esc(p.label||'P'+(i+1))+'</td><td>'+esc(p.material||'Ahşap')+'</td><td>'+n(val(p.l))+' × '+n(val(p.w))+' '+u+'</td><td>'+thick(p.t)+'</td><td>'+fmt(val(p.qty),0)+'</td><td>'+(p.rotate?'Serbest':'Sabit')+'</td></tr>').join('');
+ const appliedNames=new Map(bins.flatMap(b=>b.placed.filter(p=>p.origin).map(p=>[p.origin,b.stock.displayMaterial||String(b.stock.material).split('|').slice(1).join('|')] )));
+ const parts=state.parts.filter(p=>val(p.l)>0&&val(p.w)>0&&val(p.qty)>0).map((p,i)=>'<tr><td>'+esc(p.label||'P'+(i+1))+'</td><td>'+esc(appliedNames.get(p.id)||p.material||'Ahşap')+'</td><td>'+n(val(p.l))+' × '+n(val(p.w))+' '+u+'</td><td>'+thick(p.t)+'</td><td>'+fmt(val(p.qty),0)+'</td><td>'+(p.rotate?'Serbest':'Sabit')+'</td></tr>').join('');
  const stockMap=new Map();
  for(const bin of bins){const stock=bin.stock,key=[stock.material,stock.l,stock.w,stock.physicalThickness??stock.t,!!stock.isRemnant].join('|');const row=stockMap.get(key)||{stock,count:0};row.count++;stockMap.set(key,row)}
- const stocks=[...stockMap.values()].map(({stock,count})=>'<tr><td>'+esc(stock.material)+(stock.isRemnant?' (Artık stok)':'')+'</td><td>'+measured(stock.l)+' × '+measured(stock.w)+'</td><td>'+thick(stock.physicalThickness??stock.t)+'</td><td>'+count+'</td></tr>').join('');
+ const stocks=[...stockMap.values()].map(({stock,count})=>'<tr><td>'+esc(stock.displayMaterial||String(stock.material).split('|').slice(1).join('|'))+(stock.isRemnant?' (Artık stok)':'')+'</td><td>'+measured(stock.l)+' × '+measured(stock.w)+'</td><td>'+thick(stock.physicalThickness??stock.t)+'</td><td>'+count+'</td></tr>').join('');
  const pct=sol.stockArea?100*sol.partArea/sol.stockArea:0;
  const extra=sol.unplaced.length?'<div class="doc-caution"><b>EKSİK YERLEŞİM:</b> '+sol.unplaced.length+' parça kesim planında bulunmuyor. İmalattan önce gözden geçirin.</div>':'';
  const proofInfo=stockProofDescription(sol.stockProof);
@@ -1324,10 +1333,11 @@ function makePdfDocument(){
  const notice=productionReady?
   'Her doğrulanmış giyotin adımı mevcut alt stokun bir kenarından karşı kenarına uzanır. Makine ve bağlama koşulları operatör tarafından doğrulanmalıdır.':
   draftNotice;
- const parts=state.parts.filter(p=>val(p.l)>0&&val(p.w)>0&&val(p.qty)>0).map((p,i)=>[p.label||'P'+(i+1),p.material||'Ahşap',fmt(val(p.l),2)+' × '+fmt(val(p.w),2)+' '+unit,state.partsThicknessEnabled?thick(p.t):'Belirtilmedi',fmt(val(p.qty),0),p.rotate?'Serbest':'Sabit']);
+ const appliedNames=new Map(sol.bins.flatMap(b=>b.placed.filter(p=>p.origin).map(p=>[p.origin,b.stock.displayMaterial||String(b.stock.material).split('|').slice(1).join('|')])));
+ const parts=state.parts.filter(p=>val(p.l)>0&&val(p.w)>0&&val(p.qty)>0).map((p,i)=>[p.label||'P'+(i+1),appliedNames.get(p.id)||p.material||'Ahşap',fmt(val(p.l),2)+' × '+fmt(val(p.w),2)+' '+unit,state.partsThicknessEnabled?thick(p.t):'Belirtilmedi',fmt(val(p.qty),0),p.rotate?'Serbest':'Sabit']);
  const stockCounts=new Map();
  for(const bin of sol.bins){const x=bin.stock,key=[x.material,x.l,x.w,x.physicalThickness??x.t,!!x.isRemnant].join('|');const row=stockCounts.get(key)||{x,count:0};row.count++;stockCounts.set(key,row)}
- const stocks=[...stockCounts.values()].map(({x,count})=>[x.material+(x.isRemnant?' (Artık stok)':''),m(x.l)+' × '+m(x.w),thick(x.physicalThickness??x.t),String(count)]);
+ const stocks=[...stockCounts.values()].map(({x,count})=>[(x.displayMaterial||String(x.material).split('|').slice(1).join('|'))+(x.isRemnant?' (Artık stok)':''),m(x.l)+' × '+m(x.w),thick(x.physicalThickness??x.t),String(count)]);
  const content=[
   {columns:[{text:'BEYTHAUS  /  CUT',style:'brand'}, {text:documentLabel+' · '+code,alignment:'right',fontSize:10,bold:true,color:'#64836A'}]},
   {canvas:[{type:'line',x1:0,y1:0,x2:766,y2:0,lineColor:'#365D46',lineWidth:1.5}],margin:[0,12,0,14]},
