@@ -69,7 +69,7 @@ function refresh(){
  const pieces=(app.getRemnantDB&&app.getRemnantDB().pieces)||[];
  const active=pieces.filter(p=>p.status==='available');
  const shelves=new Set(active.map(p=>p.location).filter(Boolean));
- const full=raw.filter(s=>Number(s.l)>0&&Number(s.w)>0).length;
+ const full=raw.filter(s=>String(s.l??'').trim()&&String(s.w??'').trim()).length;
  $('bhFullCount').textContent=full;
  $('bhOffcutCount').textContent=active.length;
  $('bhShelfCount').textContent=shelves.size;
