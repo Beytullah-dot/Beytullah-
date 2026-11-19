@@ -292,6 +292,7 @@ button,.btn,.bh-navitem,.sheet-tab,summary{touch-action:manipulation}
  .projects-panel,.modal-card{max-height:calc(100dvh - 10px)}
  .qr-scan-video{max-height:27dvh}
  .topbar-inner{width:calc(100% - 24px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px));margin-left:calc(12px + env(safe-area-inset-left,0px))}
+ .topbar .brand.bh-brand-with-handle{margin-left:45px}
  .workspace{width:calc(100% - 24px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px));margin-left:calc(12px + env(safe-area-inset-left,0px))}
 }
 
