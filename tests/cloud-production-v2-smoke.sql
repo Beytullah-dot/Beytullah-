@@ -38,7 +38,7 @@ select public.beythaus_cloud_production_v2(current_setting('test.ws2')::uuid,
      "stock":{"l":2000,"w":100,"t":40,"material":"Meşe"},"cuts":[],"pieces":[]}
   ]}
  }'::jsonb);
-do $declare s jsonb;b jsonb;
+do $$declare s jsonb;b jsonb;
 begin
  s=public.beythaus_cloud_snapshot_v2(current_setting('test.ws2')::uuid);
  if exists(select 1 from jsonb_array_elements(s->'fullStocks') f
