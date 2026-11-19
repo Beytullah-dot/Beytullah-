@@ -129,3 +129,47 @@ kesimli giyotin modeline ilişkindir. Endüstrideki iki/üç aşamalı kesim,
 kesim yönüne bağlı lif yönü, makine çeneleri veya fiziksel parça tutma
 zorunlulukları ayrıca modellenmelidir. Dolayısıyla geometrik kesim ağacı
 sertifikası tek başına atölye iş güvenliği sertifikası değildir.
+
+## V5: Kesin tedarik maliyeti ve tahmini artık değeri
+
+`docs/economic-exact.js`, stok sayısından **bağımsız** minimum
+**ek stok tedarik maliyeti** hedefini arar. Panel fiyatı veya m³ üzerinden
+hesaplanan panel maliyeti kullanılır. Envanterden gelen mevcut artık stok
+modele göre ilave tedarik maliyeti sıfır kabul edilir.
+
+- Malzeme grubu başına 13 serbest / 10 giyotin parçası, en fazla 3 stok türü
+  ve başlangıç planında en fazla 7 stok bulunabilir.
+- Daha ucuz çözümün mevcut plandan **daha fazla stok** kullanmasına izin verilir.
+- Stok türü çoklu kümeleri, daha ucuz tüm maliyet seçenekleri bitene kadar
+  taranır; her alternatif önceki kesin serbest veya giyotin çözümleyicisiyle
+  geometrik olarak kontrol edilir.
+- Kombinasyon, düğüm veya süre sınırı dolarsa durum **partial** olur;
+  minimum maliyet ispatı yapılmaz.
+- Fiyatı bilinmeyen herhangi bir kullanılabilir stok türü varsa
+  tüm seçenekler karşılaştırılamayacağından **optimumluk kanıtı verilmez**.
+- Çözümleme asıl planı değiştirmez; daha düşük maliyetli alternatif
+  'Ekonomik planı uygula' onayıyla seçilir.
+- Kesin maliyet optimumluğu asla minimum panel sayısı, brüt fire ya da
+  kullanılabilir artık değerinin optimumluğu olarak sunulmaz.
+
+Kesin ekonomik optimizasyonun maliyet fonksiyonu yalnız stok edinme
+bedelini kapsar. Kesim işçiliği, enerji, taşıma, bantlama, vergi ve fiili
+stok finansman/işletme maliyetleri yoktur. Bu veriler modele eklenmeden
+'işletme toplam maliyeti' için optimumluk iddiası kurulamaz.
+
+Kullanıcı proje ayarlarında kullanılabilir artıklara **isteğe bağlı
+₺/m² yeniden kullanım değeri varsayımı** girebilir. Bu değer yalnız
+giyotin kesimde eşik değerleri geçen fiziksel artık alanına uygulanır.
+Sonuçlar `tahmini / varsayımsal net maliyet` etiketi taşır; satılmış
+veya gerçekten tüketilmiş stok değeri olarak kabul edilmez.
+Bu varsayımsal net maliyet şimdilik kesin maliyet çözümleyicisinin
+hedef fonksiyonu değildir.
+
+Test komutları:
+
+    node tests/economic-worker.cjs
+    node tests/economic-acceptance.cjs
+
+Birincisi fiyat karşılaştırmasını bağımsız koordinat/kesim ağacı oracle'ıyla
+doğrular. İkincisi ana uygulamanın ekonomik adayı kabul ederken sahte
+yerleşimleri, fiyatları ve kesim sıralarını reddettiğini sınar.
