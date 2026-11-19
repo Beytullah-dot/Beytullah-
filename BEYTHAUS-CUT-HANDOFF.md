@@ -182,57 +182,67 @@ masaüstü uyumlu bir web/PWA; yalın, işlev odaklı arayüz.
   istemci kullanımına tasarlanmış kasıtlı RPC'lerdir, fakat üyelik/yetki
   sınırları düzenli gözden geçirilmelidir.
 
-### 20 Kasım 2026 — canlı kabul hazırlığı ve salt-okunur denetim (PR #2)
+### 20 Kasım 2026 — PR #2 birleştirildi, mobil WebKit regresyonu doğrulandı
 
-- `master` son doğrulanan kaynak commit'i: `e9a6bc0dca659b3691981788b572af60e12abbff`.
-  Bu commit için son GitHub Pages çalışması **success**:
-  https://github.com/Beytullah-dot/Beytullah-/actions/runs/44621324570.
-  Yayın işleminin başarılı olması, iPhone'da işlevlerin doğrulandığı anlamına gelmez;
-  canlı URL bu çalışma ortamındaki web görüntüleyiciyle ayrıca açılamadı.
-- Gerçek uygulamaya yeni bir demo eklenmedi. Tarayıcı kabul regresyonu,
-  WebKit/iPhone **emülasyonunda** ve izole yerel stokla hazırlanıyor:
-  https://github.com/Beytullah-dot/Beytullah-/pull/2
-  Dosyalar: `tests/ios-webkit-acceptance.cjs`,
-  `.github/workflows/ios-webkit-acceptance.yml`,
-  `tests/SAFARI-UAT-CHECKLIST.md`.
-  Testler tamamlanıp PR birleştirilene kadar bunlar **yayınlanmış özellik**
-  sayılmamalıdır.
-- PR #2 geliştirme dalı `75d575c0e0d82d456b01f110202eebb63553c490`
-  üzerinde geometri ve optimizasyon Actions çalışmaları **success**:
-  https://github.com/Beytullah-dot/Beytullah-/actions/runs/44624227064
-  https://github.com/Beytullah-dot/Beytullah-/actions/runs/44624227074.
-  iPhone WebKit kabul akışı **son kontrol sırasında devam ediyordu**:
-  https://github.com/Beytullah-dot/Beytullah-/actions/runs/44624227652.
-  Önceki WebKit başarısızlıkları sırasıyla desteklenmeyen Ubuntu runner'ı
-  ve kapalı `details` test grubuna tıklama hatasıydı; **uygulama testi
-  geçmiş sayılmadı**.
-- Gerçek Supabase `pdqgpupdqgrxejvjpdzs`: `ACTIVE_HEALTHY`; migration
-  kayıtları `20261118212836` ve `20261119202121`. 10 public tablo
-  RLS etkin. Denetim anında tam stok, tekil artık ve tamamlanan üretim
-  kayıtlarında **0 satır** vardı; kullanıcı içeriği değiştirilmedi.
-- Şema izin sorgusunda dokuz `beythaus_cloud_*` RPC'si `anon`
-  rolüne **kapalı**, `authenticated` rolüne **açık**,
-  `SECURITY DEFINER` ve sabit boş `search_path` ile tanımlıydı.
-  Fonksiyon gövdelerinin tüm yetki yolları için bağımsız güvenlik testi
-  yapılmış olduğu **iddia edilmez**.
-- Supabase güvenlik danışmanı on RLS/policy bilgi uyarısı (tabloya doğrudan
-  erişim kapalı tasarım), dokuz kasıtlı `SECURITY DEFINER` RPC uyarısı
-  ve **Leaked Password Protection Disabled** bildiriyor.
-  Şifre sızıntısı korumasını Supabase Auth yapılandırmasında gözden geçir:
-  https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
+- **Mevcut uygulama üzerinde devam edildi; yeni demo oluşturulmadı.**
+  PR #2 ("iPhone WebKit kabul testleri ve gerçek Safari kontrol listesi")
+  **birleştirildi**: https://github.com/Beytullah-dot/Beytullah-/pull/2.
+  Birleştirme commit'i: `ff9e0332290929b65d957b2ce98190e8e58e6b52`.
+- **Aynı master merge commit'inde dört otomatik sonuç da SUCCESS:**
+  - Geometry Tests: https://github.com/Beytullah-dot/Beytullah-/actions/runs/44626326760
+  - Optimizer Verification: https://github.com/Beytullah-dot/Beytullah-/actions/runs/44626326664
+  - iPhone WebKit Acceptance Smoke: https://github.com/Beytullah-dot/Beytullah-/actions/runs/44626326671
+  - GitHub Pages deployment: https://github.com/Beytullah-dot/Beytullah-/actions/runs/44626326634
+- **Test edilen kapsam:** WebKit iPhone 13 emülasyonunda sayfa açılışı/yenileme;
+  tek menü düğmesi ve dört ana alan; Projelerim listesi/arama;
+  parça ve stokta damar döngüsü; karma otomatikte tekil stok hariç
+  tutma; iki plan seçeneği; bağımsız giyotin denetiminden geçen plan;
+  yalnız hesaplamanın stok miktarını değiştirmemesi; tarayıcı JS hataları.
+  `tests/ios-webkit-acceptance.cjs` ve
+  `.github/workflows/ios-webkit-acceptance.yml` artık `master` dalında.
+- **Gerçek iOS/Safari ve bulut E2E henüz doğrulanmadı.** WebKit otomasyonu
+  gerçek iPhone, kamera, iki ayrı Auth hesabı, gerçek ağ kopması, PDF paylaşımı
+  veya sunucu üzerindeki fiziksel üretim tamamlaması değildir.
+  Saha listesi: `tests/SAFARI-UAT-CHECKLIST.md` — maddeler henüz
+  **Denenmedi**. İstemci audit'i güvenilmeyen kesim ağacının sunucuda
+  yeniden doğrulanması yerine geçmez.
+- `docs/BULUT-SENKRONIZASYON.md` içindeki V2'nin yalnız geliştirme
+  dalında olduğu yönündeki eski durum metni, `f21c5a319877266c9f463f669d771957d70d80de`
+  dokümantasyon commit'i ile gerçek `master` dağıtımına göre düzeltildi.
+  Bu ve mevcut handoff güncellemesi yalnız dokümantasyondur; uygulama
+  çalışma algoritmasını veya kullanıcı envanterini değiştirmez.
+- **Gerçek Supabase denetimi (salt-okunur):** proje
+  `pdqgpupdqgrxejvjpdzs` `ACTIVE_HEALTHY`; migration
+  `20261118212836` ve `20261119202121`, 10 public tablo ve tümünde RLS
+  etkin. Kontrol anında tam stok, tekil artık ve tamamlanan üretim
+  tablolarında **0 satır** vardı. Gerçek stok/kullanıcı verisi değiştirilmedi.
+- Dokuz `beythaus_cloud_*` SECURITY DEFINER RPC'si
+  `anon` rolüne **kapalı**, `authenticated` rolüne **açık**; fonksiyonların
+  yetki gövdelerinin bütün kullanım yolları ayrıca denetlenmelidir.
+  Güvenlik danışmanı on RLS/policy bilgi uyarısı, dokuz RPC uyarısı ve
+  **Leaked Password Protection Disabled** bildiriyor:
+  https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection.
+  RLS uyarıları, doğrudan tablo erişimi kapalı RPC tasarımıyla
+  birlikte değerlendirilmelidir.
+- Canlı GitHub Pages dağıtımının başarı durumu Actions ile teyit edildi;
+  **bu çalışma ortamından canlı sayfanın doğrudan HTTP/Safari ekranı
+  görüntülenemedi**. Canlı iPhone kabulü iddia edilmemelidir.
 
 ## E. Son tamamlanan adım / sıradaki adım
 
-**Son tamamlanan (20 Kasım):** PR #1 üretim V2 olarak master'da. PR #2 için
-izole iPhone WebKit regresyonu ve gerçek Safari test listesi geliştirme dalında
-yazıldı; geometri ve optimizasyon CI'ı geçti. WebKit kabul testi henüz başarıyla
-tamamlanmış ve PR #2 master'a birleştirilmiş olarak doğrulanmadı.
+**Son tamamlanan (20 Kasım):** PR #2 mevcut Beythaus Cut üzerinde
+birleştirildi (`ff9e033229`). Aynı master commit'inde geometri,
+optimizasyon, WebKit iPhone emülasyonu ve GitHub Pages dağıtımı **başarılı**.
+Bulut kılavuzundaki eski sürüm durumu da düzeltildi.
+**Gerçek iPhone/Safari kullanıcı kabulü ve iki gerçek hesaplı bulut
+üretim testi henüz yapılmadı.**
 
-**Sıradaki adım:** Önce PR #2 WebKit kabul CI'ının son committe sonuçlandığını
-doğrula. Başarısızsa test/uygulama kusurunu ayır ve düzelt; üç CI başarılıysa
-PR #2'yi birleştirip master ve Pages'i yeniden doğrula. Ardından
-`tests/SAFARI-UAT-CHECKLIST.md` kullanarak canlı iPhone/Safari'de şu sırayla
-**test amaçlı** kullanıcı kabulü yap:
+**Sıradaki adım:** Kodda yeni özellik yerine
+`tests/SAFARI-UAT-CHECKLIST.md` rehberini kullanarak **gerçek iPhone/Safari
+kabulünü** ve **yalnız TEST atölyesi stoğu** ile iki cihazlı bulut senaryolarını
+tamamla. Gerçek stoğu silme/tüketme, gerçek şifre/davet kodu kaydetme.
+Kontrol sırası (ayrıntılı 12 maddelik liste kaynak dosyada):
+
 1. Sayfanın yenilenmesi ve menüler: Kesim Planı, Stok Envanteri,
    Maliyet Kayıtları, Hesap Ayarları.
 2. Damar düğmesi boş → `=` → `Ⅱ`; parça/stok mat. eşleştirme ve
