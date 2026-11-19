@@ -15,7 +15,9 @@ self.onmessage=event=>{
    {...options,objective:'area'});
   const cost=self.BeythausOptimalityCertificate.certify(job.plan,job.data,
    {...options,objective:'cost'});
-  self.postMessage({type:'certificate',requestId:job.requestId,area,cost});
+  const count=self.BeythausOptimalityCertificate.certify(job.plan,job.data,
+   {...options,objective:'count'});
+  self.postMessage({type:'certificate',requestId:job.requestId,area,cost,count});
  }catch(error){
   self.postMessage({type:'error',requestId:job.requestId,
    message:String(error?.message||error)});
