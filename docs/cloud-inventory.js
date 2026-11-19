@@ -58,7 +58,7 @@ const uuid=()=>window.crypto?.randomUUID?.();
 // Public browser-safe project URL and publishable key, never a secret/service_role.
 const DEFAULT_CLOUD_CONFIG={url:"https://pdqgpupdqgrxejvjpdzs.supabase.co",key:"sb_publishable_g9p81j1QltETxGBQmhHTxA_VLktGLm_"};
 let config={...DEFAULT_CLOUD_CONFIG,...(read(localStorage,KEY)||{})},session=read(storage,SESSION),
- workspace='',active=false,busy=false,poll=null,syncing=false,fingerprint='', memberWorkspaces=[];
+ workspace='',active=false,busy=false,poll=null,syncing=false,fingerprint='', memberWorkspaces=[],remoteFullStocks=[];
 function normalizeConfig(url,key){
  const base=String(url||'').trim().replace(/\/+$/,''),k=String(key||'').trim();
  if(!/^https:\/\/[a-z0-9-]+\.supabase\.co$/i.test(base))throw Error('Geçerli *.supabase.co HTTPS adresi gerekli.');
@@ -247,7 +247,7 @@ async function changePassword(){
 function stopPoll(){if(poll)clearInterval(poll);poll=null}
 function leave(){
  stopPoll();active=false;workspace='';fingerprint='';
- app.exitCloudInventory();status('Yerel envantere döndün; bulut stokları silinmedi.');draw()
+ app.exitCloudInventory();remoteFullStocks=[];setStockUiLocked(false);status('Yerel envantere döndün; bulut stokları silinmedi.');draw()
 }
 async function signout(){
  if(active)leave();
@@ -259,16 +259,16 @@ async function synchronize(force=false){
  if(!workspace||!session||syncing)return false;
  syncing=true;
  try{
-  const result=await rpc('beythaus_cloud_snapshot',{p_workspace:workspace});
-  if(!result||!Array.isArray(result.pieces)||!result.workspace)throw Error('Stok yanıtı eksik.');
+  const result=await rpc('beythaus_cloud_snapshot_v2',{p_workspace:workspace});
+  if(!result||!Array.isArray(result.pieces)||!Array.isArray(result.fullStocks)||!result.workspace)throw Error('Stok yanıtı eksik.');
   const next=JSON.stringify({
    pieces:result.pieces.map(x=>[x.id,x.version,x.status,x.l,x.w,x.t,x.material,x.location,x.notes]),
-   events:result.movements?.[0]?.id,defaultLocation:result.workspace.defaultLocation
+   events:result.movements?.[0]?.id,full:result.fullStocks.map(x=>[x.id,x.version,x.qty,x.price]),batches:result.batches?.[0]?.id,defaultLocation:result.workspace.defaultLocation
   });
-  if(force||next!==fingerprint){app.enterCloudInventory(result);fingerprint=next}
-  active=true;updateAccessUI();
-  status('Ortak atölye bağlı · '+result.pieces.filter(x=>x.status==='available').length+
-   ' mevcut parça · sunucu denetimi açık.');
+  if(force||next!==fingerprint){app.enterCloudInventory(result);remoteFullStocks=result.fullStocks;fingerprint=next;refreshCloudFullStockEditor()}
+  active=true;setStockUiLocked(true);updateAccessUI();
+  status('Ortak atölye bağlı · '+result.fullStocks.length+' tam stok türü · '+result.pieces.filter(x=>x.status==='available').length+
+   ' mevcut artık · sunucu denetimi açık.');
   return true
  }catch(e){status('Bulut eşitlenemedi: '+e.message,true);return false}
  finally{syncing=false}
@@ -346,9 +346,11 @@ function interceptClick(e){
    const plan=app.cloudProductionPayload();
    if(!plan)throw Error('Tamamlanmış, doğrulanmış ve güncel düz kesim planı gerekli.');
    if(!confirm('Fiziksel üretim TAMAMLANDI mı? '+plan.payload.created.length+
-     ' artık eklenecek, '+plan.payload.consumed.length+' stok sunucuda tüketilecek.'))return;
-   const done=await mutate(plan.kind,plan.payload,plan.operationId);
-   if(done.ok)app.markCloudProductionComplete();
+     ' artık eklenecek, '+(plan.payload.consumed.length+plan.payload.usedFull.reduce((n,x)=>n+x.qty,0))+' fiziksel stok sunucuda tüketilecek.'))return;
+   const done=await rpc('beythaus_cloud_production_v2',{
+     p_workspace:workspace,p_operation:plan.operationId,p_payload:plan.payload});
+    if(!done?.ok)throw Error('Üretim işlemi sunucu tarafından onaylanmadı.');
+   app.markCloudProductionComplete();if(!await synchronize(true))status('Üretim kaydedildi fakat güncel stok alınamadı.',true);
    return
   }
   if(target==='remnantEditStatusAction'){
