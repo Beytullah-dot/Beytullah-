@@ -3,15 +3,12 @@
  */
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
-const html=fs.readFileSync(path.join(__dirname,'../docs/index.html'),'utf8');
-const start=html.indexOf('function intersect('),end=html.indexOf('const colors=',start);
-assert.ok(start>=0&&end>start,'Engine source not found');
+const {createEngine}=require('./engine-harness.cjs');
 const state={mode:'nest',kerf:'0',priceMode:'panel',offcutMinEdgeMm:50,offcutMinAreaCm2:100};
-const engine=new Function('state','val','mkey','fmt',html.slice(start,end)+
- ';return {optimize,auditCutPlan,minStockCountLowerBound,certifyStockCount};')(
- state,x=>Number(String(x).replace(',','.')),
- x=>String(x).trim().toLocaleLowerCase('tr-TR'),(x,n)=>Number(x).toFixed(n??0)
-);
+const engine=createEngine(state,
+ x=>Number(String(x).replace(',','.')),
+ x=>String(x).trim().toLocaleLowerCase('tr-TR'),
+ (x,n)=>Number(x).toFixed(n??0));
 let passed=0;
 const piece=(i,l,w,material='MDF',t=null)=>({
  id:'p'+i,l,w,t,material,label:'P'+i,rotate:true,order:i
