@@ -70,6 +70,29 @@ for(const objective of ['area','cost']){
  assert.equal(proof.proven,true,'Uniform stock count proves '+objective);
  assert.equal(proof.method,'proven-count-uniform-unit');
 }
+// Realistic nonzero saw kerf: 400 identical 22x22 parts on 25 boards,
+// each 100x100, with 3mm cutting gaps. The pure area bound is only 20;
+// cardinality proves no more than 16 pieces fit on each sheet.
+current.kerf=3;
+const repeatedParts=Array.from({length:400},(_,i)=>({
+ ...parts[0],id:'repeat-'+i,order:i,l:22,w:22,label:'R'+i
+}));
+const repeatedData={...data,parts:repeatedParts,kerf:3};
+const repeated=engine.optimize(repeatedData,false,false);
+const repeatedAudit=engine.auditCutPlan(repeated,repeatedData);
+assert.equal(repeatedAudit.ok,true,'400 parts must replay physically valid guillotine cuts');
+assert.equal(repeated.bins.length,25,'400 x 22mm parts need 25 stock sheets');
+repeated.stockProof=engine.certifyStockCount(repeated,repeatedData,repeatedAudit);
+assert.equal(repeated.stockProof.proven,true,'Kerf-aware bound proves 25 sheets');
+assert.equal(repeated.stockProof.method,'kerf-cardinality');
+assert.equal(repeated.stockProof.lowerBound,25);
+for(const objective of ['area','cost']){
+ const proof=certificate.certify(repeated,repeatedData,{objective,
+  auditOK:repeatedAudit.ok,priceMode:'panel'});
+ assert.equal(proof.proven,true,'Nonzero-kerf 400-piece global '+objective);
+}
+current.kerf=0;
+
 // A physically unrestricted area-cover relaxation can find cheaper stock
 // combinations WITHOUT ever falsely proving the incumbent is cheapest.
 const cheaper=[
@@ -142,4 +165,4 @@ const square=exact([{id:'square',l:40,w:40,t:18,material:'oak',rotate:true,
  grain:'width',label:'square'}],[s],1,{kerf:0,trim:0},Date.now()+1000,100000);
 assert.equal(square.status,'feasible');
 assert.equal(square.layout[0].pieces[0].rotated,true,'Square direction still retained');
-console.log('Motor proof foundation: physically audited 100-part and 25 oversized-part / 25-sheet optima; 480 exact cover oracles; piece-only direction and unknown guards PASS.');
+console.log('Motor proof foundation: physically audited 100-part, 25 oversized-part and kerf=3mm 400-part / 25-sheet optima; 480 exact cover oracles; piece-only direction and unknown guards PASS.');
