@@ -260,10 +260,10 @@ const certificatePdf=window.__testHooks.makePdfDocument();
 assert.ok(certificatePdf.content.some(x=>String(x.text||'').includes('STOK SAYISI KANITI')));
 assert.equal(window.__testHooks.productionFile(),true);
 assert.ok(node('printCollection').innerHTML.includes('Minimum stok sayısı kanıtlandı'));
-window.__testHooks.showResult(weakArea.input,weakArea.result);
-assert.ok(node('optimalityRow').textContent.includes('henüz kanıtlanmadı'));
+window.__testHooks.showResult(notAllPlaced.input,notAllPlaced.result);
+assert.ok(node('optimalityRow').textContent.includes('kanıtlanamaz'));
 tests+=11;
-console.log('Stock-count certificate checks: 1-stock, 2-stock, unsupported mixed-stock scope, distinct materials, incomplete and PDF labeling.');
+console.log('Stock-count certificate checks: 1-stock, 2-stock, geometric incompatibility, distinct materials, incomplete and PDF labeling.');
 
 
 // Exhaustive disjunctive solver vs a SEPARATE integer-grid brute-force oracle.
