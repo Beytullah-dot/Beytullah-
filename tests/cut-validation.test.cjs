@@ -550,7 +550,8 @@ const unprovenArea=verify(areaCase([[60,60],[60,60]],
  [[100,100,2,'Wood',1],[65,65,2,'Wood',50],
   [66,66,2,'Wood',50],[67,67,2,'Wood',50]]));
 assert.equal(unprovenArea.result.areaProof.proven,false);
-assert.ok(['stock-count-unproven','scope-limited'].includes(unprovenArea.result.areaProof.status));
+assert.equal(unprovenArea.result.areaProof.status,'partial');
+assert.equal(unprovenArea.result.areaProof.groups[0].status,'scope-limited');
 tests+=2;
 window.__testHooks.showResult(areaSmall.input,areaSmall.result);
 assert.ok(node('grossWasteProofRow').textContent.includes('Minimum brüt alan kaybı kanıtlandı'));
