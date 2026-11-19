@@ -54,17 +54,20 @@ masaüstü uyumlu bir web/PWA; yalın, işlev odaklı arayüz.
 ### B2. Malzeme ve parça
 - **Panel** ve **masif** aynı 2D kesim motorunun malzeme türleridir.
   Panelde renk/dekor, masifte ağaç türü belirlenebilir.
-- Parça: boy, en, adet, opsiyonel otomatik etiket, kalınlık ve damar yönü;
-  stok: boy, en, adet, malzeme, kalınlık, damar yönü, fiyat ve raf/göz.
+- Parça: boy, en, adet, opsiyonel etiket, kalınlık ve **parça yönü**;
+  stok: boy, en, adet, malzeme, kalınlık, fiyat ve raf/göz.
+  **Stok üzerinde yön seçimi YOK**; stokun girilen boy/en eksenleri
+  yön için referanstır. Önceden kayıtlı stok `grain` alanı silinmez,
+  fakat yeni kesim kısıtı olarak kullanılmaz.
 - **Masifte kalınlık makinesi hesabı veya stoktan kalınlık düşürme yok.**
   Masif parça kalınlığı zorunlu ve stok kalınlığıyla eşleşmeli.
-- Hem panel hem masif, hem stok hem parça **aynı üç durumlu damar yönü
-  düğmesine** sahip:
-  - **Boş:** damar serbest.
-  - **`=`:** damar en (genişlik) boyunca.
-  - **`Ⅱ`:** damar boy (uzunluk) boyunca.
-  Her tıklama sıradaki duruma geçer; seçim kendi durumunda bırakılır.
-  90° döndürme, kare parçalar dâhil, stok-parça damar uyumunu bozmaz.
+- Hem panel hem masifte **yalnız parça üzerinde** üç durumlu yön düğmesi:
+  - **Boş:** yön serbest; iki yönde yerleşebilir.
+  - **`=`:** enine; parçanın boyu stokun en eksenine paralel (90°).
+  - **`Ⅱ`:** boyuna; parçanın boyu stokun boy eksenine paralel (0°).
+  Kare parçalarda da yön/90° döndürme bilgisi korunur.
+  Seçilen yön, parçanın ayrıca belirtilen döndürme izniyle tutarlı olmalı.
+  Motor ve bağımsız audit aynı kuralı kullanır.
 - Parçaların döndürülme izni ayrı bir fiziksel kısıttır.
 
 ### B3. Stok seçim modları
@@ -82,9 +85,13 @@ masaüstü uyumlu bir web/PWA; yalın, işlev odaklı arayüz.
   karşı kenarına kadar uzanır.
 - Testere payı (kerf), kenar payı, adet, malzeme, kalınlık, damarlılık,
   döndürme izni ve stok sınırları denetlenir.
-- **En ekonomik plan** ve **minimum stok adedi** alternatifi sunulur.
-  Ekonomik değerlendirmede gerçek stok fiyatları kullanılır; eşitliklerde
-  kullanıcıya yarar sağlayan artık alan/ölçü kalitesi gözetilir.
+- **Yeni onaylanmış yön:** yerleşim hesaplamasından **ÖNCE**
+  **maliyeti minimize et / brüt fireyi minimize et** hedefini seçtir.
+  Seçilen birincil hedef için arama ve matematiksel kanıt çalışsın;
+  seçilmemiş hedef ve minimum stok sayısı bilgi amaçlı raporlansın.
+  **Bu hedef seçimi henüz arayüze ve esas arama stratejisine uygulanmadı.**
+  Mevcut V2 hâlen ekonomik ve minimum-stok alternatiflerini barındırır.
+  Fiyat bilinmiyorsa maliyetin optimumluğu kanıtlanamaz.
 - Üretime uygulanabilirliği bağımsız kesim ağacı denetimi doğrular.
   Geometrik serbest yerleşim varsa üretim talimatı olarak sunulamaz.
 - Kesin arama/akademik optimizasyon yaklaşımı korunur; sınırlı sezgisel
@@ -228,36 +235,92 @@ masaüstü uyumlu bir web/PWA; yalın, işlev odaklı arayüz.
   **bu çalışma ortamından canlı sayfanın doğrudan HTTP/Safari ekranı
   görüntülenemedi**. Canlı iPhone kabulü iddia edilmemelidir.
 
+### 20 Kasım 2026 — Matematiksel kesim motoru PR #3, büyük ölçekli kanıt
+
+- **PR #3 master dalında BİRLEŞTİRİLDİ:**
+  https://github.com/Beytullah-dot/Beytullah-/pull/3
+  Birleştirme SHA: `0c8b4203a0c9ec645fa4bd115a3a986b9e57ddf3`.
+- **Aynı merge SHA'da dört GitHub Action SUCCESS:**
+  - Geometry: https://github.com/Beytullah-dot/Beytullah-/actions/runs/44640631564
+  - Optimizer Verification: https://github.com/Beytullah-dot/Beytullah-/actions/runs/44640631600
+  - iPhone WebKit emülasyonu: https://github.com/Beytullah-dot/Beytullah-/actions/runs/44640631648
+  - GitHub Pages: https://github.com/Beytullah-dot/Beytullah-/actions/runs/44640631574
+- **Yeni matematiksel modüller:**
+  `docs/engine/optimality-certificate.js`,
+  `docs/optimality-worker.js`. Miktarla sınırlı tamsayı stok-örtüsü
+  problemi Pareto dinamik programlamayla tam çözülür. Geometri gevşetilir,
+  dolayısıyla sertifikalı sonuç matematiksel **alt sınırdır**; denetlenmiş
+  giyotin plan bu alt sınıra erişirse ilgili hedefin küresel optimumluğu
+  kanıtlanır. Artık süre/işlem sınırı aşılırsa sertifika üretilmez.
+- **Kapasite kanıtı:** aynı ölçülü parçalar için kerf'li stok eksenleri
+  boyunca yerleşebilecek **maksimum parça adedi** üst sınırı eklendi.
+  Parça/stok sayısına bağlı 11 parça üstü doğrudan elenmek zorunda değil.
+  Denenip doğrulanan örnek: 400 adet 22×22 mm parça, 3 mm kerf,
+  25 adet 100×100 mm stok. Her levhada en çok 16 parça olduğundan
+  **minimum 25 levha**, fiziksel giyotin kesim ağacı denetiminden geçen
+  25 levhalık planla ispatlandı. Aynı ölçü/fiyat stok koşullarında
+  minimum brüt alan ve kayıtlı stok maliyeti de kanıtlandı.
+  Ek örnekler: 100 parça / 25 stok, 25 adet 60×60 / 25 stok.
+- **Regresyon:** 160 deterministik rastgele küçük stok kombinasyonunda
+  stok sayısı, alan ve maliyet alt sınırları bağımsız tam taramayla
+  **480/480** eşleşti; test `tests/motor-proof-foundation.cjs`.
+  WebKit emülasyonunda yön yalnız parça üzerinde ve ekonomik/alan/stok
+  sertifikaları UI'da doğru gösteriliyor.
+- **Karma otomatik güvenlik:** yalnız seçilmiş malzeme atamasının
+  sertifikası tüm atamaların optimumluğu diye **gösterilmez**.
+  Yalnız tüm uygun malzemeleri kapsayan gevşetilmiş stok alt sınırına
+  ulaşıldığında `OPTIMAL` denir.
+- **Ürün kararı güncellendi:** stokta yön düğmesi kaldırıldı; yön
+  yalnız parçada **serbest / boyuna / enine**, stok boy/en eksenine göre
+  çalışır. Geçmiş stok `grain` metadata'sı silinmedi.
+- **MOTOR HENÜZ MÜHÜRLENMEDİ.** Büyük karma ölçülü, alternatif
+  stoklu ve karma otomatik projelerin hepsini sonlu zamanda kesin
+  çözme garantisi yok. Maliyet-vs-fire öncelik seçimi de henüz
+  ana optimizasyon aramasını yönetmiyor. Detaylı kabul koşulları:
+  `tests/MOTOR-PROOF-STATUS.md`.
+- **Supabase şeması/gerçek stoklar değiştirilmedi.** WebKit CI
+  gerçek iPhone/Safari veya sahada fiziksel kesim testi sayılmaz.
+
 ## E. Son tamamlanan adım / sıradaki adım
 
-**Son tamamlanan (20 Kasım):** PR #2 mevcut Beythaus Cut üzerinde
-birleştirildi (`ff9e033229`). Aynı master commit'inde geometri,
-optimizasyon, WebKit iPhone emülasyonu ve GitHub Pages dağıtımı **başarılı**.
-Bulut kılavuzundaki eski sürüm durumu da düzeltildi.
-**Gerçek iPhone/Safari kullanıcı kabulü ve iki gerçek hesaplı bulut
-üretim testi henüz yapılmadı.**
+**Son tamamlanan (20 Kasım):** PR #3 mevcut yayımlanmış Beythaus Cut
+uygulamasına birleştirildi. Motorun parça yönü yalnız parçaya taşındı,
+20–25 levhalık tekrarlı büyük planlarda kanıt üreten iki yeni alt sınır
+katmanı eklendi. 400 parça / 25 levha / 3 mm testere payı,
+fiziksel kesim denetimi ve **minimum 25 levha optimumluk kanıtı** geçti.
+Aynı merge SHA'da geometri, optimizer, WebKit CI ve Pages başarıyla tamamlandı.
 
-**Sıradaki adım:** Kodda yeni özellik yerine
-`tests/SAFARI-UAT-CHECKLIST.md` rehberini kullanarak **gerçek iPhone/Safari
-kabulünü** ve **yalnız TEST atölyesi stoğu** ile iki cihazlı bulut senaryolarını
-tamamla. Gerçek stoğu silme/tüketme, gerçek şifre/davet kodu kaydetme.
-Kontrol sırası (ayrıntılı 12 maddelik liste kaynak dosyada):
+**Kullanıcının son önceliği:** Diğer özellikleri ertele; **kesim
+optimizasyon motorunu doğruluk/ölçek/kanıt bakımından tamamlayıp
+mühürleme kriterleri karşılanana kadar** bu konuyu öncele.
+`tests/MOTOR-PROOF-STATUS.md` içindeki eksikler önem sırasıyla:
 
-1. Sayfanın yenilenmesi ve menüler: Kesim Planı, Stok Envanteri,
-   Maliyet Kayıtları, Hesap Ayarları.
-2. Damar düğmesi boş → `=` → `Ⅱ`; parça/stok mat. eşleştirme ve
-   iki plan alternatifini kontrol et.
-3. Ayrı test atölyesi veya açıkça işaretli örnek tam stokla, tek cihaz
-   bulut kayıt ve sürüm denemesi.
-4. İkinci kullanıcı/cihaz ile aynı stoğa çakışan işlem ve reddin
-   ardından yeniden eşitleme.
-5. Örnek fiziksel üretim tamamlamada tam stok düşümü, artık değerlemesi,
-   maliyet ve üretim PDF'sini doğrula.
-6. Sorunları GitHub'a düzeltme olarak gönder; testleri çalıştır,
-   `master` ve Pages durumunu yeniden doğrula.
+1. 20–25 levhalık **farklı ölçülü** parçalar, farklı fiyat/ebattaki stoklar,
+   panel/masif ve karma otomatik atama için resmî benchmark/gerçek
+   atölye fixture seti oluştur. Başarı oranını kanıtlı/kanıtsız,
+   optimumluk aralığı ve süre olarak raporla; 400 aynı parça
+   örneğinden genelleme yapma.
+2. **Hedefi hesaplamadan önce** sor: minimum kayıtlı stok maliyeti veya
+   minimum brüt fire. Hedef seçimi gerçek arama planına uygulansın;
+   seçilmemiş hedef motoru gereksiz yere yormasın. Kullanılabilir
+   artık ayrıca raporlansın, ispatlanmış fire ile karıştırılmasın.
+3. Heterojen giyotin desenleri için **kesin branch-and-bound,
+   column generation / MILP / CP-SAT** yöntemlerinden ölçülerek en
+   uygununu uygula; her çalışmada fiziksel kesim denetimi ve
+   `OPTIMAL / FEASIBLE / UNKNOWN / INFEASIBLE` ayrımı korunsun.
+4. Sınır aşımı / sayısal tolerans / stok alternatifi / çoklu malzeme
+   yanlış ispatına karşı bağımsız regresyon ve alan verisiyle kontrol.
+   **Kanıt yoksa optimum iddia etme.**
+5. Tüm matematik ve performans kabul koşulları tamamlanınca ayrı
+   `MOTOR-SEALED` release/tag aç; sadece başarılı basit fixture'larla
+   veya UI çıktısıyla mühürleme yapma.
 
-**Öncelik:** Üretim güvenliği ve veri bütünlüğü > kesin olmayan
-optimumluk iddiası > yeni özellik ekleme.
+**Bekleyen ama son isteğe göre ikinci sırada:** Gerçek iPhone/Safari,
+iki gerçek kullanıcıyla TEST stoklu Supabase UAT; çalışmadan gerçek
+fiziksel stok üretimini tüketme. `tests/SAFARI-UAT-CHECKLIST.md`.
+
+**Öncelik:** Matematiksel doğruluk ve fiziksel kesim güvenliği >
+genel optimumluk kanıtı > motor performansı > diğer arayüz/yan özellikler.
 
 ## F. Her yeni sohbet için çalışma kuralı
 
