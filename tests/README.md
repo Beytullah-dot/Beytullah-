@@ -38,3 +38,25 @@ Fiziksel uygulanabilirlik denetimleri uygulamanın modellediği dikdörtgen malz
 5. Üretim sonuçlarını bağımsız denetimden geçirmeden stok tüketimine izin vermemek.
 
 Bu ilk adımda **ana optimizasyon motoru değiştirilmedi**.
+
+## Geometrik alt sınır regresyonu (v2)
+
+`node tests/geometric-bounds.cjs` komutu, 9 ayrı analitik kontrolü çalıştırır.
+Bu kontroller alan alt sınırını, aynı panelde bir arada bulunması imkânsız parçaların
+oluşturduğu **çiftli uyumsuzluk grafiği** ile birleştirir. Grafikte bulunan herhangi
+bir klikteki tüm parçalar farklı paneller gerektirir; bu yüzden grafikte sezgisel
+olarak bulunan klikin büyüklüğü **güvenli bir matematiksel alt sınırdır**.
+
+Örneğin 25 adet 60×60 mm parça için 100×100 mm stoktan alan alt sınırı 9'dur;
+ancak hiçbir iki parça aynı panelde bulunamayacağından geometrik sınır 25'tir.
+Üretilmiş 25 panelli geçerli bir plan ile alt sınır 25 eşitse **minimum stok adedi
+kanıtlanır**. Bu kanıt fire, maliyet veya kullanılabilir artık optimumluğunu kapsamaz.
+
+Yöntem güvenilir ve hızlı kalması için büyük veri kümelerinde en fazla 160 parçayı
+uyumsuzluk grafiğine dahil eder. Bu sınırlama **yalnız kanıt gücünü azaltır**;
+geçersiz bir optimumluk kanıtına dönüşmez. Kesin arama yürütme bütçeleri ayrı
+bir konudur; bu geliştirme onları artırmaz.
+
+Optimizasyon motorundaki `exactRefinePlan` çağrısının testere payını alt sınır
+hesabına aktarması ayrıca düzeltildi. Testere payı eksik kalırsa geometrik bağ
+güvenli biçimde sıfır pay ile hesaplanır (daha zayıf olabilir, fazla güçlü olmaz).
