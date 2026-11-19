@@ -112,7 +112,6 @@
    }
    totalBound+=r.lowerBound;
   }
-  if(!allExact)return {...base,status:'unknown-bound'};
   // A proven minimum number of sheets also proves minimum cost or area
   // when EVERY eligible stock in each independent material group has
   // identical objective value per sheet. This remains valid for 25+ sheets,
@@ -134,6 +133,7 @@
    if(uniform)return {...base,proven:true,lowerBound:incumbent,gap:0,
     status:'optimal',method:'proven-count-uniform-unit'};
   }
+  if(!allExact)return {...base,status:'unknown-bound'};
   const tolerance=objective==='cost'?0.00001:objective==='count'?0:Math.max(EPS,Math.abs(totalBound)*1e-10);
   // If this inequality ever fails, input grouping or pricing is inconsistent;
   // do not turn an impossible stronger lower bound into a false proof.
