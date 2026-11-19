@@ -97,7 +97,10 @@ async function main() {
   console.log('PASS 4: Part and stock grain cycle: empty → width → length → empty');
 
   await page.locator('#materialModeSelect').selectOption('auto');
-  await page.locator('#autoStockChoices input[data-stock-id="uat-B"]').uncheck();
+  const excluded = page.locator('#autoStockChoices input[data-stock-id="uat-B"]');
+  await page.locator('#autoStockChoices details').filter({ has: excluded })
+    .locator('summary .material-tag').click();
+  await excluded.uncheck();
   const policy = await page.evaluate(() => ({
     allow: window.BeythausCut.getState().allowedStockIds,
     stocks: window.BeythausCut.normalize().stocks.map(s => s.id)
