@@ -43,6 +43,8 @@ jobs:
         run: node tests/economic-worker.cjs
       - name: Validate economic plan acceptance and tamper rejection
         run: node tests/economic-acceptance.cjs
+      - name: Verify mobile-friendly sequential Worker scheduling
+        run: node tests/economic-orchestration.cjs
       - name: Verify optimizer and proof claims
         run: node tests/optimization-regression.cjs --json optimization-report.json
       - name: Publish test report
