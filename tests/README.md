@@ -60,3 +60,32 @@ bir konudur; bu geliştirme onları artırmaz.
 Optimizasyon motorundaki `exactRefinePlan` çağrısının testere payını alt sınır
 hesabına aktarması ayrıca düzeltildi. Testere payı eksik kalırsa geometrik bağ
 güvenli biçimde sıfır pay ile hesaplanır (daha zayıf olabilir, fazla güçlü olmaz).
+
+## V3: Web Worker ile kapsamlı kesin arama
+
+Uygulama, kullanıcıya önce sezgisel yerleşim sonucunu gösterir. Serbest yerleşimde
+stok adedi matematiksel olarak henüz kanıtlanmadıysa, `docs/optimization-worker.js`
+ayrı tarayıcı iş parçacığında geometrik dal-ayırma araması yürütür.
+
+- Kapsam: bir malzeme grubunda en fazla **12 parça, 4 stok türü, 6 kullanılan stok**.
+- Hesaplama süresi üst sınırı: Worker için ~4,2 saniye; ana iş parçacığı
+  5,5 saniyede sonlandırır. Düğüm bütçesi 350.000.
+- İşlem limitinde durum **unknown/partial** olur; optimumluk iddia edilmez.
+- Kullanıcı 'Durdur' ile aramayı iptal edebilir. Girdiler veya proje değiştiğinde
+  önceki Worker'ın sonucu geçersiz sayılır.
+- Worker'ın bulduğu her yerleşim ana uygulamada tekrar geometrik denetimden geçer.
+- Daha az stoklu alternatif mevcut plandan **daha pahalıysa otomatik uygulanmaz**;
+  kullanıcı maliyet farkını görür ve 'Alternatifi uygula' ile karar verir.
+- Hızlı ilk aşamada mevcut sezgisel iyileştirme korunur; ana iş parçacığındaki
+  kısa kesin arama atlanır. Önceki `optimize(data,true)` API'si uyumludur.
+- Worker'ın `proved` durumu yalnız serbest yerleşimin minimum **stok sayısı**
+  hedefini kapsar. Minimum maliyet, en değerli artıklar veya giyotin kesim
+  optimumluğu anlamına gelmez.
+
+Çalıştır:
+
+    node tests/optimization-worker.cjs
+
+Yeni test koşucusu Worker kaynağını sahte Worker ortamında doğrudan çalıştırır;
+ayrıca aynı problemler için bağımsız tam sayılı referans çözümleyicisinin
+bulduğu optimumu ve bağımsız yerleşim denetimini kontrol eder.
