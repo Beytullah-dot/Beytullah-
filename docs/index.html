@@ -2085,15 +2085,17 @@ function startExactWorker(data,initial){
   }
   try{
    const outcome=acceptExactWorkerResult(data,initial,response);
-   const costIncrease=outcome.improvedCount>0&&initial.cost!==null&&
-    outcome.proposal.cost!==null&&outcome.proposal.cost>initial.cost+0.01;
-   if(costIncrease){
-    // Number of panels and purchase cost are different objectives. Never
-    // silently substitute a more expensive plan for a cheaper valid one.
+   const unknownCost=initial.cost===null||outcome.proposal.cost===null;
+   const costIncrease=!unknownCost&&outcome.proposal.cost>initial.cost+0.01;
+   if(outcome.improvedCount>0&&(costIncrease||unknownCost)){
+    // Minimum stock count and purchase cost are different objectives.
+    // Do not silently replace a less expensive or unpriced plan.
     exactPending={data,proposal:outcome.proposal,source:initial,saved:outcome.improvedCount};
+    const costMessage=unknownCost?'Toplam maliyet karşılaştırılamıyor.':
+     'Toplam maliyet '+money(outcome.proposal.cost-initial.cost)+' artıyor.';
     exactSearchStatus('Kesin arama '+outcome.improvedCount+
-     ' stok daha az kullanan alternatif buldu; ancak toplam maliyet '+
-     money(outcome.proposal.cost-initial.cost)+' artıyor. Mevcut düşük maliyetli plan korundu. İstersen alternatifi uygulayabilirsin.','warning');
+     ' stok daha az kullanan alternatif buldu. '+costMessage+
+     ' Mevcut plan korundu. Alternatifi uygulamak için onay verin.','warning');
     byId('exactSearchApply').classList.remove('hidden');
     return
    }
