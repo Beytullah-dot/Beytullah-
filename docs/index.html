@@ -223,7 +223,7 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
         Bu plan yalnızca geometrik bir taslaktır. Panel testeresi için her kesim,
         mevcut iş parçasının bir kenarından karşı kenarına ulaşmalıdır.</span>
       <div class="exact-search-actions"><button class="btn small primary" type="button" id="productionSafetySwitch">Düz kesim planı oluştur</button></div>
-    </div><div class="optimality-row" id="optimalityRow">Minimum stok sayısı: hesaplama bekleniyor.</div><div class="optimality-row" id="grossWasteProofRow">Brüt fire optimumluğu: hesaplama bekleniyor.</div>
+    </div><div class="optimality-row" id="optimalityRow">Minimum stok sayısı: hesaplama bekleniyor.</div><div class="optimality-row" id="grossWasteProofRow">Brüt fire optimumluğu: hesaplama bekleniyor.</div><div class="optimality-row" id="globalCostProofRow">Maliyet optimumluğu: hesaplama bekleniyor.</div>
     <div class="exact-search-line hidden" id="exactSearchLine" role="status" aria-live="polite">
       <span id="exactSearchText"></span>
       <div class="exact-search-actions">
@@ -1253,6 +1253,85 @@ function refreshProductionSafety(){
  const line=byId('productionSafetyLine');
  if(line)line.classList.toggle('hidden',state.mode==='guillotine');
 }
+let boundProofWorker=null,boundProofRequest=0,boundProofTimer=null;
+function certifyLargePlan(data,plan){
+ if(boundProofWorker){boundProofWorker.terminate();boundProofWorker=null}
+ if(boundProofTimer!==null){clearTimeout(boundProofTimer);boundProofTimer=null}
+ const requestId=++boundProofRequest,areaLine=byId('grossWasteProofRow'),
+  costLine=byId('globalCostProofRow');
+ areaLine.classList.remove('is-proven');costLine.classList.remove('is-proven');
+ if(state.mode!=='guillotine'||plan.unplaced.length||!plan.bins.length){
+  costLine.textContent='Küresel maliyet optimumluğu: fiziksel plan tamamlanmadığından kanıtlanmadı.';
+  return
+ }
+ if(typeof Worker==='undefined'){
+  costLine.textContent='Küresel maliyet optimumluğu: kesin hesaplama bu tarayıcıda desteklenmiyor.';
+  return
+ }
+ let worker;
+ try{worker=new Worker('./optimality-worker.js')}catch(error){
+  console.warn('Proof Worker unavailable',error);
+  costLine.textContent='Küresel maliyet optimumluğu: matematiksel arama başlatılamadı.';
+  return
+ }
+ boundProofWorker=worker;
+ areaLine.textContent='Küresel minimum brüt fire alt sınırı hesaplanıyor…';
+ costLine.textContent='Küresel minimum malzeme maliyeti alt sınırı hesaplanıyor…';
+ function finish(){
+  if(boundProofTimer!==null){clearTimeout(boundProofTimer);boundProofTimer=null}
+  if(boundProofWorker===worker){worker.terminate();boundProofWorker=null}
+ }
+ worker.onerror=error=>{
+  console.warn('Global certificate error',error);finish();
+  if(!dirty&&solution===plan)costLine.textContent='Küresel maliyet optimumluğu: hesaplama çalıştırılamadı.';
+ };
+ worker.onmessage=event=>{
+  if(boundProofWorker!==worker||requestId!==boundProofRequest)return;
+  const response=event.data;
+  finish();
+  if(dirty||solution!==plan||response?.requestId!==requestId)return;
+  if(response.type!=='certificate'){
+   costLine.textContent='Küresel maliyet optimumluğu: hesaplama tamamlanmadı.';return
+  }
+  plan.globalAreaProof=response.area;plan.globalCostProof=response.cost;
+  const area=response.area,cost=response.cost;
+  if(area?.proven){
+   areaLine.textContent='Küresel minimum brüt malzeme kaybı kanıtlandı: '+
+    fmt((plan.stockArea-plan.partArea)/1e6,4)+
+    ' m². Tüm mevcut stok adet birleşimleri için kesin alan alt sınırına ulaşıldı.';
+   areaLine.classList.add('is-proven');
+  }else{
+   const bound=Number.isFinite(area?.lowerBound)?
+    ' · matematiksel alt sınır '+fmt((area.lowerBound-plan.partArea)/1e6,4)+' m²':'';
+   areaLine.textContent='Küresel minimum brüt fire kanıtlanmadı'+bound+
+    '. Giyotin planı geçerlidir; daha iyi yerleşim olabilir.';
+  }
+  if(cost?.proven){
+   costLine.textContent='Küresel minimum kayıtlı stok maliyeti kanıtlandı: '+money(plan.cost)+
+    '. İşçilik ve varsayımsal artık değeri hariçtir.';
+   costLine.classList.add('is-proven');
+  }else if(cost?.status==='unknown-bound'&&cost.groups?.some(g=>g.status==='unknown-price')){
+   costLine.textContent='Küresel minimum stok maliyeti kanıtlanmadı: fiyatı bilinmeyen stok var.';
+  }else{
+   costLine.textContent='Küresel minimum stok maliyeti kanıtlanmadı'+
+    (Number.isFinite(cost?.lowerBound)?' · kanıtlı alt sınır '+money(cost.lowerBound):'')+
+    '. Daha ekonomik bir kesim planı bulunabilir.';
+  }
+ };
+ boundProofTimer=setTimeout(()=>{
+  if(boundProofWorker!==worker)return;
+  finish();
+  if(!dirty&&solution===plan){
+   areaLine.textContent='Küresel minimum fire kanıtı: işlem sınırı aşıldı.';
+   costLine.textContent='Küresel minimum maliyet kanıtı: işlem sınırı aşıldı.';
+  }
+ },8500);
+ worker.postMessage({type:'certify',requestId,
+  data:{parts:data.parts,stocks:data.stocks,trim:data.trim},
+  plan:{bins:plan.bins.map(()=>({})),stockArea:plan.stockArea,cost:plan.cost,
+   placedCount:plan.placedCount,unplaced:plan.unplaced},
+  allowMaterialAssignment:state.materialMode==='auto',priceMode:state.priceMode,m3:data.m3});
+}
 function showResult(data,sol){const audit=auditCutPlan(sol,data);if(!audit.ok)throw Error('Kesim doğrulaması başarısız: '+audit.issues.slice(0,2).join(' · '));sol.stockProof=certifyStockCount(sol,data,audit);lastAudit=audit;solution=sol;dirty=false;activeSheet=0;refreshRemnantUI();refreshProductionSafety();byId('planCard').querySelector('.card-title').textContent=state.mode==='nest'?'Yerleşim taslağı · Üretime uygun değil':'Düz kesim · Kesim ağacı doğrulandı';byId('optimalityRow').textContent=stockProofDescription(sol.stockProof);byId('optimalityRow').classList.toggle('is-proven',sol.stockProof.proven);byId('grossWasteProofRow').textContent=grossWasteProofDescription(sol);byId('grossWasteProofRow').classList.toggle('is-proven',!!sol.areaProof?.proven);
 const completeThickness=sol.bins.length>0&&sol.bins.every(b=>b.stock.t!==null);
 const m3Stock=completeThickness?sol.bins.reduce((a,b)=>a+b.stock.l*b.stock.w*b.stock.t,0)/1e9:null;
@@ -1299,7 +1378,7 @@ const validPrice=priceKnown;byId('costDetails').innerHTML=kv('Maliyet yöntemi',
  '<div style="font-size:11px;color:#9a7c54;padding-top:8px">Artık değerlemesi varsayımsaldır; stok edinme maliyetinden düşülen gerçekleşmiş bir tasarruf değildir ve matematiksel optimumluk kanıtına dahil edilmez.</div>':
  kv('Artık için ekonomik değer',state.mode==='guillotine'?'Fiyat varsayımı girilmedi':'Serbest yerleşimde kesin artık ölçüsü yok'))+
  '<div style="font-size:11px;color:#98a69a;padding-top:12px">Bu plan kayıtlı stok değeri üzerinden hesaplanır; kullanıcı ek maliyetleri ayrıca girebilir. Alan optimumluğu en ucuz stok seçimi değildir.</div>';
-window._unresolved=unresolved;drawActive();for(const id of ['zoomBtn','printBtn'])byId(id).disabled=!sol.bins.length;prepareCachedPdf()}
+window._unresolved=unresolved;drawActive();for(const id of ['zoomBtn','printBtn'])byId(id).disabled=!sol.bins.length;prepareCachedPdf();certifyLargePlan(data,sol)}
 function drawActive(){const s=solution;if(!s||!s.bins.length){byId('planTabs').innerHTML='';byId('planBody').className='empty-state';byId('planBody').innerHTML='<div class="empty-icon">▤</div><strong>Yerleşim oluşturulamadı</strong><p>Bu ölçü, malzeme veya belirtilmiş kalınlığa uygun stok bulunamadı.</p>';return}
 byId('planTabs').innerHTML=s.bins.map((b,i)=>`<button class="sheet-tab ${i===activeSheet?'active':''}" data-i="${i}">Stok ${i+1} <span style="opacity:.65">· ${thicknessText(b.stock.t)}</span></button>`).join('');byId('planBody').className='';byId('planBody').innerHTML=planHtml(s.bins[activeSheet])+(window._unresolved||'')}
 byId('planTabs').onclick=e=>{const b=e.target.closest('button[data-i]');if(!b)return;activeSheet=Number(b.dataset.i);drawActive()};
