@@ -7,6 +7,8 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const html = fs.readFileSync(path.join(__dirname, '../docs/index.html'), 'utf8');
+const policySource=fs.readFileSync(path.join(__dirname,'../docs/engine/material-policy.js'),'utf8');
+const allocationSource=fs.readFileSync(path.join(__dirname,'../docs/engine/material-allocator.js'),'utf8');
 const auditSource = fs.readFileSync(
  path.join(__dirname, '../docs/engine/production-audit.js'), 'utf8');
 const engineSource = fs.readFileSync(
@@ -45,6 +47,8 @@ const sandbox = {
   setTimeout(){return 1},clearTimeout(){},requestAnimationFrame(){},
   confirm(){return true},prompt(){return null}
 };
+vm.runInNewContext(policySource,{window},{filename:'material-policy.js'});
+vm.runInNewContext(allocationSource,{window},{filename:'material-allocator.js'});
 vm.runInNewContext(auditSource,{window},{
  filename:'docs/engine/production-audit.js',timeout:10000
 });
