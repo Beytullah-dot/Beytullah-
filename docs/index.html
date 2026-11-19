@@ -149,6 +149,7 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
  background:#f5faf5;color:#557462;font-size:11px;line-height:1.5}
 .exact-search-line span{min-width:0;overflow-wrap:anywhere;flex:1}
 .exact-search-line button{flex:none;min-height:38px;white-space:nowrap}
+.exact-search-actions{display:flex;gap:7px;flex:none;flex-wrap:wrap;justify-content:flex-end}
 .exact-search-line[data-state="running"]{background:#edf6ee;border-color:#cadecf}
 .exact-search-line[data-state="warning"]{background:#fff8ef;border-color:#f0e2cc;color:#865f36}
 @media screen and (max-width:580px){
@@ -202,7 +203,10 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
     <div class="status-line" id="status"><span class="status-dot"></span><span>Hesaplamak için düğmeye basın.</span></div><div class="optimality-row" id="optimalityRow">Minimum stok sayısı: hesaplama bekleniyor.</div><div class="optimality-row" id="grossWasteProofRow">Brüt fire optimumluğu: hesaplama bekleniyor.</div>
     <div class="exact-search-line hidden" id="exactSearchLine" role="status" aria-live="polite">
       <span id="exactSearchText"></span>
-      <button class="btn small" id="exactSearchCancel" type="button" aria-label="Kesin aramayı durdur">Durdur</button>
+      <div class="exact-search-actions">
+        <button class="btn small primary hidden" id="exactSearchApply" type="button">Alternatifi uygula</button>
+        <button class="btn small" id="exactSearchCancel" type="button" aria-label="Kesin aramayı durdur">Durdur</button>
+      </div>
     </div>
   </section>
   <section class="card" id="planCard"><div class="plans-head"><div><div class="card-title">Kesim yerleşimi</div><div class="card-sub" id="planSub">Stok başına plan</div></div><div class="card-actions"><button class="btn small plan-backup-icon" id="icloudBackupBtn" type="button" title="Bu projeyi iCloud Drive’a yedekle" aria-label="Bu projeyi yedekle">☁</button><button class="btn small" id="zoomBtn" disabled>⤢ Büyüt</button><button class="hidden" id="printBtn" disabled aria-hidden="true" tabindex="-1">PDF</button></div></div>
@@ -1923,16 +1927,18 @@ byId('zoomBtn').onclick=()=>{if(!solution?.bins[activeSheet])return;const b=solu
 function closeModal(){byId('modal').classList.add('hidden');document.body.classList.remove('no-overflow')};byId('modalClose').onclick=closeModal;byId('modal').onclick=e=>{if(e.target.id==='modal')closeModal()};document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal();if((e.ctrlKey||e.metaKey)&&e.key==='Enter'){e.preventDefault();run()}});
 /* On the main thread, keep only the finite heuristic/refinement pass.
    Long disjunctive exact searches run in a cancellable Web Worker. */
-let exactWorker=null,exactTimer=null,exactRequest=0;
+let exactWorker=null,exactTimer=null,exactRequest=0,exactPending=null;
 function exactSearchStatus(message,kind='done',running=false){
  const line=byId('exactSearchLine');
  line.classList.remove('hidden');
  line.dataset.state=kind;
  byId('exactSearchText').textContent=message;
  byId('exactSearchCancel').classList.toggle('hidden',!running);
+ byId('exactSearchApply').classList.add('hidden');
 }
 function cancelExactSearch(silent=true){
  const wasRunning=!!exactWorker;
+ exactPending=null;
  exactRequest++;
  if(exactTimer!==null){clearTimeout(exactTimer);exactTimer=null}
  if(exactWorker){exactWorker.terminate();exactWorker=null}
@@ -1940,6 +1946,21 @@ function cancelExactSearch(silent=true){
  else if(wasRunning)exactSearchStatus('Kesin arama durduruldu. Mevcut kesim planı geçerlidir; optimumluk ayrıca kanıtlanmış değildir.','warning');
 }
 byId('exactSearchCancel').onclick=()=>cancelExactSearch(false);
+byId('exactSearchApply').onclick=()=>{
+ const pending=exactPending;
+ if(!pending||dirty||solution!==pending.source){
+  cancelExactSearch(true);return
+ }
+ exactPending=null;
+ try{
+  showResult(pending.data,pending.proposal);
+  exactSearchStatus('Daha az stok kullanan kesin yerleşim uygulandı. Maliyet, seçilen stoklara göre güncellendi.');
+  toast('Alternatif yerleşim uygulandı: '+pending.saved+' stok daha az.');
+ }catch(error){
+  console.error('Kesin alternatif uygulanamadı',error);
+  exactSearchStatus('Alternatif yerleşim uygulanamadı; mevcut kesim planı korundu.','warning')
+ }
+};
 window.addEventListener('pagehide',()=>cancelExactSearch(true));
 function acceptExactWorkerResult(data,initial,response){
  if(response.type!=='finished'||!Array.isArray(response.groups))throw Error('Kesin arama yanıtı eksik.');
@@ -2054,6 +2075,18 @@ function startExactWorker(data,initial){
   }
   try{
    const outcome=acceptExactWorkerResult(data,initial,response);
+   const costIncrease=outcome.improvedCount>0&&initial.cost!==null&&
+    outcome.proposal.cost!==null&&outcome.proposal.cost>initial.cost+0.01;
+   if(costIncrease){
+    // Number of panels and purchase cost are different objectives. Never
+    // silently substitute a more expensive plan for a cheaper valid one.
+    exactPending={data,proposal:outcome.proposal,source:initial,saved:outcome.improvedCount};
+    exactSearchStatus('Kesin arama '+outcome.improvedCount+
+     ' stok daha az kullanan alternatif buldu; ancak toplam maliyet '+
+     money(outcome.proposal.cost-initial.cost)+' artıyor. Mevcut düşük maliyetli plan korundu. İstersen alternatifi uygulayabilirsin.','warning');
+    byId('exactSearchApply').classList.remove('hidden');
+    return
+   }
    if(outcome.improvedCount>0){
     // Re-audit and rebuild result UI; do not imply that gross-waste was proven.
     showResult(data,outcome.proposal);
