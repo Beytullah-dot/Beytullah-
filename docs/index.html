@@ -707,28 +707,43 @@ function cloudProductionPayload(){
  if(!cloudInventoryActive||dirty||!lastAudit?.ok||!solution||solution.unplaced.length||
     !solution.bins.length||state.mode!=='guillotine'||solution.productionRecorded)return null;
  if(solution.cloudProductionRequest)return solution.cloudProductionRequest;
- const used=solution.bins.filter(b=>b.stock.isRemnant);
- const consumed=[];
- for(const bin of used){
-  const id=bin.stock.remnantId,version=bin.stock.version;
-  if(!id||!Number.isInteger(version)||version<1||consumed.some(p=>p.id===id))return null;
-  consumed.push({id,expectedVersion:version})
- }
- const opId=window.crypto?.randomUUID?.();
- if(!opId)return null;
+ const usedFull=new Map(),consumed=[],created=[],bins=[];
+ const opId=window.crypto?.randomUUID?.();if(!opId)return null;
  const batchId='B'+opId.replace(/-/g,'');
- const created=[];
- for(const b of solution.bins)for(const leaf of collectOffcuts(b).pieces){
-  const itemId='R'+window.crypto.randomUUID().replace(/-/g,'');
-  created.push({id:itemId,l:leaf.w,w:leaf.h,t:b.stock.physicalThickness??b.stock.t,
-   material:b.stock.material,location:remnantDB.defaultLocation||'',notes:'',
-   sourceKey:batchId+':'+created.length,projectName:state.project,status:'available'})
+ const extraText=String(byId('productionExtraCost')?.value||'').trim();
+ const extraCost=extraText?val(extraText):0;
+ if(!Number.isFinite(extraCost)||extraCost<0)throw Error('Ek maliyet sıfır veya pozitif olmalı.');
+ const extraNote=String(byId('productionExtraNote')?.value||'').trim().slice(0,120);
+ for(let bi=0;bi<solution.bins.length;bi++){
+  const b=solution.bins[bi],s=b.stock,id=s.isRemnant?s.remnantId:s.id,version=s.version;
+  if(!id||!Number.isInteger(version)||version<1)throw Error('Bulut stok sürümü eksik; tekrar eşitle.');
+  if(s.isRemnant){
+   if(consumed.some(x=>x.id===id))throw Error('Aynı artık iki defa kullanılamaz.');
+   consumed.push({id,expectedVersion:version})
+  }else{
+   const current=usedFull.get(id);
+   if(current&&current.expectedVersion!==version)throw Error('Tam stok sürümleri uyuşmuyor.');
+   usedFull.set(id,{id,qty:(current?.qty||0)+1,expectedVersion:version})
+  }
+  bins.push({sourceType:s.isRemnant?'remnant':'full',sourceId:id,
+   stock:{id,l:s.l,w:s.w,t:s.physicalThickness??s.t,
+    material:s.displayMaterial||String(s.material).split('|').slice(1).join('|'),
+    category:s.category||'panel',grain:s.grain||'',isRemnant:!!s.isRemnant},
+   cuts:(b.cuts||[]).map(x=>({axis:x.axis,source:x.source,at:x.at,
+    number:x.number,label:x.label})),
+   pieces:b.placed.map(x=>({id:x.id,label:x.label,x:x.x,y:x.y,
+    w:x.w,h:x.h,rotated:!!x.rotated}))});
+  for(const leaf of collectOffcuts(b).pieces)
+   created.push({id:'R'+window.crypto.randomUUID().replace(/-/g,''),
+    binIndex:bi,l:leaf.w,w:leaf.h,location:remnantDB.defaultLocation||'',notes:''});
  }
- if(created.length>100)return null;
- const data={operationId:opId,kind:'production',payload:{source:'production',
-  batchId,signature:remnantPlanSignature(solution),projectName:state.project,consumed,created}};
- solution.cloudProductionRequest=data;
- return data
+ if(created.length>300||bins.length>100)throw Error('Bulut üretim işlem sınırı aşıldı.');
+ const request={operationId:opId,kind:'production_v2',payload:{
+  batchId,projectName:state.project,signature:remnantPlanSignature(solution),
+  usedFull:[...usedFull.values()],consumed,created,extraCost,extraNote,
+  planSnapshot:{kerf:val(state.kerf),trim:val(state.trim),bins}}};
+ solution.cloudProductionRequest=request;
+ return request
 }
 function markCloudProductionComplete(){if(solution){solution.productionRecorded=true;refreshRemnantUI()}}
 
