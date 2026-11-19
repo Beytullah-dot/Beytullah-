@@ -49,6 +49,27 @@ for(const [objective,value] of expected){
 }
 assert.equal(certificate.certify(plan,data,{objective:'cost',auditOK:false}).proven,false,
  'No proof without the independent plan audit');
+
+// Harder 25-sheet case: the area bound is only 9, but all 25 parts
+// are mutually incompatible on a 100x100 board (60+60 exceeds 100).
+// The independent pairwise clique lower bound proves 25 is necessary.
+const looseParts=Array.from({length:25},(_,i)=>({
+ ...parts[i],id:'loose-'+i,l:60,w:60,order:i
+}));
+const looseData={...data,parts:looseParts};
+const loose=engine.optimize(looseData,false,false);
+const looseAudit=engine.auditCutPlan(loose,looseData);
+assert.equal(looseAudit.ok,true,'Each oversized part has an audited physical cut tree');
+assert.equal(loose.bins.length,25);
+loose.stockProof=engine.certifyStockCount(loose,looseData,looseAudit);
+assert.equal(loose.stockProof.proven,true,'Pairwise incompatibility certifies 25 sheets');
+assert.equal(loose.stockProof.lowerBound,25);
+for(const objective of ['area','cost']){
+ const proof=certificate.certify(loose,looseData,{objective,auditOK:looseAudit.ok,
+  priceMode:'panel'});
+ assert.equal(proof.proven,true,'Uniform stock count proves '+objective);
+ assert.equal(proof.method,'proven-count-uniform-unit');
+}
 // A physically unrestricted area-cover relaxation can find cheaper stock
 // combinations WITHOUT ever falsely proving the incumbent is cheapest.
 const cheaper=[
@@ -121,4 +142,4 @@ const square=exact([{id:'square',l:40,w:40,t:18,material:'oak',rotate:true,
  grain:'width',label:'square'}],[s],1,{kerf:0,trim:0},Date.now()+1000,100000);
 assert.equal(square.status,'feasible');
 assert.equal(square.layout[0].pieces[0].rotated,true,'Square direction still retained');
-console.log('Motor proof foundation: physically audited 100-part/25-sheet optimality; 480 independent exact cover comparisons; piece-only direction and unknown guards PASS.');
+console.log('Motor proof foundation: physically audited 100-part and 25 oversized-part / 25-sheet optima; 480 exact cover oracles; piece-only direction and unknown guards PASS.');
