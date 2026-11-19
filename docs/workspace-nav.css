@@ -96,3 +96,14 @@ body.bh-nav-open .topbar .brand-mark{transform:rotate(360deg)}
 @media(prefers-reduced-motion:reduce){
  .bh-drawer-icon,.topbar .brand-mark{transition:none!important}
 }
+
+/* Account management */
+.bh-advanced-config{margin:12px 0 14px;background:#f8faf8;border:1px solid #e2e9e2;border-radius:12px;padding:10px 13px}
+.bh-advanced-config summary{cursor:pointer;color:#637c69;font-size:12px;font-weight:720;list-style-position:inside}
+.bh-advanced-config[open]{background:#fff}
+.bh-advanced-config .cloud-form-grid{margin:13px 0 2px}
+.bh-role-display{display:inline-flex;align-items:center;border:1px solid #dfe9df;border-radius:8px;padding:7px 11px;background:#f6faf6;font-size:11px;font-weight:700;color:#4f6c59;margin:3px 0 10px}
+.bh-password-area{border-top:1px solid #e7ede7;padding-top:1px}
+.bh-page .cloud-card{max-width:none}
+.bh-page .cloud-field input{max-width:100%}
+#bhAccount .cloud-subheading{letter-spacing:-.15px}
