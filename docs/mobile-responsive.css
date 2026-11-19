@@ -311,3 +311,27 @@ button,.btn,.bh-navitem,.sheet-tab,summary{touch-action:manipulation}
  html,body{overflow:visible!important}
  .bh-content-screen{display:none!important}
 }
+
+/* Landscape iPhones can have >640 CSS pixels of width: protect the notch in that orientation too. */
+@media screen and (orientation:landscape) and (max-height:520px) and (max-width:1000px){
+ :root{--bh-handle-left:calc(env(safe-area-inset-left,0px) + 11px)}
+ .bh-handle{top:calc(env(safe-area-inset-top,0px) + 6px)}
+ .topbar{padding-top:env(safe-area-inset-top,0px)}
+ .topbar-inner{
+  min-height:55px;gap:8px;
+  width:calc(100% - 24px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px));
+  margin-left:calc(12px + env(safe-area-inset-left,0px));
+  padding-right:env(safe-area-inset-right,0px)
+ }
+ .topbar .brand.bh-brand-with-handle{margin-left:45px}
+ .bh-drawer-content{
+  padding-top:calc(env(safe-area-inset-top,0px) + 54px);
+  padding-left:calc(env(safe-area-inset-left,0px) + 14px)
+ }
+ .bh-content-bar{padding-left:calc(env(safe-area-inset-left,0px) + 65px);padding-right:calc(env(safe-area-inset-right,0px) + 12px)}
+ .bh-content-scroll{padding-left:calc(env(safe-area-inset-left,0px) + 12px);padding-right:calc(env(safe-area-inset-right,0px) + 12px)}
+ .workspace{
+  width:calc(100% - 24px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px));
+  margin-left:calc(12px + env(safe-area-inset-left,0px))
+ }
+}
