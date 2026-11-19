@@ -1335,6 +1335,37 @@ assert.equal(app.isCloudInventory(),false);
 assert.equal(JSON.stringify(app.getRemnantDB()),beforeCloudLedger);
 assert.equal(localStorage.getItem('beythaus-cut-remnant-library-v1'),originalLocalBytes);
 tests+=4;
+// Server full-stock board is used by the actual guillotine engine, with
+// a version-checked full-stock quantity in its physical production payload.
+app.setState(state({project:'Cloud panel cut',mode:'guillotine',unit:'mm',
+ parts:[{l:400,w:200,t:18,qty:1,category:'panel',material:'Wood',
+  grain:'',label:'CloudFullPart',rotate:false}],
+ stocks:[],singleCategory:'panel',singleMaterial:'Wood',materialMode:'single',
+ useRemnantStock:false,kerf:3,trim:0,offcutMinEdgeMm:50,offcutMinAreaCm2:100}));
+const fullCloudSnapshot={workspace:{id:'workspace-1',name:'Beythaus',defaultLocation:'Ortak Raf'},
+ pieces:[],fullStocks:[{id:'F-CLOUD-1',l:1000,w:500,t:18,
+  qty:2,category:'panel',material:'Wood',grain:'',price:900,priceUnit:'panel',
+  location:'Ortak Raf',notes:'',version:4}],batches:[],movements:[]};
+assert.equal(app.enterCloudInventory(fullCloudSnapshot),true);
+assert.equal(app.getState().stocks[0].l,1000);
+assert.equal(app.getState().stocks[0].version,4);
+const fullCloudData=app.normalize(),fullCloudPlan=app.optimize(fullCloudData);
+assert.equal(fullCloudPlan.unplaced.length,0);
+assert.equal(app.auditCutPlan(fullCloudPlan,fullCloudData).ok,true);
+window.__testHooks.showResult(fullCloudData,fullCloudPlan);
+const fullCloudRequest=app.cloudProductionPayload();
+assert.ok(fullCloudRequest);
+assert.equal(fullCloudRequest.kind,'production_v2');
+assert.equal(fullCloudRequest.payload.usedFull.length,1);
+assert.equal(fullCloudRequest.payload.usedFull[0].id,'F-CLOUD-1');
+assert.equal(fullCloudRequest.payload.usedFull[0].expectedVersion,4);
+assert.equal(fullCloudRequest.payload.usedFull[0].qty,1);
+assert.equal(fullCloudRequest.payload.planSnapshot.bins[0].sourceType,'full');
+assert.equal(fullCloudRequest.payload.planSnapshot.bins[0].sourceId,'F-CLOUD-1');
+assert.equal(fullCloudRequest.payload.planSnapshot.bins[0].stock.material,'Wood');
+assert.equal(app.exitCloudInventory(),true);
+assert.equal(JSON.stringify(app.getRemnantDB()),beforeCloudLedger);
+tests+=15;
 console.log('Real app cloud guard: local inventory isolated, stale local writes refused, stock version 7 preserved and production RPC payload verified.');
 
 console.log('Beythaus Cut: '+tests+' checks passed; invalid plans rejected and unknown prices preserved.');
