@@ -96,22 +96,23 @@ assert.equal(app.auditCutPlan(overlap,base.input).ok,false,'Overlaps must be cau
 const badRotation=clone(base.result);badRotation.bins[0].placed[0].rotated=!badRotation.bins[0].placed[0].rotated;
 assert.equal(app.auditCutPlan(badRotation,base.input).ok,false,'Invalid rotation must be caught');tests++;
 
+// Per-stock m³ pricing and required thickness for real masif entries.
 const pricing=state({
-  priceMode:'m3',stocksThicknessEnabled:true,
-  parts:[{l:80,w:30,t:'',qty:1,material:'Wood',label:'A',rotate:true}],
-  stocks:[
-    {l:100,w:50,t:20,qty:1,material:'Wood',price:0},
-    {l:100,w:50,t:'',qty:1,material:'Wood',price:0}
-  ]
+ priceMode:'m3',partsThicknessEnabled:true,stocksThicknessEnabled:true,
+ parts:[{l:80,w:30,t:20,qty:1,category:'masif',material:'Wood',label:'A',rotate:true}],
+ stocks:[
+  {l:100,w:50,t:20,qty:1,category:'masif',material:'Wood',priceUnit:'m3',price:25000},
+  {l:100,w:50,t:25,qty:1,category:'masif',material:'Wood',priceUnit:'m3',price:15000}
+ ]
 });
 const a=verify(pricing);
-assert.equal(a.result.bins[0].stock.t,20,'Known-priced stock should be preferred');
+assert.equal(a.result.bins[0].stock.t,20,'Masif thickness must match exactly');
 assert.equal(a.result.unknownCostBins,0);
 assert.ok(a.result.cost>0);tests++;
-pricing.stocks=[pricing.stocks[1]];
+pricing.stocks=[{l:100,w:50,t:20,qty:1,category:'masif',
+ material:'Wood',priceUnit:'m3',price:''}];
 const b=verify(pricing);
-assert.equal(b.result.bins[0].stock.t,null);
-assert.equal(b.result.cost,null,'Unknown cost must NOT be reported as zero');
+assert.equal(b.result.cost,null,'Missing user stock price must remain unknown');
 assert.equal(b.result.unknownCostBins,1);tests++;
 
 let seed=713;
