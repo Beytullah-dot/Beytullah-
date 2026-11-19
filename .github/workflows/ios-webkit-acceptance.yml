@@ -1,0 +1,44 @@
+name: Beythaus Cut - iPhone WebKit Acceptance Smoke
+on:
+  pull_request:
+    paths:
+      - 'docs/**'
+      - 'tests/ios-webkit-acceptance.cjs'
+      - '.github/workflows/ios-webkit-acceptance.yml'
+  push:
+    branches: [master]
+    paths:
+      - 'docs/**'
+      - 'tests/ios-webkit-acceptance.cjs'
+      - '.github/workflows/ios-webkit-acceptance.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  iphone-webkit:
+    runs-on: ubuntu-24.04
+    container:
+      image: mcr.microsoft.com/playwright:v1.56.1-noble
+      options: --ipc=host
+    timeout-minutes: 15
+    steps:
+      - name: Checkout existing Beythaus Cut
+        uses: actions/checkout@v4
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned Playwright library
+        run: npm install --no-save --package-lock=false playwright@1.56.1
+      - name: Check isolated mobile WebKit user flows
+        run: |
+          python3 -m http.server 8765 --directory docs >/tmp/beythaus-webkit-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8765/index.html >/dev/null; then break; fi
+            sleep 1
+          done
+          node tests/ios-webkit-acceptance.cjs
