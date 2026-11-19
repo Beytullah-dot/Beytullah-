@@ -183,11 +183,11 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
 <section class="sidebar" aria-label="Proje ayarları">
   <div class="card" id="partsCard"><div class="card-head"><div><div class="card-title">Parçalar <span class="count" id="partCount">0</span></div><div class="card-sub">Kesilecek parçalar</div></div><div class="card-actions"><button class="btn small thickness-toggle" id="partsThicknessToggle" aria-pressed="true" title="Parça kalınlığı aç/kapat" type="button">Kalınlık ✓</button><button class="btn small" id="addPartTop">＋ Ekle</button></div></div>
     <div class="material-control"><label for="materialModeSelect">Malzeme dağılımı</label><select id="materialModeSelect" aria-label="Malzeme dağılımı"><option value="single">Tek tip</option><option value="auto">Karma · Otomatik</option><option value="manual">Karma · Özel</option></select><div id="singleMaterialWrap"><label for="singleMaterialSelect">Ortak malzeme</label><select id="singleMaterialSelect"></select></div><div id="autoMaterialWrap" class="hidden"><p class="settings-note">Motor yalnız işaretlenen stokları kullanabilir. Tür satırı tüm stokları seçer; ayrıntıdan tek tek değiştirebilirsiniz.</p><div id="autoStockChoices"></div></div></div>
-    <div class="table-wrap"><table class="edit-table" style="min-width:705px"><colgroup><col style="width:72px"><col style="width:72px"><col style="width:64px"><col style="width:55px"><col style="width:90px"><col style="width:110px"><col style="width:42px"><col style="width:35px"></colgroup><thead><tr><th>Boy <span class="unitLabel">cm</span></th><th>En <span class="unitLabel">cm</span></th><th>Kal. mm</th><th>Adet</th><th>Tür</th><th>Malzeme</th><th>Etiket</th><th>Damar</th><th></th></tr></thead><tbody id="partRows"></tbody></table></div>
+    <div class="table-wrap"><table class="edit-table" style="min-width:705px"><colgroup><col style="width:72px"><col style="width:72px"><col style="width:64px"><col style="width:55px"><col style="width:90px"><col style="width:110px"><col style="width:42px"><col style="width:35px"></colgroup><thead><tr><th>Boy <span class="unitLabel">cm</span></th><th>En <span class="unitLabel">cm</span></th><th>Kal. mm</th><th>Adet</th><th>Tür</th><th>Malzeme</th><th>Etiket</th><th>Parça yönü</th><th></th></tr></thead><tbody id="partRows"></tbody></table></div>
     <div class="card-foot"><button class="link-action" id="addPart">＋ Parça ekle</button><span class="hint">Tabloda yatay kaydırın →</span></div><div class="stock-overview"><strong>Envanterdeki malzemeler</strong><div id="materialStockOverview"></div></div>
   </div>
   <div class="card" id="stocksCard"><div class="card-head"><div><div class="card-title">Stok paneller <span class="count" id="stockCount">0</span></div><div class="card-sub">Elinizdeki ham malzemeler</div></div><div class="card-actions"><button class="btn small thickness-toggle" id="stocksThicknessToggle" aria-pressed="true" title="Stok kalınlığı aç/kapat" type="button">Kalınlık ✓</button><button class="btn small" id="addStockTop">＋ Ekle</button></div></div>
-    <div class="table-wrap"><table class="edit-table" style="min-width:605px"><colgroup><col style="width:76px"><col style="width:70px"><col style="width:68px"><col style="width:56px"><col style="width:104px"><col style="width:90px"><col style="width:32px"></colgroup><thead><tr><th>Boy <span class="unitLabel">cm</span></th><th>En <span class="unitLabel">cm</span></th><th>Kal. mm</th><th>Stok</th><th>Tür</th><th>Renk / Ağaç</th><th>Fiyat ₺</th><th>Damar</th><th>Raf / Göz</th><th></th></tr></thead><tbody id="stockRows"></tbody></table></div>
+    <div class="table-wrap"><table class="edit-table" style="min-width:605px"><colgroup><col style="width:76px"><col style="width:70px"><col style="width:68px"><col style="width:56px"><col style="width:104px"><col style="width:90px"><col style="width:32px"></colgroup><thead><tr><th>Boy <span class="unitLabel">cm</span></th><th>En <span class="unitLabel">cm</span></th><th>Kal. mm</th><th>Stok</th><th>Tür</th><th>Renk / Ağaç</th><th>Fiyat ₺</th><th>Raf / Göz</th><th></th></tr></thead><tbody id="stockRows"></tbody></table></div>
     <div class="card-foot"><button class="link-action" id="addStock">＋ Stok ekle</button><span class="hint">Kayıtlar ortak envanterde tutulur</span></div>
   </div>
 
@@ -353,6 +353,7 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
 </div>
 <div id="remnantLabelPrintRoot" aria-hidden="true"></div>
 <script src="./engine/material-policy.js"></script>
+ <script src="./engine/optimality-certificate.js"></script>
 <script src="./engine/production-audit.js"></script>
 <script src="./engine/cutting-engine.js"></script>
 <script src="./engine/material-allocator.js"></script>
@@ -941,7 +942,7 @@ function renderMaterialControls(){
 }
 function grainButton(value){
  const current=materialPolicy.grain(value),symbol=materialPolicy.grainSymbol(current);
- return '<button type="button" data-action="grain" class="grain-cycle" data-grain="'+esc(current)+'" title="'+esc(materialPolicy.grainName(current))+'" aria-label="Damar yönü: '+esc(materialPolicy.grainName(current))+'">'+(symbol||'·')+'</button>'
+ return '<button type="button" data-action="grain" class="grain-cycle" data-grain="'+esc(current)+'" title="'+esc(materialPolicy.grainName(current))+'" aria-label="Parça yönü: '+esc(materialPolicy.grainName(current))+'">'+(symbol||'·')+'</button>'
 }
 byId('materialModeSelect').onchange=e=>{
  state.materialMode=e.target.value;
@@ -991,7 +992,7 @@ function renderRows(){
   '<td><select class="category-inline-select" aria-label="Stok türü" data-k="category">'+categoryOpts(stockKind(r))+'</select></td>'+
   '<td><input aria-label="Renk veya ağaç türü" class="cell-input" data-k="material" value="'+esc(r.material)+'"></td>'+
   '<td><input aria-label="'+(stockKind(r)==='masif'?'₺ / m³':'₺ / panel')+'" title="'+(stockKind(r)==='masif'?'₺ / m³':'₺ / panel')+'" class="cell-input number" data-k="price" inputmode="decimal" value="'+esc(r.price)+'"></td>'+
-  '<td>'+grainButton(r.grain)+'</td>'+
+
   '<td><input aria-label="Raf ve göz" class="cell-input" data-k="location" value="'+esc(r.location||'')+'" placeholder="Raf A / Göz 1"></td><td><button aria-label="Satırı sil" class="rowdel" data-action="delete">×</button></td></tr>'
  ).join('');
  byId('partCount').textContent=fmt(state.parts.reduce((s,p)=>s+(Number(val(p.qty))||0),0),0);
@@ -1045,7 +1046,7 @@ function bindTable(id,key){
    button.dataset.grain=obj.grain;
    button.textContent=materialPolicy.grainSymbol(obj.grain)||'·';
    button.title=materialPolicy.grainName(obj.grain);
-   button.setAttribute('aria-label','Damar yönü: '+materialPolicy.grainName(obj.grain));
+   button.setAttribute('aria-label','Parça yönü: '+materialPolicy.grainName(obj.grain));
    changed();return
   }
   if(button.dataset.action==='delete'){
