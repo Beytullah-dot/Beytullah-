@@ -22,11 +22,12 @@ button,.btn,.bh-navitem,.sheet-tab,summary{touch-action:manipulation}
 
 /* Comfortable touch controls and responsive cards on phones. */
 @media(max-width:640px){
- :root{--bh-handle-left:11px;--bh-handle-width:42px}
+ :root{--bh-handle-left:calc(env(safe-area-inset-left,0px) + 11px);--bh-handle-width:42px}
  .container{width:calc(100% - 24px)}
+ .topbar{padding-top:env(safe-area-inset-top,0px)}
  .workspace{width:calc(100% - 24px);padding-top:12px;gap:12px;padding-bottom:calc(95px + env(safe-area-inset-bottom,0px))}
- .topbar-inner{min-height:65px;gap:6px;flex-wrap:nowrap}
- .topbar .brand.bh-brand-with-handle{margin-left:45px;min-width:0;gap:0}
+ .topbar-inner{min-height:65px;gap:6px;flex-wrap:nowrap;padding-right:env(safe-area-inset-right,0px)}
+ .topbar .brand.bh-brand-with-handle{margin-left:calc(45px + env(safe-area-inset-left,0px));min-width:0;gap:0}
  .topbar .brand-name{font-size:14px;letter-spacing:-.55px;white-space:nowrap}
  .topbar .brand-meta{font-size:8px;letter-spacing:.7px;margin-top:2px}
  .topbar .toolbar{gap:4px;flex:none;flex-wrap:nowrap}
@@ -35,12 +36,12 @@ button,.btn,.bh-navitem,.sheet-tab,summary{touch-action:manipulation}
  .toolbar .desktop-text{display:none}
  .bh-handle{min-height:44px;min-width:44px}
  .bh-handle .brand-mark{height:39px;width:39px}
- .bh-content-bar{gap:6px;padding-right:10px;padding-left:69px;min-height:72px}
+ .bh-content-bar{gap:6px;padding-right:calc(10px + env(safe-area-inset-right,0px));padding-left:calc(69px + env(safe-area-inset-left,0px));min-height:72px}
  .bh-content-heading h1{font-size:18px;letter-spacing:-.4px}
  .bh-content-heading p{font-size:10px;line-height:1.25}
  .bh-to-plan{min-height:42px;padding:8px 9px;font-size:11px;white-space:normal;line-height:1.15;text-align:center;max-width:96px}
  .bh-content-screen{height:100vh;height:100dvh}
- .bh-content-scroll{scroll-padding-top:15px;scroll-padding-bottom:110px;padding:13px 11px calc(80px + env(safe-area-inset-bottom,0px))}
+ .bh-content-scroll{scroll-padding-top:15px;scroll-padding-bottom:110px;padding:13px calc(11px + env(safe-area-inset-right,0px)) calc(80px + env(safe-area-inset-bottom,0px)) calc(11px + env(safe-area-inset-left,0px))}
  .bh-page{width:100%;max-width:100%}
  .bh-numbers{gap:7px}
  .bh-number{padding:12px 9px}
@@ -51,7 +52,7 @@ button,.btn,.bh-navitem,.sheet-tab,summary{touch-action:manipulation}
  .bh-filtertabs{width:100%;min-width:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin-right:0}
  .bh-filterbtn{min-width:0;min-height:43px;padding:9px 5px;font-size:11px;white-space:normal}
  #bhOpenQr{width:100%;min-height:44px}
- .bh-drawer-content{height:100vh;height:100dvh;overscroll-behavior:contain}
+ .bh-drawer-content{height:100vh;height:100dvh;overscroll-behavior:contain;padding-left:calc(14px + env(safe-area-inset-left,0px))}
  .bh-navitem{min-height:54px;font-size:14px}
  .bh-shortcuts{gap:8px;padding:12px}
  .bh-shortcuts .bh-shortcopy{flex-basis:100%;min-width:0}
@@ -265,7 +266,7 @@ button,.btn,.bh-navitem,.sheet-tab,summary{touch-action:manipulation}
  .topbar .brand-name span{display:none}
  .topbar .brand-meta{display:none}
  .toolbar .topaction{width:38px;min-width:38px;min-height:42px}
- .bh-content-bar{padding-left:62px;gap:4px}
+ .bh-content-bar{padding-left:calc(62px + env(safe-area-inset-left,0px));gap:4px}
  .bh-content-heading h1{font-size:17px}
  .bh-content-heading p{display:none}
  .bh-to-plan{max-width:86px;font-size:10px;padding:7px 5px}
@@ -290,6 +291,8 @@ button,.btn,.bh-navitem,.sheet-tab,summary{touch-action:manipulation}
  .mobile-run{padding-top:5px;padding-bottom:calc(5px + env(safe-area-inset-bottom,0px))}
  .projects-panel,.modal-card{max-height:calc(100dvh - 10px)}
  .qr-scan-video{max-height:27dvh}
+ .topbar-inner{width:calc(100% - 24px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px));margin-left:calc(12px + env(safe-area-inset-left,0px))}
+ .workspace{width:calc(100% - 24px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px));margin-left:calc(12px + env(safe-area-inset-left,0px))}
 }
 
 /* Keyboard editing should not be obscured by bottom controls. */
