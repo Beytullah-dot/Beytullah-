@@ -375,7 +375,7 @@ const defaultData=()=>({version:2,partsThicknessEnabled:true,stocksThicknessEnab
  offcutValuePerM2:'',useRemnantStock:true,mode:'guillotine',
  priceMode:'panel',m3Price:25000,materialMode:'single',singleMaterial:'',
  singleCategory:'panel',allowedStockIds:null,parts:[],stocks:[]});
-let state,solution=null,activeSheet=0,dirty=true,lastSaved='',localFullStockShadow=null;
+let state,solution=null,activeSheet=0,dirty=true,lastSaved='',localFullStockShadow=null,localFullStockUnit=null,cloudSourceFullStocks=null;
 const stored=()=>{try{const txt=localStorage.getItem('beythaus-cut-v2');return txt?JSON.parse(txt):null}catch{return null}};
 const save=()=>{try{
  if(typeof remnantDB!=='undefined'&&!cloudInventoryActive){
@@ -383,7 +383,7 @@ const save=()=>{try{
   localStorage.setItem(REMNANT_KEY,JSON.stringify(remnantDB))
  }
  const localState=cloudInventoryActive&&localFullStockShadow?
- {...state,stocks:JSON.parse(JSON.stringify(localFullStockShadow))}:state;
+ {...state,stocks:convertFullStockUnits(localFullStockShadow,localFullStockUnit,state.unit)}:state;
  localStorage.setItem('beythaus-cut-v2',JSON.stringify(localState));if(typeof projectLibrary!=='undefined'&&activeProjectId){let p=projectLibrary.find(x=>x.id===activeProjectId);if(p){p.name=String(state.project||'İsimsiz proje').slice(0,60);p.updatedAt=Date.now();p.data=JSON.parse(JSON.stringify(localState));localStorage.setItem('beythaus-cut-project-library-v1',JSON.stringify(projectLibrary))}}}catch(err){console.warn('Yerel kayıt yapılamadı',err)}};
 function sanitize(o){if(!o||typeof o!=='object'||!Array.isArray(o.parts)||!Array.isArray(o.stocks))throw Error('Geçersiz proje dosyası');let p=defaultData();p.project=String(o.project||p.project).slice(0,60);p.unit=o.unit==='mm'?'mm':'cm';p.kerf=Number.isFinite(val(o.kerf))?val(o.kerf):3;p.trim=Number.isFinite(val(o.trim))?val(o.trim):0;p.offcutMinEdgeMm=Number.isFinite(val(o.offcutMinEdgeMm))?val(o.offcutMinEdgeMm):50;p.offcutMinAreaCm2=Number.isFinite(val(o.offcutMinAreaCm2))?val(o.offcutMinAreaCm2):100;
 p.offcutValuePerM2=String(o.offcutValuePerM2??'').trim()!==''&&
@@ -479,22 +479,35 @@ function readRemnantDB(){
  }catch{return {version:1,pieces:[],batches:[],movements:[],defaultLocation:''}}
 }
 let remnantDB=readRemnantDB(),cloudInventoryActive=false;
+const unitFactor=unit=>unit==='cm'?10:1;
+function convertFullStockUnits(list,fromUnit,toUnit){
+ const factor=unitFactor(fromUnit)/unitFactor(toUnit);
+ return JSON.parse(JSON.stringify(list)).map(s=>({
+  ...s,l:round(Number(s.l)*factor,3),w:round(Number(s.w)*factor,3)}))
+}
+function mapCloudFullStocks(records){
+ const f=unitFactor(state.unit);
+ return records.map(x=>({
+  id:String(x.id),l:Number(x.l)/f,w:Number(x.w)/f,t:x.t===null?'':Number(x.t),
+  qty:Number(x.qty),price:x.price===null?'':Number(x.price),
+  category:x.category==='masif'?'masif':'panel',material:String(x.material),
+  grain:window.BeythausMaterialPolicy.grain(x.grain),priceUnit:x.priceUnit,
+  location:String(x.location||''),notes:String(x.notes||''),version:Number(x.version)
+ }))
+}
 function enterCloudInventory(snapshot){
  if(!snapshot||!Array.isArray(snapshot.pieces)||!Array.isArray(snapshot.fullStocks)||!snapshot.workspace)
   throw Error('Bulut stok verisi eksik.');
  const pieces=snapshot.pieces.map(cleanRemnant);
  if(pieces.some(x=>!x)||pieces.length>MAX_REMNANTS)throw Error('Bulut artık stokları geçersiz.');
- if(!cloudInventoryActive)localFullStockShadow=JSON.parse(JSON.stringify(state.stocks));
- const f=state.unit==='cm'?10:1;
- const full=snapshot.fullStocks.map(x=>({
-  id:String(x.id),l:Number(x.l)/f,w:Number(x.w)/f,t:x.t===null?'':Number(x.t),
-  qty:Number(x.qty),price:x.price===null?'':Number(x.price),
-  category:x.category==='masif'?'masif':'panel',material:String(x.material),
-  grain:materialPolicy.grain(x.grain),priceUnit:x.priceUnit,
-  location:String(x.location||''),notes:String(x.notes||''),version:Number(x.version)
- }));
+ if(!cloudInventoryActive){
+  localFullStockShadow=JSON.parse(JSON.stringify(state.stocks));
+  localFullStockUnit=state.unit
+ }
+ const full=mapCloudFullStocks(snapshot.fullStocks);
  if(full.some(x=>!x.id||!(x.l>0&&x.w>0)||!(x.qty>=0)||!(x.version>=1)))
   throw Error('Bulut tam stok bilgisi geçersiz.');
+ cloudSourceFullStocks=JSON.parse(JSON.stringify(snapshot.fullStocks));
  remnantDB={version:1,pieces,batches:Array.isArray(snapshot.batches)?snapshot.batches:[],
   fullStocks:full,movements:Array.isArray(snapshot.movements)?
    snapshot.movements.slice(-MAX_REMNANT_HISTORY).map(cleanRemnantEvent).filter(Boolean):[],
@@ -503,9 +516,11 @@ function enterCloudInventory(snapshot){
 }
 function exitCloudInventory(){
  cloudInventoryActive=false;remnantDB=readRemnantDB();
- state.stocks=localFullStockShadow||
+ state.stocks=localFullStockShadow?
+  convertFullStockUnits(localFullStockShadow,localFullStockUnit,state.unit):
   (Array.isArray(remnantDB.fullStocks)?JSON.parse(JSON.stringify(remnantDB.fullStocks)):state.stocks);
- localFullStockShadow=null;renderRows();changed();return true
+ localFullStockShadow=null;localFullStockUnit=null;cloudSourceFullStocks=null;
+ renderRows();changed();return true
 }
 function availableRemnants(){return remnantDB.pieces.filter(x=>x.status==='available')}
 function inventoryStocksForPlan(){
@@ -883,7 +898,7 @@ if(!Array.isArray(remnantDB.fullStocks)){
  remnantDB.fullStocks=JSON.parse(JSON.stringify(state.stocks));
  try{localStorage.setItem(REMNANT_KEY,JSON.stringify(remnantDB))}catch{}
 }else state.stocks=JSON.parse(JSON.stringify(remnantDB.fullStocks));
-const copyGlobalStocks=()=>JSON.parse(JSON.stringify(remnantDB.fullStocks||[]));
+const copyGlobalStocks=()=>cloudInventoryActive&&cloudSourceFullStocks?mapCloudFullStocks(cloudSourceFullStocks):JSON.parse(JSON.stringify(remnantDB.fullStocks||[]));
 const icons={};
 const materialPolicy=window.BeythausMaterialPolicy;
 const stockKind=s=>s.category==='masif'?'masif':'panel';
@@ -1044,7 +1059,7 @@ bindTable('partRows','parts');bindTable('stockRows','stocks');
 function addPart(){const last=state.parts.at(-1);state.parts.push({id:uid(),l:'',w:'',t:last?.t??'',qty:1,category:last?.category||'masif',material:last?.material||state.singleMaterial||'Ahşap',label:nextPartLabel(state.parts),grain:'',rotate:true});renderRows();changed();const inputs=byId('partRows').lastElementChild?.querySelectorAll('input');inputs?.[0]?.focus()}
 function addStock(){const last=state.stocks.at(-1);state.stocks.push({id:uid(),l:'',w:'',t:last?.t??'',qty:1,category:last?.category||'masif',material:last?.material||'Ahşap',priceUnit:last?.category==='panel'?'panel':'m3',grain:'',location:last?.location||'',price:''});renderRows();changed();byId('stockRows').lastElementChild?.querySelector('input')?.focus()}
 for(const id of ['addPart','addPartTop'])byId(id).onclick=addPart;for(const id of ['addStock','addStockTop'])byId(id).onclick=addStock;
-byId('unitSelect').onchange=e=>{const newUnit=e.target.value,ratio=state.unit==='cm'?10:.1;for(const arr of [...new Set([state.parts,state.stocks,...(cloudInventoryActive?[localFullStockShadow,remnantDB.fullStocks]:[])].filter(Array.isArray))])for(const r of arr)for(const k of ['l','w'])if(Number.isFinite(val(r[k])))r[k]=round(val(r[k])*ratio,3);state.unit=newUnit;renderRows();changed();toast('Ölçüler '+newUnit+' birimine dönüştürüldü.')};
+byId('unitSelect').onchange=e=>{const newUnit=e.target.value,ratio=state.unit==='cm'?10:.1;for(const arr of [...new Set([state.parts,state.stocks,...(cloudInventoryActive?[remnantDB.fullStocks]:[])].filter(Array.isArray))])for(const r of arr)for(const k of ['l','w'])if(Number.isFinite(val(r[k])))r[k]=round(val(r[k])*ratio,3);state.unit=newUnit;renderRows();changed();toast('Ölçüler '+newUnit+' birimine dönüştürüldü.')};
 for(const [id,k] of [['kerfInput','kerf'],['trimInput','trim'],['projectName','project'],['m3Input','m3Price'],['offcutEdgeInput','offcutMinEdgeMm'],['offcutAreaInput','offcutMinAreaCm2'],['offcutValueInput','offcutValuePerM2']])byId(id).addEventListener('input',e=>{state[k]=k==='project'?e.target.value:e.target.value;changed();if(k==='project')byId('resultTitle').textContent=state.project||'Kesim planı'});
 byId('modeSegment').onclick=e=>{const b=e.target.closest('button[data-mode]');if(!b)return;state.mode=b.dataset.mode;syncSettings();changed()};
 byId('priceSegment').onclick=e=>{const b=e.target.closest('button[data-price]');if(!b)return;state.priceMode=b.dataset.price;syncSettings();changed()};
@@ -2010,7 +2025,7 @@ byId('productionSafetySwitch').onclick=()=>{
  syncSettings();changed();run();
 };
 renderRows();syncSettings();showEmpty();renderProjects();
-window.BeythausCut={enterCloudInventory,exitCloudInventory,getLocalFullStocks:()=>JSON.parse(JSON.stringify(localFullStockShadow||state.stocks)),isCloudInventory:()=>cloudInventoryActive,getSelectedRemnantSource:()=>selectedRemnantEditSource,cloudProductionPayload,markCloudProductionComplete,remnantMovements,cleanRemnantEvent,exportCostRecordPdf,getCostRecords:()=>remnantDB.batches.filter(b=>b.productionCompleted).slice().sort((a,b)=>b.createdAt-a.createdAt),getRemnantDB:()=>JSON.parse(JSON.stringify(remnantDB)),filterRemnants,editRemnantRecord,setRemnantDefaultLocation,openRemnantEditor,submitRemnantEditor,inventoryStocksForPlan,registerRemnantProduction,setRemnantStatus,mergeRemnantBackup,normalize,optimize,optimizeBaseline:data=>optimize(data,false),refineUsableOffcuts,offcutMetrics,betterOffcuts,offcutOptimizationDescription,enumerateBoardMultisets,exactGrossAreaRefine,grossWasteProofDescription,exactUniformFeasibility,exactVariableFeasibility,exactRefinePlan,minStockCountLowerBound,certifyStockCount,stockProofDescription,validateLayout,auditCutPlan,auditGuillotineCuts,collectOffcuts,defaultData,getLastAudit:()=>lastAudit,getState:()=>state,setState:o=>{state=sanitize(o);renderRows();syncSettings();save();showEmpty()},run};
+window.BeythausCut={enterCloudInventory,exitCloudInventory,getLocalFullStocks:()=>localFullStockShadow?convertFullStockUnits(localFullStockShadow,localFullStockUnit,state.unit):JSON.parse(JSON.stringify(state.stocks)),isCloudInventory:()=>cloudInventoryActive,getSelectedRemnantSource:()=>selectedRemnantEditSource,cloudProductionPayload,markCloudProductionComplete,remnantMovements,cleanRemnantEvent,exportCostRecordPdf,getCostRecords:()=>remnantDB.batches.filter(b=>b.productionCompleted).slice().sort((a,b)=>b.createdAt-a.createdAt),getRemnantDB:()=>JSON.parse(JSON.stringify(remnantDB)),filterRemnants,editRemnantRecord,setRemnantDefaultLocation,openRemnantEditor,submitRemnantEditor,inventoryStocksForPlan,registerRemnantProduction,setRemnantStatus,mergeRemnantBackup,normalize,optimize,optimizeBaseline:data=>optimize(data,false),refineUsableOffcuts,offcutMetrics,betterOffcuts,offcutOptimizationDescription,enumerateBoardMultisets,exactGrossAreaRefine,grossWasteProofDescription,exactUniformFeasibility,exactVariableFeasibility,exactRefinePlan,minStockCountLowerBound,certifyStockCount,stockProofDescription,validateLayout,auditCutPlan,auditGuillotineCuts,collectOffcuts,defaultData,getLastAudit:()=>lastAudit,getState:()=>state,setState:o=>{state=sanitize(o);renderRows();syncSettings();save();showEmpty()},run};
 })();
 </script>
 <script src="./vendor/qrcode.min.js"></script>
