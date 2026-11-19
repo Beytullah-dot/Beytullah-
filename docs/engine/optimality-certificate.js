@@ -12,6 +12,33 @@
  'use strict';
  const POLICY=root.BeythausMaterialPolicy;
  const EPS=1e-7;
+ // Safe cardinality capacity for congruent, fixed-axis rectangles.
+ // With a saw kerf k, expand every item by k on its right/bottom and the
+ // usable board by k in both dimensions. Any legal kerf-separated placement
+ // becomes a nonoverlapping packing of these expanded rectangles. For
+ // identical axis-aligned rectangles, a grid-point argument bounds count by
+ // floor((W+k)/(pieceW+k))*floor((H+k)/(pieceH+k)).
+ function cardinalityTypes(parts,stocks,trim,kerf){
+  if(!parts.length||!Number.isFinite(kerf)||kerf<0)return null;
+  const first=parts[0],square=Math.abs(first.l-first.w)<EPS;
+  if(!(first.l>0&&first.w>0)||parts.some(p=>
+    Math.abs(p.l-first.l)>EPS||Math.abs(p.w-first.w)>EPS))return null;
+  function direction(p){
+   if(square)return false;
+   if(p.grain==='width')return p.rotate?true:null;
+   if(p.grain==='length'||p.rotate===false)return false;
+   return null
+  }
+  const d=direction(first);
+  if(d===null||parts.some(p=>direction(p)!==d))return null;
+  const partW=d?first.w:first.l,partH=d?first.l:first.w;
+  return stocks.map(stock=>{
+   const W=stock.l-2*trim,H=stock.w-2*trim;
+   const columns=Math.max(0,Math.floor((W+kerf+EPS)/(partW+kerf)));
+   const rows=Math.max(0,Math.floor((H+kerf+EPS)/(partH+kerf)));
+   return {...stock,_proofCapacity:columns*rows}
+  });
+ }
  const cap=(x,target)=>Math.min(target,x);
  function costOf(stock,config){
   if(!POLICY)return null;
@@ -29,7 +56,8 @@
    if(!Number.isInteger(s.qty)||s.qty<0||!Number.isFinite(s.l)||
       !Number.isFinite(s.w))return {status:'invalid',lowerBound:null,states:0};
    if(s.qty===0)continue;
-   const usable=Math.max(0,s.l-2*trim)*Math.max(0,s.w-2*trim);
+   const usable=s._proofCapacity!==undefined?s._proofCapacity:
+    Math.max(0,s.l-2*trim)*Math.max(0,s.w-2*trim);
    if(!(usable>0))continue;
    const unit=objective==='area'?s.l*s.w:
     objective==='count'?1:costOf(s,{priceMode,m3});
@@ -106,11 +134,18 @@
    const stocks=data.stocks.filter(s=>groupKey(s)===key);
    const r=cover(stocks,demand,{objective,trim:data.trim,priceMode,m3,
      maxStates,maxMs});
-   base.groups.push({key,parts:parts.length,stockTypes:stocks.length,...r});
-   if(r.status!=='optimal-relaxation'){
-    allExact=false;continue
-   }
-   totalBound+=r.lowerBound;
+   const cardinality=cardinalityTypes(parts,stocks,data.trim,
+    Number.isFinite(data.kerf)?data.kerf:0);
+   const c=cardinality?cover(cardinality,parts.length,{
+    objective,trim:data.trim,priceMode,m3,maxStates,maxMs}):null;
+   const certifiedBounds=[r,c].filter(b=>b?.status==='optimal-relaxation');
+   const best=certifiedBounds.length?
+    Math.max(...certifiedBounds.map(b=>b.lowerBound)):null;
+   base.groups.push({key,parts:parts.length,stockTypes:stocks.length,
+    status:best===null?'unknown-bound':'optimal-relaxation',lowerBound:best,
+    areaRelaxation:r,cardinalityRelaxation:c});
+   if(best===null){allExact=false;continue}
+   totalBound+=best;
   }
   // A proven minimum number of sheets also proves minimum cost or area
   // when EVERY eligible stock in each independent material group has
@@ -144,7 +179,12 @@
     gap:Math.max(0,incumbent-totalBound),
     status:proven?'optimal':'gap',method:'integer-area-cover'};
  }
- const api=Object.freeze({version:1,cover,certify});
+ function countBoundForGroup(parts,stocks,trim,kerf){
+  const types=cardinalityTypes(parts,stocks,trim,kerf);
+  if(!types)return {status:'not-applicable',lowerBound:null};
+  return cover(types,parts.length,{objective:'count',trim,maxMs:700,maxStates:50000});
+ }
+ const api=Object.freeze({version:1,cover,certify,countBoundForGroup});
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
  root.BeythausOptimalityCertificate=api;
 })(typeof self!=='undefined'?self:typeof window!=='undefined'?window:globalThis);
