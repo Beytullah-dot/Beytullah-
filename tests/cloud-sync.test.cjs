@@ -117,7 +117,7 @@ function createClient(device,hash=''){
   if(!nodes.has(id))nodes.set(id,{id,value:'',innerHTML:'',textContent:'',
    dataset:{},style:{},classList:className(id==='cloudRecoveryArea'?'cloud-hidden':''),disabled:false,
    appendChild(child){this.lastAppended=child},append(child){this.lastAppended=child},
-   prepend(child){this.lastPrepended=child},insertBefore(child){this.lastAppended=child},
+   prepend(child){this.lastPrepended=child},before(child){this.lastBefore=child},after(child){this.lastAfter=child},insertBefore(child){this.lastAppended=child},
    querySelector(selector){return el(id+':'+selector)},querySelectorAll(){return []},
    addEventListener(){},setAttribute(){},removeAttribute(){},remove(){},
    click(){},select(){},focus(){},closest(){return null}});
