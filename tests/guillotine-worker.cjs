@@ -8,15 +8,12 @@ const root=path.join(__dirname,'..');
 const html=fs.readFileSync(path.join(root,'docs/index.html'),'utf8');
 const workerJS=fs.readFileSync(path.join(root,'docs/optimization-worker.js'),'utf8');
 const guillotineJS=fs.readFileSync(path.join(root,'docs/guillotine-exact.js'),'utf8');
-const begin=html.indexOf('function intersect('),end=html.indexOf('const colors=',begin);
-assert.ok(begin>=0&&end>begin);
+const {createEngine}=require('./engine-harness.cjs');
 const state={mode:'guillotine',kerf:'0',offcutMinEdgeMm:50,
  offcutMinAreaCm2:100,priceMode:'panel'};
 const mkey=x=>String(x).trim().toLocaleLowerCase('tr-TR');
 const val=x=>Number(String(x).replace(',','.'));
-const api=new Function('state','val','mkey','fmt',html.slice(begin,end)+
- ';return {optimize,auditCutPlan,certifyStockCount,mkBin,binCost};')(
- state,val,mkey,(x,n)=>Number(x).toFixed(n??0));
+const api=createEngine(state,val,mkey,(x,n)=>Number(x).toFixed(n??0));
 const acceptStart=html.indexOf('function acceptExactWorkerResult(');
 const acceptEnd=html.indexOf('function startExactWorker(',acceptStart);
 assert.ok(acceptStart>=0&&acceptEnd>acceptStart,'Main-thread Worker handler missing');
