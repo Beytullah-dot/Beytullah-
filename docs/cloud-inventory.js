@@ -138,7 +138,7 @@ function updateAccessUI(){
  const entry=memberWorkspaces.find(x=>x.id===selected);
  const own=!!session&&entry?.role==='owner';
  $('cloudInviteBtn').disabled=!own;
- $('cloudImportLocalBtn').disabled=!own;
+ $('cloudImportLocalBtn').disabled=!active||!memberWorkspaces.some(x=>x.id===workspace&&x.role==='owner');
  $('cloudInviteBtn').title=own?'48 saat geçerli kullanıcı katılım kodu oluştur':'Sadece atölye yöneticisi oluşturabilir';
  $('cloudRoleDisplay').textContent=!session?'Oturum açılmadı':
   !entry?'Henüz atölye seçilmedi':entry.role==='owner'?'Rolün: Yönetici · kullanıcı davet edebilir':'Rolün: Kullanıcı · envanter erişimi';
@@ -266,7 +266,7 @@ async function synchronize(force=false){
    events:result.movements?.[0]?.id,defaultLocation:result.workspace.defaultLocation
   });
   if(force||next!==fingerprint){app.enterCloudInventory(result);fingerprint=next}
-  active=true;
+  active=true;updateAccessUI();
   status('Ortak atölye bağlı · '+result.pieces.filter(x=>x.status==='available').length+
    ' mevcut parça · sunucu denetimi açık.');
   return true
@@ -293,7 +293,7 @@ async function join(){
  await workspaces(id);await selectWorkspace(id)
 }
 async function invite(){
- const id=workspace||$('cloudWorkspaceSelect').value;
+ const id=$('cloudWorkspaceSelect').value||workspace;
  if(!id)throw Error('Önce atölye seç.');
  const token=await rpc('beythaus_cloud_create_invite',{p_workspace:id});
  $('cloudInviteCode').value=token;status('Ekip katılım kodu oluşturuldu: 48 saat, 5 kullanım. Güvenli paylaş.')
