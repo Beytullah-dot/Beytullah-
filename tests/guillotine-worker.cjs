@@ -107,8 +107,35 @@ for(let index=0;index<fixtures.length;index++){
  }
  checks++
 }
+// Larger certified instances exceed the original 8-part exact search scope.
+// No numerical oracle needed: 40mm squares cannot exceed a 2x2 arrangement
+// inside a 100mm board. The Worker must independently exclude two boards.
+let largeProofs=0;
+for(const n of [9,10,11]){
+ const data={parts:Array.from({length:n},(_,i)=>({
+  id:'large-'+i,l:40,w:40,t:null,material:'MDF',rotate:false,
+  label:'L'+i,order:i
+ })),stocks:[{id:'largeStock',l:100,w:100,t:null,material:'MDF',
+  price:10,qty:20,order:0}],kerf:0,trim:0,m3:1};
+ const initial=api.optimize(data,true,false);
+ assert.ok(api.auditCutPlan(initial,data).ok,'Large analytical plan must be valid');
+ assert.equal(initial.bins.length,3,'9-11 squares require 3 boards');
+ const cert=api.certifyStockCount(initial,data,api.auditCutPlan(initial,data));
+ assert.equal(cert.lowerBound,2,'Area lower bound should not prove 3');
+ assert.equal(cert.proven,false,'Fast phase should not prove the large instance');
+ context.last=null;
+ context.onmessage({data:{type:'solve',requestId:100+n,mode:'guillotine',data,
+  incumbentBins:initial.bins.map(b=>({stockId:b.stock.id,material:b.stock.material})),
+  bounds:cert.details,timeBudgetMs:3500,maxNodes:250000}});
+ assert.equal(context.last.status,'optimal','Large exact guillotine search must prove minimum');
+ assert.equal(context.last.groups[0].status,'proved');
+ assert.equal(context.last.groups[0].checked[0].boards,2);
+ assert.equal(context.last.groups[0].checked[0].status,'infeasible');
+ largeProofs++;
+}
+
 assert.ok(improvements>=1,'Must demonstrate at least one guillotine stock saving');
-console.log('Exact guillotine validation: '+fixtures.length+' scenarios; '+
+console.log('Exact guillotine validation: '+fixtures.length+' reference scenarios + '+largeProofs+' larger analytical proofs; '+
  feasibleCases+' feasible, '+infeasibleCases+' infeasible, '+
  preAudited+' original plans audited, '+checks+' worker layouts audited, '+
  proven+' optimum claims checked, '+improvements+' improvements, '+
