@@ -39,7 +39,7 @@ function orderParts(items,trial){const rnd=rand(1013+trial*1777),f=trial%9;retur
 function evalFit(fr,w,h,variant){const dw=fr.w-w,dh=fr.h-h;if(dw< -1e-7||dh< -1e-7)return Infinity;const sh=Math.min(dw,dh),lg=Math.max(dw,dh);switch(variant%5){case 0:return sh*1e3+lg;case 1:return dw*dh*1e2+sh;case 2:return lg*1000+sh;case 3:return dh*110+dw;default:return dw*110+dh}}
 function binCost(s,cfg){const p=root.BeythausMaterialPolicy;if(p)return p.stockPrice(s,cfg);if(s.isRemnant)return 0;if(cfg.priceMode==='panel')return s.price>0?s.price:null;if(s.t===null||!(cfg.m3>0))return null;return s.l*s.w*s.t/1e9*cfg.m3}
 function mkBin(s,trim){let w=s.l-2*trim,h=s.w-2*trim;return{stock:s,x:trim,y:trim,w,h,free:[{x:trim,y:trim,w,h}],placed:[],cuts:[]}}
-function orientationChoices(it){return it.rotate&&(Math.abs(it.l-it.w)>1e-7||!!it.grain)?[[it.l,it.w,false],[it.w,it.l,true]]:[[it.l,it.w,false]]}
+function orientationChoices(it){const all=it.rotate&&(Math.abs(it.l-it.w)>1e-7||!!it.grain)?[[it.l,it.w,false],[it.w,it.l,true]]:[[it.l,it.w,false]];return all.filter(([, ,rotated])=>!root.BeythausMaterialPolicy||root.BeythausMaterialPolicy.grainAllows(it,null,rotated))}
 function findFit(bin,it,variant){if(it.t!==null&&(bin.stock.t===null||Math.abs(it.t-bin.stock.t)>1e-6))return null;let best=null;for(let j=0;j<bin.free.length;j++){const fr=bin.free[j];for(const [w,h,rotated]of orientationChoices(it)){if(root.BeythausMaterialPolicy&&!root.BeythausMaterialPolicy.grainAllows(it,bin.stock,rotated))continue;if(w>fr.w+1e-8||h>fr.h+1e-8)continue;if(state.mode==='guillotine'){const k=val(state.kerf),rx=fr.w-w,ry=fr.h-h;if(rx>1e-6&&rx<k-1e-6||ry>1e-6&&ry<k-1e-6)continue}let score=evalFit(fr,w,h,variant);if(score===Infinity)continue;const tie=(fr.x+fr.y)*.00001+Number(rotated)*.00001;score+=tie;if(!best||score<best.score)best={freeIndex:j,x:fr.x,y:fr.y,w,h,rotated,score,fr}}}return best}
 
 function applyFit(bin,it,fit,cfg,splitVariant){
@@ -671,7 +671,7 @@ function minStockCountLowerBound(data){
   g.push(p);partGroups.set(k,g)}
  for(const s of data.stocks){const k=mkey(s.material),g=stockGroups.get(k)||[];
   g.push(s);stockGroups.set(k,g)}
- let total=0,geometricUsed=false;
+ let total=0,geometricUsed=false,itemCapacityUsed=false;
  for(const [material,parts]of partGroups){
   const required=parts.reduce((sum,p)=>sum+p.l*p.w,0);
   if(!Number.isFinite(required)||required<0)
@@ -692,21 +692,25 @@ function minStockCountLowerBound(data){
   // An omitted kerf must relax the constraint, never force false incompatibility.
   const kerf=Number.isFinite(data.kerf)?Math.max(0,data.kerf):0;
   const geometry=incompatibleCliqueLowerBound(parts,stocks,data.trim,kerf);
-  const lowerBound=Math.max(areaLB,geometry.count);
+  const cardinality=root.BeythausOptimalityCertificate?.countBoundForGroup(
+   parts,stocks,data.trim,kerf);
+  const itemBound=cardinality?.status==='optimal-relaxation'?cardinality.lowerBound:0;
+  const lowerBound=Math.max(areaLB,geometry.count,itemBound);
   if(geometry.count>areaLB)geometricUsed=true;
+  if(itemBound>Math.max(areaLB,geometry.count))itemCapacityUsed=true;
   total+=lowerBound;
   details.push({material,requiredArea:required,lowerBound,areaLowerBound:areaLB,
-   incompatibilityLowerBound:geometry.count,inspectedPieces:geometry.examined,
-   totalPieces:geometry.total});
+   incompatibilityLowerBound:geometry.count,itemCapacityLowerBound:itemBound,
+   inspectedPieces:geometry.examined,totalPieces:geometry.total});
  }
- return {lowerBound:total,method:geometricUsed?'pairwise-incompatibility':'area',reason:null,details};
+ return {lowerBound:total,method:itemCapacityUsed?'kerf-cardinality':geometricUsed?'pairwise-incompatibility':'area',reason:null,details};
 }
 function certifyStockCount(plan,data,audit){
  const bound=minStockCountLowerBound(data),complete=!!audit?.ok&&plan.unplaced.length===0&&plan.placedCount===data.parts.length;
  const count=plan.bins.length,byArea=complete&&bound.lowerBound!==null&&count===bound.lowerBound;
  const byExact=complete&&plan.exact?.proof===true&&plan.exact?.optimumCount===count;
  const proven=byArea||byExact,method=byExact&&!byArea?'exhaustive-geometry':
-  bound.method==='pairwise-incompatibility'?'geometric-incompatibility':'area';
+  bound.method==='pairwise-incompatibility'?'geometric-incompatibility':bound.method==='kerf-cardinality'?'kerf-cardinality':'area';
  return {goal:'minimum-stock-count',proven,complete,
   usedStockCount:count,lowerBound:bound.lowerBound,method,searchStatus:plan.exact?.status||'skipped',
   gap:complete&&bound.lowerBound!==null?Math.max(0,count-bound.lowerBound):null,
@@ -719,7 +723,7 @@ function stockProofDescription(proof){
  if(proof.proven)return 'Minimum stok sayısı kanıtlandı: '+proof.usedStockCount+
   ' stok. '+(proof.method==='exhaustive-geometry'?
     (state.mode==='guillotine'?'Kesin giyotin kesim ağacı araması daha az stoklu tüm kesim seçeneklerini eledi.':
-     'Kesin geometrik arama daha az stoklu tüm seçenekleri eledi.'):(proof.method==='geometric-incompatibility'?'Parçaların birlikte sığma zorunlulukları ve alan alt sınırları karşılandı.':'Geçerli yerleşim alan alt sınırına ulaştı.'))+' Bu kanıt fire veya maliyet optimumluğu değildir.'+
+     'Kesin geometrik arama daha az stoklu tüm seçenekleri eledi.'):(proof.method==='geometric-incompatibility'?'Parçaların birlikte sığma zorunlulukları ve alan alt sınırları karşılandı.':proof.method==='kerf-cardinality'?'Parça boyutları, stok kapasitesi ve testere payından hesaplanan kesin alt sınıra ulaşıldı.':proof.method==='global-integer-cover'?'Karma otomatikte tüm uygun stok türlerini kapsayan tamsayılı kesin alt sınıra ulaşıldı.':'Geçerli yerleşim alan alt sınırına ulaştı.'))+' Bu kanıt fire veya maliyet optimumluğu değildir.'+
   (state.mode==='nest'?' Serbest yerleşim sonucu, panel testeresi için uygulanabilir kesim planı veya üretim uygunluğu kanıtı DEĞİLDİR.':'');
  if(proof.lowerBound===null)return 'Minimum stok sayısı kanıtlanamadı: '+proof.reason;
  return (proof.searchStatus==='limit'?'Kesin çözüm araması zaman veya işlem sınırına ulaştı. ':'')+'Minimum stok sayısı henüz kanıtlanmadı: kullanılan '+proof.usedStockCount+

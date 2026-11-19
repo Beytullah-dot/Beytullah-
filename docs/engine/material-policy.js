@@ -7,10 +7,10 @@
  const category=v=>v==='masif'?'masif':'panel';
  const grain=v=>v==='length'||v==='width'?v:'';
  const materialKey=(kind,name)=>category(kind)+'|'+norm(name);
+ // Part direction uses stock length/width coordinates; stock grain is not required.
  const grainAllows=(part,stock,rotated)=>{
-  const p=grain(part.grain),s=grain(stock.grain);
-  if(!p||!s)return true;
-  return (rotated?(p==='length'?'width':'length'):p)===s;
+  const p=grain(part.grain);
+  return p==='length'?!rotated:p==='width'?!!rotated:true;
  };
  // Price is always the user's stock price, never a searched market quotation.
  // Existing records without priceUnit retain their old pricing contract only

@@ -7,8 +7,9 @@ const context=typeof self!=='undefined'?self:null;
 if(typeof importScripts==='function')importScripts('./engine/material-policy.js','./guillotine-exact.js','./economic-exact.js');
 const canon=s=>String(s||'').trim().toLocaleLowerCase('tr-TR');
 const EPS=1e-7;
-const orientations=p=>p.rotate&&Math.abs(p.l-p.w)>EPS?
- [[p.l,p.w,false],[p.w,p.l,true]]:[[p.l,p.w,false]];
+const orientations=p=>(p.rotate&&(Math.abs(p.l-p.w)>EPS||!!p.grain)?
+ [[p.l,p.w,false],[p.w,p.l,true]]:[[p.l,p.w,false]]).filter(([, ,rotated])=>
+ !context.BeythausMaterialPolicy||context.BeythausMaterialPolicy.grainAllows(p,null,rotated));
 const compatible=(p,s)=>canon(p.material)===canon(s.material)&&
  (p.t===null||(s.t!==null&&Math.abs(p.t-s.t)<1e-6));
 function feasible(parts,stockTypes,limit,cfg,deadline,maxNodes){

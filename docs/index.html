@@ -183,11 +183,11 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
 <section class="sidebar" aria-label="Proje ayarları">
   <div class="card" id="partsCard"><div class="card-head"><div><div class="card-title">Parçalar <span class="count" id="partCount">0</span></div><div class="card-sub">Kesilecek parçalar</div></div><div class="card-actions"><button class="btn small thickness-toggle" id="partsThicknessToggle" aria-pressed="true" title="Parça kalınlığı aç/kapat" type="button">Kalınlık ✓</button><button class="btn small" id="addPartTop">＋ Ekle</button></div></div>
     <div class="material-control"><label for="materialModeSelect">Malzeme dağılımı</label><select id="materialModeSelect" aria-label="Malzeme dağılımı"><option value="single">Tek tip</option><option value="auto">Karma · Otomatik</option><option value="manual">Karma · Özel</option></select><div id="singleMaterialWrap"><label for="singleMaterialSelect">Ortak malzeme</label><select id="singleMaterialSelect"></select></div><div id="autoMaterialWrap" class="hidden"><p class="settings-note">Motor yalnız işaretlenen stokları kullanabilir. Tür satırı tüm stokları seçer; ayrıntıdan tek tek değiştirebilirsiniz.</p><div id="autoStockChoices"></div></div></div>
-    <div class="table-wrap"><table class="edit-table" style="min-width:705px"><colgroup><col style="width:72px"><col style="width:72px"><col style="width:64px"><col style="width:55px"><col style="width:90px"><col style="width:110px"><col style="width:42px"><col style="width:35px"></colgroup><thead><tr><th>Boy <span class="unitLabel">cm</span></th><th>En <span class="unitLabel">cm</span></th><th>Kal. mm</th><th>Adet</th><th>Tür</th><th>Malzeme</th><th>Etiket</th><th>Damar</th><th></th></tr></thead><tbody id="partRows"></tbody></table></div>
+    <div class="table-wrap"><table class="edit-table" style="min-width:705px"><colgroup><col style="width:72px"><col style="width:72px"><col style="width:64px"><col style="width:55px"><col style="width:90px"><col style="width:110px"><col style="width:42px"><col style="width:35px"></colgroup><thead><tr><th>Boy <span class="unitLabel">cm</span></th><th>En <span class="unitLabel">cm</span></th><th>Kal. mm</th><th>Adet</th><th>Tür</th><th>Malzeme</th><th>Etiket</th><th>Parça yönü</th><th></th></tr></thead><tbody id="partRows"></tbody></table></div>
     <div class="card-foot"><button class="link-action" id="addPart">＋ Parça ekle</button><span class="hint">Tabloda yatay kaydırın →</span></div><div class="stock-overview"><strong>Envanterdeki malzemeler</strong><div id="materialStockOverview"></div></div>
   </div>
   <div class="card" id="stocksCard"><div class="card-head"><div><div class="card-title">Stok paneller <span class="count" id="stockCount">0</span></div><div class="card-sub">Elinizdeki ham malzemeler</div></div><div class="card-actions"><button class="btn small thickness-toggle" id="stocksThicknessToggle" aria-pressed="true" title="Stok kalınlığı aç/kapat" type="button">Kalınlık ✓</button><button class="btn small" id="addStockTop">＋ Ekle</button></div></div>
-    <div class="table-wrap"><table class="edit-table" style="min-width:605px"><colgroup><col style="width:76px"><col style="width:70px"><col style="width:68px"><col style="width:56px"><col style="width:104px"><col style="width:90px"><col style="width:32px"></colgroup><thead><tr><th>Boy <span class="unitLabel">cm</span></th><th>En <span class="unitLabel">cm</span></th><th>Kal. mm</th><th>Stok</th><th>Tür</th><th>Renk / Ağaç</th><th>Fiyat ₺</th><th>Damar</th><th>Raf / Göz</th><th></th></tr></thead><tbody id="stockRows"></tbody></table></div>
+    <div class="table-wrap"><table class="edit-table" style="min-width:605px"><colgroup><col style="width:76px"><col style="width:70px"><col style="width:68px"><col style="width:56px"><col style="width:104px"><col style="width:90px"><col style="width:32px"></colgroup><thead><tr><th>Boy <span class="unitLabel">cm</span></th><th>En <span class="unitLabel">cm</span></th><th>Kal. mm</th><th>Stok</th><th>Tür</th><th>Renk / Ağaç</th><th>Fiyat ₺</th><th>Raf / Göz</th><th></th></tr></thead><tbody id="stockRows"></tbody></table></div>
     <div class="card-foot"><button class="link-action" id="addStock">＋ Stok ekle</button><span class="hint">Kayıtlar ortak envanterde tutulur</span></div>
   </div>
 
@@ -223,7 +223,7 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
         Bu plan yalnızca geometrik bir taslaktır. Panel testeresi için her kesim,
         mevcut iş parçasının bir kenarından karşı kenarına ulaşmalıdır.</span>
       <div class="exact-search-actions"><button class="btn small primary" type="button" id="productionSafetySwitch">Düz kesim planı oluştur</button></div>
-    </div><div class="optimality-row" id="optimalityRow">Minimum stok sayısı: hesaplama bekleniyor.</div><div class="optimality-row" id="grossWasteProofRow">Brüt fire optimumluğu: hesaplama bekleniyor.</div>
+    </div><div class="optimality-row" id="optimalityRow">Minimum stok sayısı: hesaplama bekleniyor.</div><div class="optimality-row" id="grossWasteProofRow">Brüt fire optimumluğu: hesaplama bekleniyor.</div><div class="optimality-row" id="globalCostProofRow">Maliyet optimumluğu: hesaplama bekleniyor.</div>
     <div class="exact-search-line hidden" id="exactSearchLine" role="status" aria-live="polite">
       <span id="exactSearchText"></span>
       <div class="exact-search-actions">
@@ -243,7 +243,7 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
     <div id="planMaterialList" class="stock-overview hidden"></div><div class="plan-tabs" id="planTabs"></div><div id="planBody" class="empty-state"><div class="empty-icon">▤</div><strong>Kesim planı burada görünecek</strong><p>Parça ve stok ölçülerini girip yerleşimi hesaplayın. Masif parçalarında kalınlık zorunludur.</p></div>
   </section>
   <div class="info-grid"><div class="card info-pad"><div class="card-title">Malzeme hesabı</div><div id="costDetails" class="empty-state" style="min-height:115px;padding:10px"><p>Hesaplama bekleniyor.</p></div></div><div class="card info-pad"><div class="card-title">Kesim özeti</div><div id="cutDetails" class="empty-state" style="min-height:115px;padding:10px"><p>Hesaplama bekleniyor.</p></div></div></div>
-  <div class="helpnote">Panel ve masif kesimleri, karşı kenara ulaşan <b>giyotin kesim</b> kuralıyla planlanır. Masif parçalarda kalınlık zorunlu ve stok kalınlığıyla eşit olmalıdır. Damar yönü tuşu: boş = serbest, = = en boyunca, Ⅱ = boy boyunca. Kesimi gerçekleştirmeden önce makine ve bağlama koşullarını kontrol edin.</div>
+  <div class="helpnote">Panel ve masif kesimleri, karşı kenara ulaşan <b>giyotin kesim</b> kuralıyla planlanır. Masif parçalarda kalınlık zorunlu ve stok kalınlığıyla eşit olmalıdır. Parça yönü tuşu: boş = serbest, = = enine, Ⅱ = boyuna. Yön, stokun boy ve en eksenlerine göredir. Kesimi gerçekleştirmeden önce makine ve bağlama koşullarını kontrol edin.</div>
   <div class="footer"><span>Beythaus Cut · Verileriniz bu tarayıcıda saklanır.</span><span>Çevrimdışı · Kurulumsuz</span></div>
 </main>
 </div>
@@ -353,6 +353,7 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
 </div>
 <div id="remnantLabelPrintRoot" aria-hidden="true"></div>
 <script src="./engine/material-policy.js"></script>
+ <script src="./engine/optimality-certificate.js"></script>
 <script src="./engine/production-audit.js"></script>
 <script src="./engine/cutting-engine.js"></script>
 <script src="./engine/material-allocator.js"></script>
@@ -941,7 +942,7 @@ function renderMaterialControls(){
 }
 function grainButton(value){
  const current=materialPolicy.grain(value),symbol=materialPolicy.grainSymbol(current);
- return '<button type="button" data-action="grain" class="grain-cycle" data-grain="'+esc(current)+'" title="'+esc(materialPolicy.grainName(current))+'" aria-label="Damar yönü: '+esc(materialPolicy.grainName(current))+'">'+(symbol||'·')+'</button>'
+ return '<button type="button" data-action="grain" class="grain-cycle" data-grain="'+esc(current)+'" title="'+esc(materialPolicy.grainName(current))+'" aria-label="Parça yönü: '+esc(materialPolicy.grainName(current))+'">'+(symbol||'·')+'</button>'
 }
 byId('materialModeSelect').onchange=e=>{
  state.materialMode=e.target.value;
@@ -991,7 +992,7 @@ function renderRows(){
   '<td><select class="category-inline-select" aria-label="Stok türü" data-k="category">'+categoryOpts(stockKind(r))+'</select></td>'+
   '<td><input aria-label="Renk veya ağaç türü" class="cell-input" data-k="material" value="'+esc(r.material)+'"></td>'+
   '<td><input aria-label="'+(stockKind(r)==='masif'?'₺ / m³':'₺ / panel')+'" title="'+(stockKind(r)==='masif'?'₺ / m³':'₺ / panel')+'" class="cell-input number" data-k="price" inputmode="decimal" value="'+esc(r.price)+'"></td>'+
-  '<td>'+grainButton(r.grain)+'</td>'+
+
   '<td><input aria-label="Raf ve göz" class="cell-input" data-k="location" value="'+esc(r.location||'')+'" placeholder="Raf A / Göz 1"></td><td><button aria-label="Satırı sil" class="rowdel" data-action="delete">×</button></td></tr>'
  ).join('');
  byId('partCount').textContent=fmt(state.parts.reduce((s,p)=>s+(Number(val(p.qty))||0),0),0);
@@ -1045,7 +1046,7 @@ function bindTable(id,key){
    button.dataset.grain=obj.grain;
    button.textContent=materialPolicy.grainSymbol(obj.grain)||'·';
    button.title=materialPolicy.grainName(obj.grain);
-   button.setAttribute('aria-label','Damar yönü: '+materialPolicy.grainName(obj.grain));
+   button.setAttribute('aria-label','Parça yönü: '+materialPolicy.grainName(obj.grain));
    changed();return
   }
   if(button.dataset.action==='delete'){
@@ -1252,7 +1253,102 @@ function refreshProductionSafety(){
  const line=byId('productionSafetyLine');
  if(line)line.classList.toggle('hidden',state.mode==='guillotine');
 }
-function showResult(data,sol){const audit=auditCutPlan(sol,data);if(!audit.ok)throw Error('Kesim doğrulaması başarısız: '+audit.issues.slice(0,2).join(' · '));sol.stockProof=certifyStockCount(sol,data,audit);lastAudit=audit;solution=sol;dirty=false;activeSheet=0;refreshRemnantUI();refreshProductionSafety();byId('planCard').querySelector('.card-title').textContent=state.mode==='nest'?'Yerleşim taslağı · Üretime uygun değil':'Düz kesim · Kesim ağacı doğrulandı';byId('optimalityRow').textContent=stockProofDescription(sol.stockProof);byId('optimalityRow').classList.toggle('is-proven',sol.stockProof.proven);byId('grossWasteProofRow').textContent=grossWasteProofDescription(sol);byId('grossWasteProofRow').classList.toggle('is-proven',!!sol.areaProof?.proven);
+let boundProofWorker=null,boundProofRequest=0,boundProofTimer=null;
+function certifyLargePlan(data,plan){
+ if(boundProofWorker){boundProofWorker.terminate();boundProofWorker=null}
+ if(boundProofTimer!==null){clearTimeout(boundProofTimer);boundProofTimer=null}
+ const requestId=++boundProofRequest,areaLine=byId('grossWasteProofRow'),
+  costLine=byId('globalCostProofRow');
+ areaLine.classList.remove('is-proven');costLine.classList.remove('is-proven');
+ if(state.mode!=='guillotine'||plan.unplaced.length||!plan.bins.length){
+  costLine.textContent='Küresel maliyet optimumluğu: fiziksel plan tamamlanmadığından kanıtlanmadı.';
+  return
+ }
+ if(typeof Worker==='undefined'){
+  costLine.textContent='Küresel maliyet optimumluğu: kesin hesaplama bu tarayıcıda desteklenmiyor.';
+  return
+ }
+ let worker;
+ try{worker=new Worker('./optimality-worker.js')}catch(error){
+  console.warn('Proof Worker unavailable',error);
+  costLine.textContent='Küresel maliyet optimumluğu: matematiksel arama başlatılamadı.';
+  return
+ }
+ boundProofWorker=worker;
+ areaLine.textContent='Küresel minimum brüt fire alt sınırı hesaplanıyor…';
+ costLine.textContent='Küresel minimum malzeme maliyeti alt sınırı hesaplanıyor…';
+ function finish(){
+  if(boundProofTimer!==null){clearTimeout(boundProofTimer);boundProofTimer=null}
+  if(boundProofWorker===worker){worker.terminate();boundProofWorker=null}
+ }
+ worker.onerror=error=>{
+  console.warn('Global certificate error',error);finish();
+  if(!dirty&&solution===plan)costLine.textContent='Küresel maliyet optimumluğu: hesaplama çalıştırılamadı.';
+ };
+ worker.onmessage=event=>{
+  if(boundProofWorker!==worker||requestId!==boundProofRequest)return;
+  const response=event.data;
+  finish();
+  if(dirty||solution!==plan||response?.requestId!==requestId)return;
+  if(response.type!=='certificate'){
+   costLine.textContent='Küresel maliyet optimumluğu: hesaplama tamamlanmadı.';return
+  }
+  plan.globalAreaProof=response.area;plan.globalCostProof=response.cost;
+  if(response.count?.proven&&state.materialMode==='auto'){
+   plan.stockProof={...plan.stockProof,proven:true,
+    lowerBound:response.count.lowerBound,method:'global-integer-cover',
+    usedStockCount:plan.bins.length,
+    reason:'Tüm uygun malzeme atamalarının iyimser alt sınırına ulaşıldı.'};
+   byId('optimalityRow').textContent=stockProofDescription(plan.stockProof);
+   byId('optimalityRow').classList.add('is-proven');
+  }else if(state.materialMode==='auto'&&Number.isFinite(response.count?.lowerBound)){
+   byId('optimalityRow').textContent='Karma otomatikte minimum stok sayısı kanıtlanmadı: '+
+    plan.bins.length+' kullanılan, tüm uygun stokları kapsayan alt sınır '+
+    response.count.lowerBound+'.';
+  }
+  const area=response.area,cost=response.cost;
+  if(area?.proven){
+   areaLine.textContent='Küresel minimum brüt malzeme kaybı kanıtlandı: '+
+    fmt((plan.stockArea-plan.partArea)/1e6,4)+
+    ' m². Tüm mevcut stok adet birleşimleri için kesin alan alt sınırına ulaşıldı.';
+   areaLine.classList.add('is-proven');
+  }else{
+   const bound=Number.isFinite(area?.lowerBound)?
+    ' · matematiksel alt sınır '+fmt((area.lowerBound-plan.partArea)/1e6,4)+' m²':'';
+   areaLine.textContent='Küresel minimum brüt fire kanıtlanmadı'+bound+
+    '. Giyotin planı geçerlidir; daha iyi yerleşim olabilir.';
+  }
+  if(cost?.proven){
+   costLine.textContent='Küresel minimum kayıtlı stok maliyeti kanıtlandı: '+money(plan.cost)+
+    '. İşçilik ve varsayımsal artık değeri hariçtir.';
+   costLine.classList.add('is-proven');
+  }else if(cost?.status==='unknown-bound'&&cost.groups?.some(g=>g.status==='unknown-price')){
+   costLine.textContent='Küresel minimum stok maliyeti kanıtlanmadı: fiyatı bilinmeyen stok var.';
+  }else{
+   costLine.textContent='Küresel minimum stok maliyeti kanıtlanmadı'+
+    (Number.isFinite(cost?.lowerBound)?' · kanıtlı alt sınır '+money(cost.lowerBound):'')+
+    '. Daha ekonomik bir kesim planı bulunabilir.';
+  }
+ };
+ boundProofTimer=setTimeout(()=>{
+  if(boundProofWorker!==worker)return;
+  finish();
+  if(!dirty&&solution===plan){
+   areaLine.textContent='Küresel minimum fire kanıtı: işlem sınırı aşıldı.';
+   costLine.textContent='Küresel minimum maliyet kanıtı: işlem sınırı aşıldı.';
+  }
+ },8500);
+ worker.postMessage({type:'certify',requestId,
+  data:{parts:data.parts,stocks:data.stocks,trim:data.trim,kerf:data.kerf},
+  plan:{bins:plan.bins.map(()=>({})),stockArea:plan.stockArea,cost:plan.cost,
+   placedCount:plan.placedCount,unplaced:plan.unplaced,stockProof:plan.stockProof},
+  allowMaterialAssignment:state.materialMode==='auto',priceMode:state.priceMode,m3:data.m3});
+}
+function showResult(data,sol){const audit=auditCutPlan(sol,data);if(!audit.ok)throw Error('Kesim doğrulaması başarısız: '+audit.issues.slice(0,2).join(' · '));sol.stockProof=certifyStockCount(sol,data,audit);
+if(state.materialMode==='auto')sol.stockProof={...sol.stockProof,proven:false,
+ lowerBound:null,gap:null,method:'unverified-auto-assignment',
+ reason:'Karma otomatik stok atamaları birlikte ele alınmadan optimumluk kanıtlanamaz.'};
+lastAudit=audit;solution=sol;dirty=false;activeSheet=0;refreshRemnantUI();refreshProductionSafety();byId('planCard').querySelector('.card-title').textContent=state.mode==='nest'?'Yerleşim taslağı · Üretime uygun değil':'Düz kesim · Kesim ağacı doğrulandı';byId('optimalityRow').textContent=stockProofDescription(sol.stockProof);byId('optimalityRow').classList.toggle('is-proven',sol.stockProof.proven);byId('grossWasteProofRow').textContent=grossWasteProofDescription(sol);byId('grossWasteProofRow').classList.toggle('is-proven',!!sol.areaProof?.proven);
 const completeThickness=sol.bins.length>0&&sol.bins.every(b=>b.stock.t!==null);
 const m3Stock=completeThickness?sol.bins.reduce((a,b)=>a+b.stock.l*b.stock.w*b.stock.t,0)/1e9:null;
 const m3Parts=completeThickness?sol.bins.reduce((a,b)=>a+b.placed.reduce((sum,p)=>sum+p.w*p.h*b.stock.t,0),0)/1e9:null;
@@ -1298,7 +1394,7 @@ const validPrice=priceKnown;byId('costDetails').innerHTML=kv('Maliyet yöntemi',
  '<div style="font-size:11px;color:#9a7c54;padding-top:8px">Artık değerlemesi varsayımsaldır; stok edinme maliyetinden düşülen gerçekleşmiş bir tasarruf değildir ve matematiksel optimumluk kanıtına dahil edilmez.</div>':
  kv('Artık için ekonomik değer',state.mode==='guillotine'?'Fiyat varsayımı girilmedi':'Serbest yerleşimde kesin artık ölçüsü yok'))+
  '<div style="font-size:11px;color:#98a69a;padding-top:12px">Bu plan kayıtlı stok değeri üzerinden hesaplanır; kullanıcı ek maliyetleri ayrıca girebilir. Alan optimumluğu en ucuz stok seçimi değildir.</div>';
-window._unresolved=unresolved;drawActive();for(const id of ['zoomBtn','printBtn'])byId(id).disabled=!sol.bins.length;prepareCachedPdf()}
+window._unresolved=unresolved;drawActive();for(const id of ['zoomBtn','printBtn'])byId(id).disabled=!sol.bins.length;prepareCachedPdf();certifyLargePlan(data,sol)}
 function drawActive(){const s=solution;if(!s||!s.bins.length){byId('planTabs').innerHTML='';byId('planBody').className='empty-state';byId('planBody').innerHTML='<div class="empty-icon">▤</div><strong>Yerleşim oluşturulamadı</strong><p>Bu ölçü, malzeme veya belirtilmiş kalınlığa uygun stok bulunamadı.</p>';return}
 byId('planTabs').innerHTML=s.bins.map((b,i)=>`<button class="sheet-tab ${i===activeSheet?'active':''}" data-i="${i}">Stok ${i+1} <span style="opacity:.65">· ${thicknessText(b.stock.t)}</span></button>`).join('');byId('planBody').className='';byId('planBody').innerHTML=planHtml(s.bins[activeSheet])+(window._unresolved||'')}
 byId('planTabs').onclick=e=>{const b=e.target.closest('button[data-i]');if(!b)return;activeSheet=Number(b.dataset.i);drawActive()};
