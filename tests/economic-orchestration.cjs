@@ -4,7 +4,7 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const html=fs.readFileSync(path.join(__dirname,'../docs/index.html'),'utf8');
 const begin=html.indexOf('let exactWorker=null');
-const end=html.indexOf('let processing=false;',begin);
+const end=html.indexOf('let autoPlanCache=null;',begin);
 assert.ok(begin>0&&end>begin,'Worker UI orchestrator found');
 const source=html.slice(begin,end);
 function makeHarness({proved=false}={}){
