@@ -22,6 +22,12 @@ function createEngine({getState,val,mkey,fmt}={}){
   },
   set(){throw new TypeError('Calculation core must not mutate project state')}
  });
+ const productionAudit=root.BeythausCutProductionAudit;
+ if(!productionAudit||productionAudit.contractVersion!==CONTRACT_VERSION)
+  throw new Error('Kesim doğrulama devresi bulunamadı veya sürümü farklı.');
+ const {auditGuillotineCuts,validateLayout,auditCutPlan}=
+  productionAudit.createAudit({getState,mkey});
+
 function intersect(a,b){return a.x<b.x+b.w-1e-7&&a.x+a.w>b.x+1e-7&&a.y<b.y+b.h-1e-7&&a.y+a.h>b.y+1e-7}
 function contain(a,b){return a.x>=b.x-1e-7&&a.y>=b.y-1e-7&&a.x+a.w<=b.x+b.w+1e-7&&a.y+a.h<=b.y+b.h+1e-7}
 function prune(rects){const out=[];for(let i=0;i<rects.length;i++){let v=rects[i],keep=v.w>1e-7&&v.h>1e-7;for(let j=0;keep&&j<rects.length;j++)if(i!==j&&contain(v,rects[j])){if(!contain(rects[j],v)||j<i)keep=false}if(keep)out.push(v)}return out}
@@ -54,43 +60,6 @@ function applyFit(bin,it,fit,cfg,splitVariant){
   if(dh>1e-6)step('horizontal',rect,used.y+used.h+cfg.kerf/2);
   if(dw>1e-6)step('vertical',{x:rect.x,y:rect.y,w:rect.w,h:used.h},used.x+used.w+cfg.kerf/2);
  }
-}
-function auditGuillotineCuts(bin,cfg){
- const errors=[],tol=1e-5,eq=(a,b)=>Math.abs(a-b)<=tol;
- const leaves=[{x:cfg.trim,y:cfg.trim,w:bin.stock.l-2*cfg.trim,h:bin.stock.w-2*cfg.trim}];
- const same=(a,b)=>eq(a.x,b.x)&&eq(a.y,b.y)&&eq(a.w,b.w)&&eq(a.h,b.h);
- function issue(msg){if(errors.length<10)errors.push(msg)}
- if(!Array.isArray(bin.cuts)){issue('Kesim adımları eksik.');return errors}
- for(let j=0;j<bin.cuts.length;j++){
-  const c=bin.cuts[j],p=c.source;if(!p||!['vertical','horizontal'].includes(c.axis)){issue('Kesim kaydı geçersiz.');continue}
-  const ix=leaves.findIndex(x=>same(x,p));if(ix<0){issue('Adım '+(j+1)+': kaynak parça bulunamadı.');continue}
-  const source=leaves.splice(ix,1)[0],vertical=c.axis==='vertical',at=c.at,k=cfg.kerf;
-  if(!(Number.isFinite(at)&&c.number===j+1)){issue('Adım numarası veya kesim yeri geçersiz.');continue}
-  if(vertical?!(eq(c.x1,at)&&eq(c.x2,at)&&eq(c.y1,p.y)&&eq(c.y2,p.y+p.h)):!(eq(c.y1,at)&&eq(c.y2,at)&&eq(c.x1,p.x)&&eq(c.x2,p.x+p.w))){
-   issue('Adım '+(j+1)+': kesim kaynağın tamamını geçmiyor.')
-  }
-  const before=(vertical?at-p.x:at-p.y)-k/2,after=(vertical?p.x+p.w-at:p.y+p.h-at)-k/2;
-  if(before<-tol||after<-tol){issue('Adım '+(j+1)+': testere payı stok dışına taşıyor.');continue}
-  if(vertical){
-   if(before>tol)leaves.push({x:p.x,y:p.y,w:before,h:p.h});
-   if(after>tol)leaves.push({x:at+k/2,y:p.y,w:after,h:p.h});
-  }else{
-   if(before>tol)leaves.push({x:p.x,y:p.y,w:p.w,h:before});
-   if(after>tol)leaves.push({x:p.x,y:at+k/2,w:p.w,h:after});
-  }
- }
- for(const piece of bin.placed){
-  const ix=leaves.findIndex(x=>same(x,piece));
-  if(ix<0)issue('Kesim adımları '+piece.label+' parçasını oluşturmuyor.');
-  else leaves.splice(ix,1);
- }
- for(const fr of bin.free){
-  const ix=leaves.findIndex(x=>same(x,fr));
-  if(ix<0)issue('Kalan stok dikdörtgeni kesim ağacıyla uyuşmuyor.');
-  else leaves.splice(ix,1);
- }
- if(leaves.length)issue('Kesim ağacında sınıflandırılmayan parçalar mevcut.');
- return errors
 }
 function packAttempt(items,stocks,cfg,trial){const ordered=orderParts(items,trial),bins=[],unplaced=[],used={},suffix=new Array(ordered.length+1).fill(0);for(let k=ordered.length-1;k>=0;k--)suffix[k]=suffix[k+1]+ordered[k].l*ordered[k].w;const variant=Math.floor(trial/2)%5,splitVariant=Math.floor(trial/5)%4,stockSelect=Math.floor(trial/7)%4;
 for(let idx=0;idx<ordered.length;idx++){const it=ordered[idx];let match=null;for(let bi=0;bi<bins.length;bi++){const fit=findFit(bins[bi],it,variant);if(fit&&(!match||fit.score<match.fit.score))match={bin:bins[bi],fit}}if(match){applyFit(match.bin,it,match.fit,cfg,splitVariant);continue}
@@ -756,66 +725,6 @@ function stockProofDescription(proof){
  return (proof.searchStatus==='limit'?'Kesin çözüm araması zaman veya işlem sınırına ulaştı. ':'')+'Minimum stok sayısı henüz kanıtlanmadı: kullanılan '+proof.usedStockCount+
   ', matematiksel alt sınır '+proof.lowerBound+' stok. Daha iyi bir planın varlığı da kanıtlanmış değil.';
 }
-
-function validateLayout(r,cfg){const problems=[];const stockUse={};for(const b of r.bins){stockUse[b.stock.id]=(stockUse[b.stock.id]||0)+1;const eps=1e-5;for(let i=0;i<b.placed.length;i++){const p=b.placed[i];if(p.t!==null&&(b.stock.t===null||Math.abs(p.t-b.stock.t)>1e-6))problems.push('Parça ve stok kalınlığı eşleşmiyor.');if(p.x<cfg.trim-eps||p.y<cfg.trim-eps||p.x+p.w>b.stock.l-cfg.trim+eps||p.y+p.h>b.stock.w-cfg.trim+eps)problems.push('Parça stok sınırının dışında.');for(let j=i+1;j<b.placed.length;j++){const v=b.placed[j],gap=cfg.kerf-1e-6;if(p.x<v.x+v.w+gap&&p.x+p.w+gap>v.x&&p.y<v.y+v.h+gap&&p.y+p.h+gap>v.y){ // Only reject if overlap in both axes after kerf inflation: for diagonal corners, a shared kerf rectangle is not always required.
-const dx=Math.min(p.x+p.w,v.x+v.w)-Math.max(p.x,v.x),dy=Math.min(p.y+p.h,v.y+v.h)-Math.max(p.y,v.y);if(dx>eps&&dy>-gap||dy>eps&&dx>-gap||dx>eps&&dy>eps)problems.push('Parçalar arasında testere payı eksik.')}}}}for(const b of r.bins)if(stockUse[b.stock.id]>b.stock.qty)problems.push('Stok miktarı aşıldı.');return[...new Set(problems)]}
-
-// Independent cut-plan verification. Never relies on the packer's free rectangles.
-function auditCutPlan(result,data){
- const issues=[],parts=new Map(),stocks=new Map(),seen=new Set(),usage=new Map(),eps=1e-5;
- const eq=(a,b)=>Number.isFinite(a)&&Number.isFinite(b)&&Math.abs(a-b)<=Math.max(eps,1e-9*Math.max(Math.abs(a),Math.abs(b)));
- const error=m=>{if(issues.length<25)issues.push(m)};
- for(const p of data.parts){if(parts.has(p.id))error('Kaynak parça kimliği tekrar ediyor.');parts.set(p.id,p)}
- for(const stock of data.stocks){if(stocks.has(stock.id))error('Stok kimliği tekrar ediyor.');stocks.set(stock.id,stock)}
- if(!result||!Array.isArray(result.bins)||!Array.isArray(result.unplaced)){
-  error('Yerleşim sonucu eksik.');return {ok:false,issues,checkedParts:0}
- }
- let count=0,area=0,totalStockArea=0;
- for(let index=0;index<result.bins.length;index++){
-  const bin=result.bins[index],board=bin?.stock,stock=stocks.get(board?.id);
-  if(!stock){error('Stok '+(index+1)+' kaynak listesinde yok.');continue}
-  usage.set(stock.id,(usage.get(stock.id)||0)+1);totalStockArea+=stock.l*stock.w;
-  if(!Array.isArray(bin.placed)||!bin.placed.length){error('Boş stok yerleşimi.');continue}
-  if(state.mode==='guillotine')for(const msg of auditGuillotineCuts(bin,{trim:data.trim,kerf:data.kerf}))error(msg);
-  if(!eq(board.l,stock.l)||!eq(board.w,stock.w)||mkey(board.material)!==mkey(stock.material)||
-   (board.t===null)!==(stock.t===null)||(board.t!==null&&!eq(board.t,stock.t)))error('Stok boyutları değişmiş.');
-  for(const piece of bin.placed){
-   count++;
-   const original=parts.get(piece.id);
-   if(!original){error('Bilinmeyen parça: '+piece.id);continue}
-   if(seen.has(piece.id))error('Parça tekrarlanıyor: '+piece.label);
-   seen.add(piece.id);
-   if([piece.x,piece.y,piece.w,piece.h].some(v=>!Number.isFinite(v))||!(piece.w>0&&piece.h>0)){error('Geçersiz parça koordinatı: '+piece.label);continue}
-   area+=piece.w*piece.h;
-   const straight=eq(piece.w,original.l)&&eq(piece.h,original.w);
-   const rotated=original.rotate&&eq(piece.w,original.w)&&eq(piece.h,original.l);
-   if(!((!piece.rotated&&straight)||(piece.rotated&&rotated)))error('Parça ölçüsü veya dönüşü değişmiş: '+piece.label);
-   if(mkey(piece.material)!==mkey(original.material)||mkey(piece.material)!==mkey(stock.material))error('Malzeme eşleşmiyor: '+piece.label);
-   if((original.t===null)!==(piece.t===null)||(original.t!==null&&!eq(original.t,piece.t)))error('Parça kalınlığı değişmiş: '+piece.label);
-   if(original.t!==null&&(stock.t===null||!eq(original.t,stock.t)))error('Stok kalınlığı eşleşmiyor: '+piece.label);
-   if(piece.x<data.trim-eps||piece.y<data.trim-eps||piece.x+piece.w>stock.l-data.trim+eps||piece.y+piece.h>stock.w-data.trim+eps)error('Kenar veya stok sınırı ihlali: '+piece.label);
-  }
-  // Exact kerf-clearance condition for axis-aligned rectangular placements.
-  for(let i=0;i<bin.placed.length;i++)for(let j=i+1;j<bin.placed.length;j++){
-   const a=bin.placed[i],b=bin.placed[j],k=data.kerf;
-   if([a.x,a.y,a.w,a.h,b.x,b.y,b.w,b.h].some(v=>!Number.isFinite(v)))continue;
-   const separated=a.x+a.w+k<=b.x+eps||b.x+b.w+k<=a.x+eps||a.y+a.h+k<=b.y+eps||b.y+b.h+k<=a.y+eps;
-   if(!separated)error('Parçalar çakışıyor / testere payı eksik: '+a.label+' / '+b.label)
-  }
- }
- for(const piece of result.unplaced){
-  if(!parts.has(piece.id)){error('Yerleşmeyen parça tanımsız.');continue}
-  if(seen.has(piece.id))error('Parça hem yerleşmiş hem yerleşmemiş: '+piece.label);
-  seen.add(piece.id)
- }
- for(const [id,stock]of stocks)if((usage.get(id)||0)>stock.qty)error('Stok adedi aşıldı: '+stock.material);
- if(seen.size!==parts.size)error('Eksik veya kaybolan parça var.');
- if(result.placedCount!==count)error('Parça sayısı tutarsız.');
- if(!eq(result.partArea,area))error('Parça alanı tutarsız.');
- if(!eq(result.stockArea,totalStockArea))error('Stok alanı tutarsız.');
- return {ok:issues.length===0,issues,checkedParts:count,checkedStocks:result.bins.length,costComplete:result.unknownCostBins===0}
-}
-
 
  return Object.freeze({binCost,mkBin,collectOffcuts,offcutOptimizationDescription,optimize,grossWasteProofDescription,certifyStockCount,stockProofDescription,validateLayout,auditCutPlan,auditGuillotineCuts,minStockCountLowerBound});
 }
