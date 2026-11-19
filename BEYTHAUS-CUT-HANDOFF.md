@@ -182,13 +182,57 @@ masaüstü uyumlu bir web/PWA; yalın, işlev odaklı arayüz.
   istemci kullanımına tasarlanmış kasıtlı RPC'lerdir, fakat üyelik/yetki
   sınırları düzenli gözden geçirilmelidir.
 
+### 20 Kasım 2026 — canlı kabul hazırlığı ve salt-okunur denetim (PR #2)
+
+- `master` son doğrulanan kaynak commit'i: `e9a6bc0dca659b3691981788b572af60e12abbff`.
+  Bu commit için son GitHub Pages çalışması **success**:
+  https://github.com/Beytullah-dot/Beytullah-/actions/runs/44621324570.
+  Yayın işleminin başarılı olması, iPhone'da işlevlerin doğrulandığı anlamına gelmez;
+  canlı URL bu çalışma ortamındaki web görüntüleyiciyle ayrıca açılamadı.
+- Gerçek uygulamaya yeni bir demo eklenmedi. Tarayıcı kabul regresyonu,
+  WebKit/iPhone **emülasyonunda** ve izole yerel stokla hazırlanıyor:
+  https://github.com/Beytullah-dot/Beytullah-/pull/2
+  Dosyalar: `tests/ios-webkit-acceptance.cjs`,
+  `.github/workflows/ios-webkit-acceptance.yml`,
+  `tests/SAFARI-UAT-CHECKLIST.md`.
+  Testler tamamlanıp PR birleştirilene kadar bunlar **yayınlanmış özellik**
+  sayılmamalıdır.
+- PR #2 geliştirme dalı `75d575c0e0d82d456b01f110202eebb63553c490`
+  üzerinde geometri ve optimizasyon Actions çalışmaları **success**:
+  https://github.com/Beytullah-dot/Beytullah-/actions/runs/44624227064
+  https://github.com/Beytullah-dot/Beytullah-/actions/runs/44624227074.
+  iPhone WebKit kabul akışı **son kontrol sırasında devam ediyordu**:
+  https://github.com/Beytullah-dot/Beytullah-/actions/runs/44624227652.
+  Önceki WebKit başarısızlıkları sırasıyla desteklenmeyen Ubuntu runner'ı
+  ve kapalı `details` test grubuna tıklama hatasıydı; **uygulama testi
+  geçmiş sayılmadı**.
+- Gerçek Supabase `pdqgpupdqgrxejvjpdzs`: `ACTIVE_HEALTHY`; migration
+  kayıtları `20261118212836` ve `20261119202121`. 10 public tablo
+  RLS etkin. Denetim anında tam stok, tekil artık ve tamamlanan üretim
+  kayıtlarında **0 satır** vardı; kullanıcı içeriği değiştirilmedi.
+- Şema izin sorgusunda dokuz `beythaus_cloud_*` RPC'si `anon`
+  rolüne **kapalı**, `authenticated` rolüne **açık**,
+  `SECURITY DEFINER` ve sabit boş `search_path` ile tanımlıydı.
+  Fonksiyon gövdelerinin tüm yetki yolları için bağımsız güvenlik testi
+  yapılmış olduğu **iddia edilmez**.
+- Supabase güvenlik danışmanı on RLS/policy bilgi uyarısı (tabloya doğrudan
+  erişim kapalı tasarım), dokuz kasıtlı `SECURITY DEFINER` RPC uyarısı
+  ve **Leaked Password Protection Disabled** bildiriyor.
+  Şifre sızıntısı korumasını Supabase Auth yapılandırmasında gözden geçir:
+  https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection
+
 ## E. Son tamamlanan adım / sıradaki adım
 
-**Son tamamlanan:** PR #1 `master` dalına birleştirildi;
-GitHub Pages dağıtımı ve iki CI iş akışı başarılı.
+**Son tamamlanan (20 Kasım):** PR #1 üretim V2 olarak master'da. PR #2 için
+izole iPhone WebKit regresyonu ve gerçek Safari test listesi geliştirme dalında
+yazıldı; geometri ve optimizasyon CI'ı geçti. WebKit kabul testi henüz başarıyla
+tamamlanmış ve PR #2 master'a birleştirilmiş olarak doğrulanmadı.
 
-**Sıradaki adım:** Canlı iPhone/Safari'de şu sırayla **test amaçlı**
-kullanıcı kabulü yap:
+**Sıradaki adım:** Önce PR #2 WebKit kabul CI'ının son committe sonuçlandığını
+doğrula. Başarısızsa test/uygulama kusurunu ayır ve düzelt; üç CI başarılıysa
+PR #2'yi birleştirip master ve Pages'i yeniden doğrula. Ardından
+`tests/SAFARI-UAT-CHECKLIST.md` kullanarak canlı iPhone/Safari'de şu sırayla
+**test amaçlı** kullanıcı kabulü yap:
 1. Sayfanın yenilenmesi ve menüler: Kesim Planı, Stok Envanteri,
    Maliyet Kayıtları, Hesap Ayarları.
 2. Damar düğmesi boş → `=` → `Ⅱ`; parça/stok mat. eşleştirme ve
