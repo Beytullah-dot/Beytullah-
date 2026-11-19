@@ -5,12 +5,14 @@ on:
     branches: [master]
     paths:
       - 'docs/index.html'
+      - 'docs/optimization-worker.js'
       - 'tests/**'
       - '.github/workflows/optimization-verification.yml'
   pull_request:
     branches: [master]
     paths:
       - 'docs/index.html'
+      - 'docs/optimization-worker.js'
       - 'tests/**'
       - '.github/workflows/optimization-verification.yml'
   workflow_dispatch:
@@ -29,6 +31,8 @@ jobs:
           node-version: '22'
       - name: Verify analytical geometric lower bounds
         run: node tests/geometric-bounds.cjs
+      - name: Verify background exact Worker against reference oracle
+        run: node tests/optimization-worker.cjs
       - name: Verify optimizer and proof claims
         run: node tests/optimization-regression.cjs --json optimization-report.json
       - name: Publish test report
