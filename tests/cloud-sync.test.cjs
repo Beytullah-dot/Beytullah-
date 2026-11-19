@@ -108,10 +108,14 @@ function fakeFetch(url,options){
  return Promise.resolve(fail(404,'Unknown mock route '+ending))
 }
 function createClient(device,hash=''){
- const nodes=new Map(),className=()=>({toggle(){},add(){},remove(){},contains(){return false}});
+ const nodes=new Map(),className=(initial='')=>{
+  const names=new Set(initial?[initial]:[]);
+  return {toggle(name,force){const on=force===undefined?!names.has(name):!!force;on?names.add(name):names.delete(name);return on},
+   add(name){names.add(name)},remove(name){names.delete(name)},contains(name){return names.has(name)}}
+ };
  const el=id=>{
   if(!nodes.has(id))nodes.set(id,{id,value:'',innerHTML:'',textContent:'',
-   dataset:{},style:{},classList:className(),disabled:false,
+   dataset:{},style:{},classList:className(id==='cloudRecoveryArea'?'cloud-hidden':''),disabled:false,
    appendChild(child){this.lastAppended=child},click(){},select(){},focus(){},
    closest(){return null}});
   return nodes.get(id)
