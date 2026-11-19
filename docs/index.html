@@ -1316,7 +1316,7 @@ function exactRefinePlan(initial,data,cfg){
  for(const [key,parts]of partsByMaterial){
   const stocks=stocksByMaterial.get(key)||[],currentBins=result.bins.filter(b=>mkey(b.stock.material)===key);
   const count=currentBins.length,lower=minStockCountLowerBound({
-   parts,stocks,trim:data.trim
+   parts,stocks,trim:data.trim,kerf:data.kerf
   }).lowerBound;
   const entry={material:key,parts:parts.length,stockTypes:stocks.length,
    initialCount:count,finalCount:count,lowerBound:lower,proven:false,status:'skipped',checks:[]};
@@ -1489,44 +1489,87 @@ function grossWasteProofDescription(plan){
  return 'Brüt alan kaybı '+value+'. Bu proje mevcut kesin alan aramasının kapsamı dışında; optimumluk kanıtı yok.';
 }
 
+// Safe geometric lower bound: any found clique of pairwise incompatible pieces
+// requires one stock per piece. Testing a pair on every stock/rotation makes this
+// bound valid for both unrestricted and guillotine placement. Budget: 160 pieces.
+function incompatibleCliqueLowerBound(parts,stocks,trim,kerf){
+ const p=parts.length>160?parts.slice().sort((a,b)=>b.l*b.w-a.l*a.w).slice(0,160):parts;
+ const n=p.length;if(!n)return {count:0,examined:0,total:parts.length};
+ const s=stocks.filter(x=>x.qty>0&&x.l>2*trim&&x.w>2*trim);
+ const orientations=p.map(part=>s.map(stock=>{
+  if(part.t!==null&&(stock.t===null||Math.abs(part.t-stock.t)>1e-6))return [];
+  return orientationChoices(part).filter(([w,h])=>w<=stock.l-2*trim+1e-7&&h<=stock.w-2*trim+1e-7);
+ }));
+ const neighbors=Array.from({length:n},()=>new Uint8Array(n)),degree=new Uint16Array(n);
+ for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){
+  let canShare=false;
+  for(let t=0;t<s.length&&!canShare;t++){
+   const W=s[t].l-2*trim,H=s[t].w-2*trim;
+   for(const [a,b]of orientations[i][t]){
+    if(canShare)break;
+    for(const [c,d]of orientations[j][t])
+     if(a+c+kerf<=W+1e-7&&Math.max(b,d)<=H+1e-7||
+        b+d+kerf<=H+1e-7&&Math.max(a,c)<=W+1e-7){canShare=true;break}
+   }
+  }
+  if(!canShare){neighbors[i][j]=neighbors[j][i]=1;degree[i]++;degree[j]++}
+ }
+ const ids=Array.from({length:n},(_,i)=>i),degreeSort=ids.slice().sort((a,b)=>degree[b]-degree[a]),
+  areaSort=ids.slice().sort((a,b)=>p[b].l*p[b].w-p[a].l*p[a].w);
+ const orders=[degreeSort,areaSort,areaSort.slice().reverse()];
+ for(const v of degreeSort.slice(0,Math.min(16,n)))
+  orders.push([v,...degreeSort.filter(w=>w!==v)]);
+ let count=1;
+ for(const order of orders){
+  const clique=[];
+  for(const v of order)if(clique.every(w=>neighbors[v][w]))clique.push(v);
+  count=Math.max(count,clique.length);
+  if(count===n)break;
+ }
+ return {count,examined:n,total:parts.length}
+}
 function minStockCountLowerBound(data){
- const byMaterial=new Map(),available=new Map(),details=[];
- for(const part of data.parts){
-  const key=mkey(part.material),arr=byMaterial.get(key)||[];
-  arr.push(part);byMaterial.set(key,arr);
- }
- for(const board of data.stocks){
-  const key=mkey(board.material),arr=available.get(key)||[];
-  arr.push(board);available.set(key,arr);
- }
- let lowerBound=0;
- for(const [material,parts]of byMaterial){
+ const partGroups=new Map(),stockGroups=new Map(),details=[];
+ for(const p of data.parts){const k=mkey(p.material),g=partGroups.get(k)||[];
+  g.push(p);partGroups.set(k,g)}
+ for(const s of data.stocks){const k=mkey(s.material),g=stockGroups.get(k)||[];
+  g.push(s);stockGroups.set(k,g)}
+ let total=0,geometricUsed=false;
+ for(const [material,parts]of partGroups){
   const required=parts.reduce((sum,p)=>sum+p.l*p.w,0);
-  if(!Number.isFinite(required)||required<0)return {lowerBound:null,method:'area',reason:'Geçersiz alan verisi',details};
-  const tolerance=Math.max(1e-6,required*1e-11);
-  const capacities=(available.get(material)||[]).filter(b=>b.qty>0).map(b=>({
-   area:Math.max(0,b.l-2*data.trim)*Math.max(0,b.w-2*data.trim),
-   qty:b.qty
-  })).filter(b=>Number.isFinite(b.area)&&b.area>0).sort((a,b)=>b.area-a.area);
-  let remaining=required,needed=0;
-  for(const b of capacities){
+  if(!Number.isFinite(required)||required<0)
+   return {lowerBound:null,method:'area',reason:'Geçersiz alan verisi',details};
+  const tolerance=Math.max(1e-6,required*1e-11),stocks=stockGroups.get(material)||[];
+  const capacity=stocks.filter(s=>s.qty>0).map(s=>({
+   area:Math.max(0,s.l-2*data.trim)*Math.max(0,s.w-2*data.trim),qty:s.qty
+  })).filter(s=>Number.isFinite(s.area)&&s.area>0).sort((a,b)=>b.area-a.area);
+  let remaining=required,areaLB=0;
+  for(const s of capacity){
    if(remaining<=tolerance)break;
-   const count=Math.min(b.qty,Math.ceil(Math.max(0,remaining-tolerance)/b.area));
-   needed+=count;remaining-=count*b.area;
+   const count=Math.min(s.qty,Math.ceil(Math.max(0,remaining-tolerance)/s.area));
+   areaLB+=count;remaining-=count*s.area;
   }
   if(remaining>tolerance)return {
    lowerBound:null,method:'area',reason:'Stok alanı tüm parçalar için yetersiz',details
   };
-  lowerBound+=needed;
-  details.push({material,requiredArea:required,lowerBound:needed});
+  // An omitted kerf must relax the constraint, never force false incompatibility.
+  const kerf=Number.isFinite(data.kerf)?Math.max(0,data.kerf):0;
+  const geometry=incompatibleCliqueLowerBound(parts,stocks,data.trim,kerf);
+  const lowerBound=Math.max(areaLB,geometry.count);
+  if(geometry.count>areaLB)geometricUsed=true;
+  total+=lowerBound;
+  details.push({material,requiredArea:required,lowerBound,areaLowerBound:areaLB,
+   incompatibilityLowerBound:geometry.count,inspectedPieces:geometry.examined,
+   totalPieces:geometry.total});
  }
- return {lowerBound,method:'area',reason:null,details};
+ return {lowerBound:total,method:geometricUsed?'pairwise-incompatibility':'area',reason:null,details};
 }
 function certifyStockCount(plan,data,audit){
  const bound=minStockCountLowerBound(data),complete=!!audit?.ok&&plan.unplaced.length===0&&plan.placedCount===data.parts.length;
  const count=plan.bins.length,byArea=complete&&bound.lowerBound!==null&&count===bound.lowerBound;
  const byExact=complete&&plan.exact?.proof===true&&plan.exact?.optimumCount===count;
- const proven=byArea||byExact,method=byExact&&!byArea?'exhaustive-geometry':'area';
+ const proven=byArea||byExact,method=byExact&&!byArea?'exhaustive-geometry':
+  bound.method==='pairwise-incompatibility'?'geometric-incompatibility':'area';
  return {goal:'minimum-stock-count',proven,complete,
   usedStockCount:count,lowerBound:bound.lowerBound,method,searchStatus:plan.exact?.status||'skipped',
   gap:complete&&bound.lowerBound!==null?Math.max(0,count-bound.lowerBound):null,
@@ -1537,7 +1580,7 @@ function certifyStockCount(plan,data,audit){
 function stockProofDescription(proof){
  if(!proof?.complete)return 'Optimumluk: Tüm parçalar yerleşmeden stok sayısı kanıtlanamaz.';
  if(proof.proven)return 'Minimum stok sayısı kanıtlandı: '+proof.usedStockCount+
-  ' stok. '+(proof.method==='exhaustive-geometry'?'Kesin geometrik arama daha az stoklu tüm seçenekleri eledi.':'Geçerli yerleşim alan alt sınırına ulaştı.')+' Bu kanıt fire veya maliyet optimumluğu değildir.';
+  ' stok. '+(proof.method==='exhaustive-geometry'?'Kesin geometrik arama daha az stoklu tüm seçenekleri eledi.':(proof.method==='geometric-incompatibility'?'Parçaların birlikte sığma zorunlulukları ve alan alt sınırları karşılandı.':'Geçerli yerleşim alan alt sınırına ulaştı.'))+' Bu kanıt fire veya maliyet optimumluğu değildir.';
  if(proof.lowerBound===null)return 'Minimum stok sayısı kanıtlanamadı: '+proof.reason;
  return (proof.searchStatus==='limit'?'Kesin çözüm araması zaman veya işlem sınırına ulaştı. ':'')+'Minimum stok sayısı henüz kanıtlanmadı: kullanılan '+proof.usedStockCount+
   ', matematiksel alt sınır '+proof.lowerBound+' stok. Daha iyi bir planın varlığı da kanıtlanmış değil.';
