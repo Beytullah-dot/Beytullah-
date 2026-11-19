@@ -795,10 +795,102 @@ if(!projectLibrary.length){activeProjectId=uid()+Date.now().toString(36);project
 else{const active=projectLibrary.find(x=>x.id===activeProjectId)||projectLibrary[0];activeProjectId=active.id;try{state=sanitize(active.data);localStorage.setItem('beythaus-cut-active-project-v1',activeProjectId)}catch{}}
 
 const icons={};
-function renderRows(){ensurePartLabels(state.parts);const unit=state.unit;qsa('.unitLabel').forEach(el=>el.textContent=unit);
-byId('partRows').innerHTML=state.parts.map(r=>`<tr data-id="${esc(r.id)}"><td><input aria-label="Boy" class="cell-input number" data-k="l" inputmode="decimal" value="${esc(r.l)}"></td><td><input aria-label="En" class="cell-input number" data-k="w" inputmode="decimal" value="${esc(r.w)}"></td><td><input aria-label="Kalınlık isteğe bağlı (mm)" placeholder="—" title="İsteğe bağlı" class="cell-input number" data-k="t" inputmode="decimal" value="${esc(r.t)}"></td><td><input aria-label="Adet" class="cell-input number" data-k="qty" inputmode="numeric" value="${esc(r.qty)}"></td><td><input aria-label="Malzeme" class="cell-input" data-k="material" value="${esc(r.material)}"></td><td><input aria-label="Etiket" class="cell-input" data-k="label" value="${esc(r.label)}" placeholder="Parça adı"></td><td><div class="check-cell"><input class="check" type="checkbox" data-k="rotate" title="90 derece döndürülebilir" ${r.rotate?'checked':''}></div></td><td><button aria-label="Satırı sil" class="rowdel" data-action="delete">×</button></td></tr>`).join('');
-byId('stockRows').innerHTML=state.stocks.map(r=>`<tr data-id="${esc(r.id)}"><td><input aria-label="Boy" class="cell-input number" data-k="l" inputmode="decimal" value="${esc(r.l)}"></td><td><input aria-label="En" class="cell-input number" data-k="w" inputmode="decimal" value="${esc(r.w)}"></td><td><input aria-label="Kalınlık isteğe bağlı (mm)" placeholder="—" title="İsteğe bağlı" class="cell-input number" data-k="t" inputmode="decimal" value="${esc(r.t)}"></td><td><input aria-label="Stok adedi" class="cell-input number" data-k="qty" inputmode="numeric" value="${esc(r.qty)}"></td><td><input aria-label="Malzeme" class="cell-input" data-k="material" value="${esc(r.material)}"></td><td><input aria-label="Panel fiyatı" class="cell-input number" data-k="price" inputmode="decimal" value="${esc(r.price)}"></td><td><button aria-label="Satırı sil" class="rowdel" data-action="delete">×</button></td></tr>`).join('');
-byId('partCount').textContent=fmt(state.parts.reduce((s,p)=>s+(Number(val(p.qty))||0),0),0);byId('stockCount').textContent=fmt(state.stocks.length,0);syncThicknessVisibility();
+const materialPolicy=window.BeythausMaterialPolicy;
+const stockKind=s=>s.category==='masif'?'masif':'panel';
+const groupIdentity=s=>materialPolicy.materialKey(stockKind(s),s.material);
+const displayMaterial=s=>(stockKind(s)==='masif'?'Masif · ':'Panel · ')+String(s.material||'İsimsiz');
+function materialCatalog(){
+ const sources=state.stocks.map(s=>({...s,stockId:s.id,isRemnant:false}))
+  .concat(availableRemnants().map(r=>({...r,stockId:'REM:'+r.id,category:r.category||'masif',qty:1,isRemnant:true})));
+ const map=new Map();
+ for(const s of sources){
+  if(!String(s.material||'').trim())continue;
+  const key=groupIdentity(s);
+  if(!map.has(key))map.set(key,{key,category:stockKind(s),material:String(s.material),records:[]});
+  map.get(key).records.push(s);
+ }
+ return [...map.values()].map((g,i)=>({...g,code:'M'+String(i+1).padStart(2,'0'),name:displayMaterial(g)}));
+}
+function materialOptions(category,chosen){
+ const groups=materialCatalog().filter(g=>!category||g.category===category);
+ return groups.map(g=>'<option value="'+esc(g.key)+'"'+(g.key===chosen?' selected':'')+'>'+esc(g.code+' · '+g.name)+'</option>').join('');
+}
+function renderMaterialControls(){
+ const groups=materialCatalog(),selector=byId('materialModeSelect');
+ selector.value=state.materialMode||'single';
+ byId('singleMaterialWrap').classList.toggle('hidden',state.materialMode!=='single');
+ byId('autoMaterialWrap').classList.toggle('hidden',state.materialMode!=='auto');
+ const singleKey=materialPolicy.materialKey(state.singleCategory||'masif',state.singleMaterial);
+ const sel=byId('singleMaterialSelect');
+ sel.innerHTML=groups.map(g=>'<option value="'+esc(g.key)+'">'+esc(g.code+' · '+g.name)+'</option>').join('');
+ if(groups.some(g=>g.key===singleKey))sel.value=singleKey;
+ else if(groups.length){sel.value=groups[0].key;if(state.materialMode==='single'){state.singleCategory=groups[0].category;state.singleMaterial=groups[0].material}}
+ const allows=id=>state.allowedStockIds===null||state.allowedStockIds.includes(id);
+ byId('autoStockChoices').innerHTML=groups.map(g=>{
+  const checked=g.records.every(r=>allows(r.stockId));
+  return '<details class="auto-material-group"><summary><label><input type="checkbox" data-group-key="'+esc(g.key)+'" '+(checked?'checked':'')+'> '+esc(g.code+' · '+g.name)+'</label> <span class="material-tag">'+g.records.filter(r=>allows(r.stockId)).length+'/'+g.records.length+' stok</span></summary>'+
+   g.records.map(r=>'<label class="auto-stock-line"><input type="checkbox" data-stock-id="'+esc(r.stockId)+'" '+(allows(r.stockId)?'checked':'')+'> '+esc(String(r.l)+' × '+String(r.w)+' × '+String(r.t||'—')+' mm · '+String(r.qty)+' adet')+'</label>').join('')+'</details>'
+ }).join('');
+ byId('materialStockOverview').innerHTML=groups.length?groups.map(g=>
+  '<div class="stock-overview-item"><b>'+esc(g.code+' · '+g.name)+'</b> · '+g.records.length+' stok kaydı</div>').join(''):'<div class="stock-overview-item">Önce envantere malzeme tanımlayın.</div>';
+}
+function grainButton(value){
+ const current=materialPolicy.grain(value),symbol=materialPolicy.grainSymbol(current);
+ return '<button type="button" data-action="grain" class="grain-cycle" data-grain="'+esc(current)+'" title="'+esc(materialPolicy.grainName(current))+'" aria-label="Damar yönü: '+esc(materialPolicy.grainName(current))+'">'+(symbol||'·')+'</button>'
+}
+byId('materialModeSelect').onchange=e=>{
+ state.materialMode=e.target.value;
+ renderRows();changed()
+};
+byId('singleMaterialSelect').onchange=e=>{
+ const found=materialCatalog().find(g=>g.key===e.target.value);
+ if(!found)return;
+ state.singleCategory=found.category;state.singleMaterial=found.material;
+ renderRows();changed()
+};
+byId('autoStockChoices').onchange=e=>{
+ const t=e.target,all=materialCatalog().flatMap(g=>g.records.map(s=>s.stockId));
+ let selected=new Set(state.allowedStockIds===null?all:state.allowedStockIds);
+ if(t.dataset.stockId){if(t.checked)selected.add(t.dataset.stockId);else selected.delete(t.dataset.stockId)}
+ else if(t.dataset.groupKey){const group=materialCatalog().find(g=>g.key===t.dataset.groupKey);if(group)for(const s of group.records){if(t.checked)selected.add(s.stockId);else selected.delete(s.stockId)}}
+ else return;
+ state.allowedStockIds=[...selected];renderMaterialControls();changed()
+};
+
+function renderRows(){
+ ensurePartLabels(state.parts);
+ const unit=state.unit;qsa('.unitLabel').forEach(el=>el.textContent=unit);
+ const groups=materialCatalog();
+ const single=groups.find(g=>g.key===materialPolicy.materialKey(state.singleCategory||'masif',state.singleMaterial))||groups[0];
+ const categoryOpts=selected=>'<option value="panel"'+(selected==='panel'?' selected':'')+'>Panel</option><option value="masif"'+(selected==='masif'?' selected':'')+'>Masif</option>';
+ byId('partRows').innerHTML=state.parts.map(r=>{
+  const category=state.materialMode==='single'&&single?single.category:stockKind(r);
+  const selectedKey=materialPolicy.materialKey(category,r.material);
+  const matCell=state.materialMode==='manual'?
+   '<select class="material-inline-select" aria-label="Parça malzemesi" data-k="materialKey">'+materialOptions(category,selectedKey)+'</select>':
+   '<span class="material-tag">'+(state.materialMode==='auto'?'Motor seçecek':single?esc(single.code+' · '+single.name):'Stok yok')+'</span>';
+  return '<tr data-id="'+esc(r.id)+'"><td><input aria-label="Boy" class="cell-input number" data-k="l" inputmode="decimal" value="'+esc(r.l)+'"></td>'+
+   '<td><input aria-label="En" class="cell-input number" data-k="w" inputmode="decimal" value="'+esc(r.w)+'"></td>'+
+   '<td><input aria-label="Kalınlık (mm)" placeholder="—" class="cell-input number" data-k="t" inputmode="decimal" value="'+esc(r.t)+'"></td>'+
+   '<td><input aria-label="Adet" class="cell-input number" data-k="qty" inputmode="numeric" value="'+esc(r.qty)+'"></td>'+
+   '<td><select aria-label="Parça türü" class="category-inline-select" data-k="category" '+(state.materialMode==='single'?'disabled':'')+'>'+categoryOpts(category)+'</select></td>'+
+   '<td>'+matCell+'</td>'+
+   '<td><input aria-label="Parça etiketi" class="cell-input" data-k="label" value="'+esc(r.label)+'" placeholder="Etiket"></td>'+
+   '<td>'+grainButton(r.grain)+'</td><td><button aria-label="Satırı sil" class="rowdel" data-action="delete">×</button></td></tr>'
+ }).join('');
+ byId('stockRows').innerHTML=state.stocks.map(r=>
+  '<tr data-id="'+esc(r.id)+'"><td><input aria-label="Boy" class="cell-input number" data-k="l" inputmode="decimal" value="'+esc(r.l)+'"></td>'+
+  '<td><input aria-label="En" class="cell-input number" data-k="w" inputmode="decimal" value="'+esc(r.w)+'"></td>'+
+  '<td><input aria-label="Stok kalınlığı" class="cell-input number" data-k="t" inputmode="decimal" value="'+esc(r.t)+'"></td>'+
+  '<td><input aria-label="Stok adedi" class="cell-input number" data-k="qty" inputmode="numeric" value="'+esc(r.qty)+'"></td>'+
+  '<td><select class="category-inline-select" aria-label="Stok türü" data-k="category">'+categoryOpts(stockKind(r))+'</select></td>'+
+  '<td><input aria-label="Renk veya ağaç türü" class="cell-input" data-k="material" value="'+esc(r.material)+'"></td>'+
+  '<td><input aria-label="'+(stockKind(r)==='masif'?'₺ / m³':'₺ / panel')+'" title="'+(stockKind(r)==='masif'?'₺ / m³':'₺ / panel')+'" class="cell-input number" data-k="price" inputmode="decimal" value="'+esc(r.price)+'"></td>'+
+  '<td>'+grainButton(r.grain)+'</td><td><button aria-label="Satırı sil" class="rowdel" data-action="delete">×</button></td></tr>'
+ ).join('');
+ byId('partCount').textContent=fmt(state.parts.reduce((s,p)=>s+(Number(val(p.qty))||0),0),0);
+ byId('stockCount').textContent=fmt(state.stocks.length,0);
+ renderMaterialControls();syncThicknessVisibility()
 }
 function syncThicknessVisibility(){for(const [flag,cardId,buttonId] of [['partsThicknessEnabled','partsCard','partsThicknessToggle'],['stocksThicknessEnabled','stocksCard','stocksThicknessToggle']]){const on=state[flag]!==false,btn=byId(buttonId);byId(cardId).classList.toggle('thickness-off',!on);btn.setAttribute('aria-pressed',String(on));btn.textContent='Kalınlık '+(on?'✓':'＋');btn.classList.toggle('thickness-on',on)}}
 for(const [flag,buttonId] of [['partsThicknessEnabled','partsThicknessToggle'],['stocksThicknessEnabled','stocksThicknessToggle']])byId(buttonId).onclick=()=>{state[flag]=!state[flag];syncThicknessVisibility();changed()};
