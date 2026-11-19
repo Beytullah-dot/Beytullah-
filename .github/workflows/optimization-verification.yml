@@ -27,6 +27,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Verify analytical geometric lower bounds
+        run: node tests/geometric-bounds.cjs
       - name: Verify optimizer and proof claims
         run: node tests/optimization-regression.cjs --json optimization-report.json
       - name: Publish test report
