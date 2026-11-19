@@ -143,6 +143,18 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
 .remnant-edit-grid>div{display:grid;gap:5px}
 .remnant-edit-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
 @media(max-width:580px){.remnant-filter-bar{grid-template-columns:repeat(2,minmax(0,1fr));padding:12px}.remnant-filter-field:first-child{grid-column:span 2}.remnant-default-location{padding:12px}.remnant-editor{margin:0 8px 10px;padding:12px}.remnant-edit-grid{grid-template-columns:1fr}.remnant-list-summary{padding:0 12px 10px}}
+/* Extended exact search status: not a claim of optimality until certified. */
+.exact-search-line{display:flex;align-items:center;justify-content:space-between;gap:10px;
+ padding:10px 12px;margin-top:12px;border:1px solid #dce8dc;border-radius:10px;
+ background:#f5faf5;color:#557462;font-size:11px;line-height:1.5}
+.exact-search-line span{min-width:0;overflow-wrap:anywhere;flex:1}
+.exact-search-line button{flex:none;min-height:38px;white-space:nowrap}
+.exact-search-line[data-state="running"]{background:#edf6ee;border-color:#cadecf}
+.exact-search-line[data-state="warning"]{background:#fff8ef;border-color:#f0e2cc;color:#865f36}
+@media screen and (max-width:580px){
+ .exact-search-line{align-items:flex-start}
+ .exact-search-line button{min-height:44px}
+}
 </style>
 <link rel="stylesheet" href="./qr-inventory.css">
 <link rel="stylesheet" href="./remnant-history.css">
@@ -188,6 +200,10 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
   <section class="card hero"><div class="eyebrow">PROJE ANALİZİ</div><h1 id="resultTitle">Kesim planı</h1><div class="hero-sub" id="summarySub">Parçalar ve stok hazır.</div>
     <div class="metrics"><div class="metric feature"><strong id="mSheets">—</strong><span>Gerekli stok</span></div><div class="metric"><strong id="mYield">—</strong><span>Verimlilik</span></div><div class="metric"><strong id="mCost">—</strong><span>Malzeme maliyeti</span></div><div class="metric"><strong id="mParts">—</strong><span>Yerleşen parça</span></div></div>
     <div class="status-line" id="status"><span class="status-dot"></span><span>Hesaplamak için düğmeye basın.</span></div><div class="optimality-row" id="optimalityRow">Minimum stok sayısı: hesaplama bekleniyor.</div><div class="optimality-row" id="grossWasteProofRow">Brüt fire optimumluğu: hesaplama bekleniyor.</div>
+    <div class="exact-search-line hidden" id="exactSearchLine" role="status" aria-live="polite">
+      <span id="exactSearchText"></span>
+      <button class="btn small" id="exactSearchCancel" type="button" aria-label="Kesin aramayı durdur">Durdur</button>
+    </div>
   </section>
   <section class="card" id="planCard"><div class="plans-head"><div><div class="card-title">Kesim yerleşimi</div><div class="card-sub" id="planSub">Stok başına plan</div></div><div class="card-actions"><button class="btn small plan-backup-icon" id="icloudBackupBtn" type="button" title="Bu projeyi iCloud Drive’a yedekle" aria-label="Bu projeyi yedekle">☁</button><button class="btn small" id="zoomBtn" disabled>⤢ Büyüt</button><button class="hidden" id="printBtn" disabled aria-hidden="true" tabindex="-1">PDF</button></div></div>
     <div class="plan-tabs" id="planTabs"></div><div id="planBody" class="empty-state"><div class="empty-icon">▤</div><strong>Kesim planı burada görünecek</strong><p>Parça ve stok ölçülerini girip yerleşimi hesaplayın. Kalınlık isteğe bağlıdır.</p></div>
@@ -1357,7 +1373,7 @@ function exactRefinePlan(initial,data,cfg){
  return done(result)
 }
 
-function optimize(data,enhanced=true){const groups=new Map(),stockgroups=new Map();for(const p of data.parts){const key=mkey(p.material,p.t);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(p)}for(const s of data.stocks){const key=mkey(s.material,s.t);if(!stockgroups.has(key))stockgroups.set(key,[]);stockgroups.get(key).push(s)}let result={bins:[],unplaced:[],partArea:0,stockArea:0,cost:0,unknownCostBins:0,placedCount:0},search={baselineStockCount:0,savedStockCount:0,refinementAttempts:0,refinementSteps:0,offcutAttempts:0,offcutImprovements:0,offcutAreaGain:0,offcutTimeLimited:false},cfg={kerf:data.kerf,trim:data.trim,m3:data.m3,mode:state.mode,priceMode:state.priceMode};for(const [key,group]of groups){const stock=stockgroups.get(key)||[];let best=null;const trials=group.length<=35?144:group.length<=120?90:group.length<=400?40:14;for(let tr=0;tr<trials;tr++){const r=packAttempt(group,stock,cfg,tr);if(compare(r,best)<0)best=r;if(best?.unplaced.length===0&&best?.bins.length===1&&best.stockArea<=group.reduce((a,p)=>a+p.l*p.w,0)*1.005)break}search.baselineStockCount+=best.bins.length;
+function optimize(data,enhanced=true,exact=true){const groups=new Map(),stockgroups=new Map();for(const p of data.parts){const key=mkey(p.material,p.t);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(p)}for(const s of data.stocks){const key=mkey(s.material,s.t);if(!stockgroups.has(key))stockgroups.set(key,[]);stockgroups.get(key).push(s)}let result={bins:[],unplaced:[],partArea:0,stockArea:0,cost:0,unknownCostBins:0,placedCount:0},search={baselineStockCount:0,savedStockCount:0,refinementAttempts:0,refinementSteps:0,offcutAttempts:0,offcutImprovements:0,offcutAreaGain:0,offcutTimeLimited:false},cfg={kerf:data.kerf,trim:data.trim,m3:data.m3,mode:state.mode,priceMode:state.priceMode};for(const [key,group]of groups){const stock=stockgroups.get(key)||[];let best=null;const trials=group.length<=35?144:group.length<=120?90:group.length<=400?40:14;for(let tr=0;tr<trials;tr++){const r=packAttempt(group,stock,cfg,tr);if(compare(r,best)<0)best=r;if(best?.unplaced.length===0&&best?.bins.length===1&&best.stockArea<=group.reduce((a,p)=>a+p.l*p.w,0)*1.005)break}search.baselineStockCount+=best.bins.length;
 const refined=enhanced?improveGroupPacking(best,group,cfg):{solution:best,attempts:0,improvements:0};
 search.refinementAttempts+=refined.attempts;search.refinementSteps+=refined.improvements;
 search.savedStockCount+=best.bins.length-refined.solution.bins.length;
@@ -1370,7 +1386,7 @@ if(enhanced&&state.mode==='guillotine'){
  search.offcutAreaGain+=offcutPass.info.after.usableArea-offcutPass.info.before.usableArea;
  if(offcutPass.info.status==='time-limit')search.offcutTimeLimited=true;
 }
-result.bins.push(...best.bins);result.unplaced.push(...best.unplaced);result.unknownCostBins+=best.unknownCostBins;if(best.cost!==null)result.cost+=best.cost;result.stockArea+=best.stockArea;result.partArea+=best.partArea;result.placedCount+=best.placedCount}if(result.unknownCostBins)result.cost=null;result.search=search;if(enhanced){result=exactRefinePlan(result,data,cfg);result=exactGrossAreaRefine(result,data,cfg)}return result}
+result.bins.push(...best.bins);result.unplaced.push(...best.unplaced);result.unknownCostBins+=best.unknownCostBins;if(best.cost!==null)result.cost+=best.cost;result.stockArea+=best.stockArea;result.partArea+=best.partArea;result.placedCount+=best.placedCount}if(result.unknownCostBins)result.cost=null;result.search=search;if(enhanced&&exact!==false){result=exactRefinePlan(result,data,cfg);result=exactGrossAreaRefine(result,data,cfg)}return result}
 
 // Rigorous, intentionally optimistic lower bound on required board COUNT.
 // Each material is independent. Ignore shape, thickness and kerf to NEVER overstate
