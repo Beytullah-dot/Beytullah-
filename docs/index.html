@@ -442,6 +442,9 @@ function cleanRemnant(raw){
     (t===null||Number.isFinite(t)&&t>0&&t<=1e5)))return null;
  return {id:String(raw.id).slice(0,90),l,w,t,version:Number.isInteger(Number(raw.version))&&Number(raw.version)>=1?Number(raw.version):1,
   material:String(raw.material||'Ahşap').trim().slice(0,80),
+  category:raw.category==='masif'?'masif':'panel',
+  grain:window.BeythausMaterialPolicy.grain(raw.grain),
+  bookValue:raw.bookValue!==null&&raw.bookValue!==''&&Number.isFinite(Number(raw.bookValue))&&Number(raw.bookValue)>=0?Number(raw.bookValue):null,
   location:String(raw.location??'').trim().slice(0,80),
   notes:String(raw.notes??'').trim().slice(0,220),
   sourceKey:String(raw.sourceKey||'').slice(0,180),
@@ -482,7 +485,7 @@ function inventoryStocksForPlan(){
   // Retain the recorded physical thickness even if this project's geometric
   // dimensions are intentionally configured as 2D-only.
   t:state.partsThicknessEnabled||state.stocksThicknessEnabled?r.t:null,
-  physicalThickness:r.t,version:r.version,qty:1,price:null,material:r.material,category:r.category||'masif',grain:r.grain||'',bookValue:r.bookValue??null,
+  physicalThickness:r.t,version:r.version,qty:1,price:null,material:r.material,category:r.category||'panel',grain:r.grain||'',bookValue:r.bookValue??null,
   order:state.stocks.length+i,isRemnant:true,remnantId:r.id
  }))
 }
@@ -715,7 +718,11 @@ function registerRemnantProduction(){
   const b=solution.bins[bi];
   for(let ri=0,leaves=collectOffcuts(b).pieces;ri<leaves.length;ri++){
    const p=leaves[ri];
-   recovered.push({boardIndex:bi,pieceIndex:ri,l:p.w,w:p.h,material:b.stock.material,
+   const value=binCost(b.stock,{priceMode:state.priceMode,m3:null});
+   recovered.push({boardIndex:bi,pieceIndex:ri,l:p.w,w:p.h,
+    material:b.stock.displayMaterial||String(b.stock.material).split('|').slice(1).join('|'),
+    category:b.stock.category||'panel',grain:b.stock.grain||'',
+    bookValue:value===null?null:value*p.w*p.h/(b.stock.l*b.stock.w),
     t:b.stock.physicalThickness??b.stock.t})
   }
  }
@@ -731,7 +738,7 @@ function registerRemnantProduction(){
  const batchId='B'+Date.now().toString(36)+uid();
  const now=Date.now(),created=recovered.map(p=>cleanRemnant({
   id:'R'+Date.now().toString(36)+uid()+p.boardIndex+p.pieceIndex,
-  l:p.l,w:p.w,t:p.t,material:p.material,sourceKey:batchId+':'+p.boardIndex+':'+p.pieceIndex,
+  l:p.l,w:p.w,t:p.t,material:p.material,category:p.category,grain:p.grain,bookValue:p.bookValue,sourceKey:batchId+':'+p.boardIndex+':'+p.pieceIndex,
   projectName:state.project,location:remnantDB.defaultLocation||'',notes:'',status:'available',createdAt:now
  }));
  if(created.some(x=>!x)){toast('Artık ölçülerinden biri geçersiz.');return false}
@@ -804,7 +811,7 @@ const groupIdentity=s=>materialPolicy.materialKey(stockKind(s),s.material);
 const displayMaterial=s=>(stockKind(s)==='masif'?'Masif · ':'Panel · ')+String(s.material||'İsimsiz');
 function materialCatalog(){
  const sources=state.stocks.map(s=>({...s,stockId:s.id,isRemnant:false}))
-  .concat(availableRemnants().map(r=>({...r,stockId:'REM:'+r.id,category:r.category||'masif',qty:1,isRemnant:true})));
+  .concat(availableRemnants().map(r=>({...r,stockId:'REM:'+r.id,category:r.category||'panel',qty:1,isRemnant:true})));
  const map=new Map();
  for(const s of sources){
   if(!String(s.material||'').trim())continue;
@@ -1082,12 +1089,12 @@ function normalize(){
   if(state.materialMode==='auto'&&state.allowedStockIds!==null&&!state.allowedStockIds.includes(s.id))continue;
   stocks.push({id:s.id,l,w,t,qty,price:Number.isFinite(price)?price:null,category:stockKind(s),
    priceUnit:stockKind(s)==='masif'?'m3':'panel',grain:materialPolicy.grain(s.grain),
-   material:groupIdentity(s),order:i})
+   material:groupIdentity(s),displayMaterial:String(s.material),order:i})
  }
  for(const s of inventoryStocksForPlan()){
   if(state.materialMode==='auto'&&state.allowedStockIds!==null&&!state.allowedStockIds.includes(s.id))continue;
   stocks.push({...s,category:stockKind(s),grain:materialPolicy.grain(s.grain),
-   material:groupIdentity(s),bookValue:Number.isFinite(s.bookValue)?s.bookValue:null})
+   material:groupIdentity(s),displayMaterial:String(s.material),bookValue:Number.isFinite(s.bookValue)?s.bookValue:null})
  }
  const kerf=val(state.kerf),trim=val(state.trim),minEdge=val(state.offcutMinEdgeMm),minArea=val(state.offcutMinAreaCm2)*100;
  if(!(kerf>=0&&kerf<50))errors.push('Testere payı 0–50 mm arasında olmalı.');
