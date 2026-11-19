@@ -98,7 +98,8 @@ async function main() {
 
   await page.locator('#materialModeSelect').selectOption('auto');
   const excluded = page.locator('#autoStockChoices input[data-stock-id="uat-B"]');
-  await page.locator('#autoStockChoices details').filter({ has: excluded })
+  await page.locator('#autoStockChoices details')
+    .filter({ has: page.locator('input[data-stock-id="uat-B"]') })
     .locator('summary .material-tag').click();
   await excluded.uncheck();
   const policy = await page.evaluate(() => ({
