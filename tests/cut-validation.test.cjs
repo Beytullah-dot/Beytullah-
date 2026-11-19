@@ -1363,9 +1363,16 @@ assert.equal(fullCloudRequest.payload.usedFull[0].qty,1);
 assert.equal(fullCloudRequest.payload.planSnapshot.bins[0].sourceType,'full');
 assert.equal(fullCloudRequest.payload.planSnapshot.bins[0].sourceId,'F-CLOUD-1');
 assert.equal(fullCloudRequest.payload.planSnapshot.bins[0].stock.material,'Wood');
+// A display-unit change must never alter the server's canonical millimetres.
+node('unitSelect').onchange({target:{value:'cm'}});
+assert.equal(app.getState().unit,'cm');
+assert.equal(app.getState().stocks[0].l,100);
+assert.equal(app.normalize().stocks[0].l,1000);
+assert.equal(app.enterCloudInventory(fullCloudSnapshot),true);
+assert.equal(app.getState().stocks[0].l,100);
 assert.equal(app.exitCloudInventory(),true);
 assert.equal(JSON.stringify(app.getRemnantDB()),beforeCloudLedger);
-tests+=15;
+tests+=20;
 console.log('Real app cloud guard: local inventory isolated, stale local writes refused, stock version 7 preserved and production RPC payload verified.');
 
 console.log('Beythaus Cut: '+tests+' checks passed; invalid plans rejected and unknown prices preserved.');
