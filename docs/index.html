@@ -1339,7 +1339,7 @@ function certifyLargePlan(data,plan){
   }
  },8500);
  worker.postMessage({type:'certify',requestId,
-  data:{parts:data.parts,stocks:data.stocks,trim:data.trim},
+  data:{parts:data.parts,stocks:data.stocks,trim:data.trim,kerf:data.kerf},
   plan:{bins:plan.bins.map(()=>({})),stockArea:plan.stockArea,cost:plan.cost,
    placedCount:plan.placedCount,unplaced:plan.unplaced,stockProof:plan.stockProof},
   allowMaterialAssignment:state.materialMode==='auto',priceMode:state.priceMode,m3:data.m3});
