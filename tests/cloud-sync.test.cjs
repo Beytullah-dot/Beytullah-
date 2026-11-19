@@ -211,6 +211,30 @@ function createClient(device,hash=''){
  assert.throws(()=>a.api.normalizeConfig('http://someproject.supabase.co','sb_publishable_key'),/HTTPS/);
  assert.throws(()=>a.api.normalizeConfig('https://someproject.supabase.co','sb_secret_abc'),/Gizli/);
  checks+=3;
+ // Full-stock RPC: cross-device create, update and stale rejection.
+ const fields={cloudFullLength:'1000',cloudFullWidth:'500',cloudFullThickness:'18',
+  cloudFullQty:'3',cloudFullCategory:'panel',cloudFullMaterial:'White oak',
+  cloudFullGrain:'length',cloudFullPrice:'1250',cloudFullLocation:'Shelf A',
+  cloudFullNotes:'Panel batch'};
+ for(const [id,value] of Object.entries(fields))a.el(id).value=value;
+ a.el('cloudFullStockSelect').value='__new__';
+ await a.api.saveCloudFullStock();
+ assert.equal(server.fullStocks.length,1);
+ assert.equal(server.fullStocks[0].version,1);
+ assert.equal(server.fullStocks[0].price,1250);
+ assert.equal(server.fullStocks[0].grain,'length');
+ const fullId=server.fullStocks[0].id;
+ await b.api.synchronize(true);
+ for(const [id,value] of Object.entries({...fields,cloudFullQty:'2'}))b.el(id).value=value;
+ b.el('cloudFullStockSelect').value=fullId;
+ await b.api.saveCloudFullStock();
+ assert.equal(server.fullStocks[0].version,2);
+ assert.equal(server.fullStocks[0].qty,2);
+ for(const [id,value] of Object.entries(fields))a.el(id).value=value;
+ a.el('cloudFullStockSelect').value=fullId;
+ await assert.rejects(()=>a.api.saveCloudFullStock(),/Full stock changed/);
+ assert.equal(server.fullStocks[0].qty,2);
+ checks+=7;
  // First phone consumes the unique physical board. Second phone is stale.
  await a.api.mutate('consume',{id:'R-shared-1',expectedVersion:1,source:'qr'});
  assert.equal(server.items[0].status,'used');
