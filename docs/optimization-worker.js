@@ -4,7 +4,7 @@
    Time/node exhaustion => 'unknown', NEVER a proof. */
 'use strict';
 const context=typeof self!=='undefined'?self:null;
-if(typeof importScripts==='function')importScripts('./guillotine-exact.js');
+if(typeof importScripts==='function')importScripts('./guillotine-exact.js','./economic-exact.js');
 const canon=s=>String(s||'').trim().toLocaleLowerCase('tr-TR');
 const EPS=1e-7;
 const orientations=p=>p.rotate&&Math.abs(p.l-p.w)>EPS?
@@ -193,8 +193,11 @@ if(context){
  context.onmessage=e=>{
   const id=e.data?.requestId;
   try{
-   if(e.data?.type!=='solve')return;
-   const result=run(e.data);
+   if(!['solve','economy'].includes(e.data?.type))return;
+   const result=e.data.type==='solve'?run(e.data):
+    context.EconomicExact?.solve(e.data,
+     e.data.cutMode==='guillotine'?context.GuillotineExact?.feasible:feasible);
+   if(!result)throw Error('Ekonomik çözümleyici yüklenemedi.');
    context.postMessage(result)
   }catch(error){
    context.postMessage({type:'error',requestId:id,
