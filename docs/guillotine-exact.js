@@ -8,9 +8,10 @@
 'use strict';
 const GuillotineExact=(()=>{
  const EPS=1e-7;
- const orientations=p=>p.rotate&&Math.abs(p.l-p.w)>EPS?
+ const orientations=p=>(p.rotate&&(Math.abs(p.l-p.w)>EPS||!!p.grain)?
   [{w:p.l,h:p.w,rotated:false},{w:p.w,h:p.l,rotated:true}]:
-  [{w:p.l,h:p.w,rotated:false}];
+  [{w:p.l,h:p.w,rotated:false}]).filter(o=>
+   typeof BeythausMaterialPolicy==='undefined'||BeythausMaterialPolicy.grainAllows(p,null,o.rotated));
  const canon=s=>String(s||'').trim().toLocaleLowerCase('tr-TR');
  const compatible=(p,s)=>canon(p.material)===canon(s.material)&&
   (p.t===null||(s.t!==null&&Math.abs(p.t-s.t)<1e-6));
