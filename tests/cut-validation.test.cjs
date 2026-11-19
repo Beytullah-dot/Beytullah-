@@ -7,6 +7,8 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const html = fs.readFileSync(path.join(__dirname, '../docs/index.html'), 'utf8');
+const engineSource = fs.readFileSync(
+ path.join(__dirname, '../docs/engine/cutting-engine.js'), 'utf8');
 const script = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)][0]?.[1];
 assert.ok(script, 'Application script must exist');
 
@@ -40,6 +42,10 @@ const sandbox = {
   setTimeout(){return 1},clearTimeout(){},requestAnimationFrame(){},
   confirm(){return true},prompt(){return null}
 };
+vm.runInNewContext(engineSource,{window},{
+ filename:'docs/engine/cutting-engine.js',timeout:10000
+});
+assert.equal(window.BeythausCutEngine.contractVersion,1);
 vm.runInNewContext(script.replace('window.BeythausCut={','window.__testHooks={showResult,makePdfDocument,productionFile};window.BeythausCut={'), sandbox, {filename:'docs/index.html', timeout:10000});
 const app = window.BeythausCut;
 assert.ok(app?.normalize && app?.optimize && app?.auditCutPlan);
@@ -968,7 +974,7 @@ const historical={version:1,pieces:[
   createdAt:1730000000000,sourceKey:'legacy:one',projectName:'Eski kayıt'}
 ],batches:[]};
 const oldStore=new Map([['beythaus-cut-remnant-library-v1',JSON.stringify(historical)]]);
-const oldWindow={addEventListener(){}},oldDocument={
+const oldWindow={addEventListener(){},BeythausCutEngine:window.BeythausCutEngine},oldDocument={
  getElementById:id=>node('_legacy_'+id),querySelectorAll(){return []},
  addEventListener(){},createElement(){return node('_legacy_temp')},
  head:{appendChild(){}},body:{classList:emptyClasses(),append(){}}
