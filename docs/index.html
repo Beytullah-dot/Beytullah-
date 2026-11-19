@@ -356,6 +356,7 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
 <script src="./engine/production-audit.js"></script>
 <script src="./engine/cutting-engine.js"></script>
 <script src="./engine/material-allocator.js"></script>
+<script src="./engine/production-archive.js"></script>
 <script>
 (()=>{'use strict';
 const byId=id=>document.getElementById(id),qsa=s=>Array.from(document.querySelectorAll(s));
@@ -1018,7 +1019,7 @@ byId('fileInput').onchange=async e=>{const file=e.target.files?.[0];if(!file)ret
 function persistProjectArchive(){try{localStorage.setItem('beythaus-cut-project-library-v1',JSON.stringify(projectLibrary));localStorage.setItem('beythaus-cut-active-project-v1',activeProjectId);return true}catch(err){toast('Yeterli depolama alanı yok. Lütfen yedek alın.');return false}}
 function openSavedProject(id){const p=projectLibrary.find(x=>x.id===id);if(!p)return;activeProjectId=id;state=sanitize(p.data);state.stocks=copyGlobalStocks();solution=null;dirty=true;renderRows();syncSettings();save();showEmpty();persistProjectArchive();closeProjects();toast('Proje açıldı.')}
 function createProject(data,name){const x=sanitize(data);x.project=String(name||'Yeni proje').slice(0,60);const id=uid()+Date.now().toString(36);projectLibrary.unshift({id:id,name:x.project,updatedAt:Date.now(),data:x});activeProjectId=id;state=x;state.stocks=copyGlobalStocks();solution=null;dirty=true;renderRows();syncSettings();save();showEmpty();persistProjectArchive();renderProjects();return id}
-function renderProjects(){const q=(byId('projectsSearch').value||'').toLocaleLowerCase('tr-TR').trim();const rows=projectLibrary.slice().sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).filter(p=>String(p.name||'').toLocaleLowerCase('tr-TR').includes(q));byId('projectsCount').textContent=String(projectLibrary.length);byId('projectsList').innerHTML=rows.length?rows.map(p=>{const n=(p.data.parts||[]).reduce((a,x)=>a+(parseInt(x.qty,10)||0),0);const dt=new Date(p.updatedAt||Date.now()).toLocaleString('tr-TR',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});return '<div class="project-entry '+(p.id===activeProjectId?'current':'')+'"><div class="project-symbol">▦</div><div class="project-detail"><strong>'+esc(p.name||'İsimsiz proje')+(p.id===activeProjectId?' · Açık':'')+'</strong><small>'+esc(dt)+' · '+n+' parça</small></div><div class="project-ops"><button class="btn" data-project-action="open" data-project-id="'+esc(p.id)+'">Aç</button><button class="btn" data-project-action="copy" data-project-id="'+esc(p.id)+'">Kopyala</button><button class="btn" data-project-action="rename" data-project-id="'+esc(p.id)+'">Adlandır</button><button class="btn danger" data-project-action="delete" data-project-id="'+esc(p.id)+'">Sil</button></div></div>'}).join(''):'<div class="empty-state" style="min-height:120px"><strong>Proje bulunamadı.</strong></div>'}
+function renderProjects(){const q=(byId('projectsSearch').value||'').toLocaleLowerCase('tr-TR').trim();const rows=projectLibrary.slice().sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).filter(p=>String(p.name||'').toLocaleLowerCase('tr-TR').includes(q));byId('projectsCount').textContent=String(projectLibrary.length);byId('projectsList').innerHTML=rows.length?rows.map(p=>{const n=(p.data.parts||[]).reduce((a,x)=>a+(parseInt(x.qty,10)||0),0);const dt=new Date(p.updatedAt||Date.now()).toLocaleString('tr-TR',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});return '<div class="project-entry '+(p.id===activeProjectId?'current':'')+'"><div class="project-symbol">▦</div><div class="project-detail"><strong>'+esc(p.name||'İsimsiz proje')+(p.id===activeProjectId?' · Açık':'')+'</strong><small>'+esc(dt)+' · '+n+' parça</small></div><div class="project-ops">'+(remnantDB.batches.some(b=>b.projectId===p.id&&b.productionCompleted)?'<button class="btn" data-project-action="pdf" data-project-id="'+esc(p.id)+'">Üretim PDF</button>':'')+'<button class="btn" data-project-action="open" data-project-id="'+esc(p.id)+'">Aç</button><button class="btn" data-project-action="copy" data-project-id="'+esc(p.id)+'">Kopyala</button><button class="btn" data-project-action="rename" data-project-id="'+esc(p.id)+'">Adlandır</button><button class="btn danger" data-project-action="delete" data-project-id="'+esc(p.id)+'">Sil</button></div></div>'}).join(''):'<div class="empty-state" style="min-height:120px"><strong>Proje bulunamadı.</strong></div>'}
 function showProjects(){byId('projectsSearch').value='';byId('projectsSearch').classList.add('hidden');byId('projectsSearchToggle').setAttribute('aria-expanded','false');renderProjects();byId('projectsOverlay').classList.remove('hidden')}
 function closeProjects(){byId('projectsOverlay').classList.add('hidden')}
 byId('projectsBtn').onclick=showProjects;byId('projectsClose').onclick=closeProjects;
@@ -1029,6 +1030,7 @@ function newBlankProject(){const d=defaultData();d.parts=[];d.partsThicknessEnab
 byId('newProjectBtn').onclick=newBlankProject;byId('newProjectTopBtn').onclick=newBlankProject;
 byId('manualSaveProjectBtn').onclick=()=>{save();renderProjects();toast('Proje kaydedildi.')};
 byId('projectsList').onclick=e=>{const b=e.target.closest('button[data-project-action]');if(!b)return;const id=b.dataset.projectId,p=projectLibrary.find(x=>x.id===id);if(!p)return;const act=b.dataset.projectAction;
+  if(act==='pdf'){const batch=remnantDB.batches.filter(b=>b.projectId===id&&b.productionCompleted).sort((a,b)=>b.createdAt-a.createdAt)[0];if(batch)exportCostRecordPdf(batch.id);return}
   if(act==='open')openSavedProject(id);
   if(act==='copy'){createProject(p.data,(p.name+' kopya').slice(0,60));toast('Proje çoğaltıldı.')}
   if(act==='rename'){const name=prompt('Yeni proje adı:',p.name);if(name===null)return;const newName=name.trim().slice(0,60);if(!newName){toast('Proje adı boş olamaz.');return}p.name=newName;p.data.project=newName;p.updatedAt=Date.now();if(p.id===activeProjectId){state.project=newName;syncSettings();save()}persistProjectArchive();renderProjects()}
@@ -1319,6 +1321,27 @@ function loadPDFEngine(){
    return window.pdfMake
  })().catch(err=>{pdfLoader=null;throw err});
  return pdfLoader;
+}
+async function exportCostRecordPdf(batchId){
+ const record=remnantDB.batches.find(b=>b.id===batchId&&b.productionCompleted);
+ if(!record){toast('Tamamlanan üretim kaydı bulunamadı.');return false}
+ try{
+  const doc=window.BeythausProductionArchive.createPdfDefinition(record);
+  const engine=await loadPDFEngine();
+  const blob=await new Promise((resolve,reject)=>{
+   try{engine.createPdf(doc).getBlob(b=>b&&b.size>100?resolve(b):reject(Error('PDF verisi boş')))}
+   catch(error){reject(error)}
+  });
+  const filename='Beythaus-Cut-Uretim-'+String(record.id).replace(/[^a-zA-Z0-9-]/g,'')+'.pdf';
+  if(/iPad|iPhone|iPod/.test(navigator.userAgent||'')&&navigator.share&&navigator.canShare){
+   const file=new File([blob],filename,{type:'application/pdf'});
+   if(navigator.canShare({files:[file]})){
+    try{await navigator.share({files:[file],title:record.projectName+' · Üretim PDF'});return true}
+    catch(error){if(error?.name==='AbortError')return false}
+   }
+  }
+  download(blob,filename);return true
+ }catch(error){console.error('Üretim arşivi PDF',error);toast('Arşiv PDF oluşturulamadı: '+error.message);return false}
 }
 function makePdfDocument(){
  if(!lastAudit?.ok)throw Error('Kesim yerleşimi doğrulanmadı.');
@@ -1944,7 +1967,7 @@ byId('productionSafetySwitch').onclick=()=>{
  syncSettings();changed();run();
 };
 renderRows();syncSettings();showEmpty();renderProjects();
-window.BeythausCut={enterCloudInventory,exitCloudInventory,isCloudInventory:()=>cloudInventoryActive,getSelectedRemnantSource:()=>selectedRemnantEditSource,cloudProductionPayload,markCloudProductionComplete,remnantMovements,cleanRemnantEvent,getCostRecords:()=>remnantDB.batches.filter(b=>b.productionCompleted).slice().sort((a,b)=>b.createdAt-a.createdAt),getRemnantDB:()=>JSON.parse(JSON.stringify(remnantDB)),filterRemnants,editRemnantRecord,setRemnantDefaultLocation,openRemnantEditor,submitRemnantEditor,inventoryStocksForPlan,registerRemnantProduction,setRemnantStatus,mergeRemnantBackup,normalize,optimize,optimizeBaseline:data=>optimize(data,false),refineUsableOffcuts,offcutMetrics,betterOffcuts,offcutOptimizationDescription,enumerateBoardMultisets,exactGrossAreaRefine,grossWasteProofDescription,exactUniformFeasibility,exactVariableFeasibility,exactRefinePlan,minStockCountLowerBound,certifyStockCount,stockProofDescription,validateLayout,auditCutPlan,auditGuillotineCuts,collectOffcuts,defaultData,getLastAudit:()=>lastAudit,getState:()=>state,setState:o=>{state=sanitize(o);renderRows();syncSettings();save();showEmpty()},run};
+window.BeythausCut={enterCloudInventory,exitCloudInventory,isCloudInventory:()=>cloudInventoryActive,getSelectedRemnantSource:()=>selectedRemnantEditSource,cloudProductionPayload,markCloudProductionComplete,remnantMovements,cleanRemnantEvent,exportCostRecordPdf,getCostRecords:()=>remnantDB.batches.filter(b=>b.productionCompleted).slice().sort((a,b)=>b.createdAt-a.createdAt),getRemnantDB:()=>JSON.parse(JSON.stringify(remnantDB)),filterRemnants,editRemnantRecord,setRemnantDefaultLocation,openRemnantEditor,submitRemnantEditor,inventoryStocksForPlan,registerRemnantProduction,setRemnantStatus,mergeRemnantBackup,normalize,optimize,optimizeBaseline:data=>optimize(data,false),refineUsableOffcuts,offcutMetrics,betterOffcuts,offcutOptimizationDescription,enumerateBoardMultisets,exactGrossAreaRefine,grossWasteProofDescription,exactUniformFeasibility,exactVariableFeasibility,exactRefinePlan,minStockCountLowerBound,certifyStockCount,stockProofDescription,validateLayout,auditCutPlan,auditGuillotineCuts,collectOffcuts,defaultData,getLastAudit:()=>lastAudit,getState:()=>state,setState:o=>{state=sanitize(o);renderRows();syncSettings();save();showEmpty()},run};
 })();
 </script>
 <script src="./vendor/qrcode.min.js"></script>
