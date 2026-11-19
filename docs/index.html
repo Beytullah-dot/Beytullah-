@@ -1973,7 +1973,7 @@ function cancelExactSearch(silent=true){
  if(silent)byId('exactSearchLine').classList.add('hidden');
  else if(wasRunning)exactSearchStatus('Kesin arama durduruldu. Mevcut kesim planı geçerlidir; optimumluk ayrıca kanıtlanmış değildir.','warning');
 }
-byId('exactSearchCancel').onclick=()=>cancelExactSearch(false);
+byId('exactSearchCancel').onclick=()=>{cancelExactSearch(false);cancelEconomySearch(true)};
 byId('exactSearchApply').onclick=()=>{
  const pending=exactPending;
  if(!pending||dirty||solution!==pending.source){
@@ -2064,6 +2064,7 @@ function startExactWorker(data,initial){
  }
  if(initial.stockProof?.proven){
   exactSearchStatus('Minimum stok sayısı hızlı aşamada matematiksel olarak kanıtlandı.');
+  launchEconomyAfterCount(data,initial);
   return
  }
  if(typeof Worker==='undefined'){
@@ -2078,6 +2079,7 @@ function startExactWorker(data,initial){
   initial.bins.filter(b=>mkey(b.stock.material)===key).length<=(state.mode==='guillotine'?5:7));
  if(!eligible){
   exactSearchStatus('Bu proje kesin Worker aramasının kapsamı dışında. Geçerli plan korunuyor; optimumluk kanıtı yok.','warning');
+  launchEconomyAfterCount(data,initial);
   return
  }
  let worker;
@@ -2085,6 +2087,7 @@ function startExactWorker(data,initial){
  catch(error){
   console.warn('Kesin Worker başlatılamadı',error);
   exactSearchStatus('Kesin arama başlatılamadı. Mevcut kesim planı kullanılabilir.','warning');
+  launchEconomyAfterCount(data,initial);
   return
  }
  const requestId=++exactRequest;
@@ -2096,7 +2099,8 @@ function startExactWorker(data,initial){
  function fail(msg){
   if(requestId!==exactRequest||exactWorker!==worker)return;
   clearTimeout(exactTimer);exactTimer=null;worker.terminate();exactWorker=null;
-  exactSearchStatus(msg,'warning')
+  exactSearchStatus(msg,'warning');
+  if(!dirty&&solution===initial)launchEconomyAfterCount(data,initial)
  }
  worker.onerror=event=>{
   console.error('Kesin optimizasyon Worker hatası',event);
@@ -2132,7 +2136,6 @@ function startExactWorker(data,initial){
     // Re-audit and rebuild result UI; do not imply that gross-waste was proven.
     cancelEconomySearch(true);
     showResult(data,outcome.proposal);
-    startEconomyWorker(data,outcome.proposal);
     toast('Kesin arama '+outcome.improvedCount+' stok tasarrufu buldu.');
    }else{
     initial.exact=outcome.proposal.exact;
@@ -2149,8 +2152,11 @@ function startExactWorker(data,initial){
   }catch(error){
    console.error('Kesin arama doğrulama hatası',error);
    exactSearchStatus('Kesin arama sonucu doğrulanamadı; hızlı plan değişmeden korundu.','warning')
+  }finally{
+   if(!dirty&&solution)launchEconomyAfterCount(data,solution)
   }
  };
+ economySearchStatus('Minimum panel sayısı aramasından sonra ekonomik analiz başlayacak.');
  exactTimer=setTimeout(()=>fail('Kesin arama süre sınırına ulaştı. Mevcut plan geçerli, optimumluk kanıtlanmadı.'),8000);
  worker.postMessage({type:'solve',requestId,mode:state.mode,
   data:{parts:data.parts,stocks:data.stocks,kerf:data.kerf,trim:data.trim},
@@ -2248,6 +2254,14 @@ function acceptEconomyWorkerResult(data,initial,response){
   plan.bins.reduce((sum,b)=>sum+collectOffcuts(b).area,0):null;
  return {proposal,improved:changes,savings:initial.cost===null?null:initial.cost-cost,
   boardDelta:bins.length-n,salvageBefore:recoverable(initial),salvageAfter:recoverable(proposal)}
+}
+function launchEconomyAfterCount(data,plan){
+ if(plan.economyProof?.proven&&plan.economyProof.minimumCost!==null&&
+    Math.abs(plan.economyProof.minimumCost-plan.cost)<0.01){
+  economySearchStatus('Minimum ek stok maliyeti önceden kanıtlandı: '+money(plan.cost)+'.');
+  return
+ }
+ startEconomyWorker(data,plan)
 }
 function startEconomyWorker(data,initial){
  cancelEconomySearch(true);
@@ -2379,7 +2393,6 @@ function run(){
    byId('results').scrollIntoView({behavior:'smooth',block:'start'});
    if(sol.unplaced.length)toast(sol.unplaced.length+' parça yerleştirilemedi.');
    startExactWorker(data,sol);
-   startEconomyWorker(data,sol);
   }catch(error){console.error(error);toast('Hesaplama hatası: '+error.message)}
   finally{
    processing=false;
