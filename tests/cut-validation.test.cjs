@@ -237,11 +237,13 @@ const exactTwo=certificate(state({kerf:0,trim:0,
 assert.equal(exactTwo.proof.proven,true);
 assert.equal(exactTwo.proof.lowerBound,2);
 assert.equal(exactTwo.result.bins.length,2);
-const weakArea=certificate(state({kerf:0,trim:0,
+// Geometric incompatibility now provides a stronger, VALID lower bound
+// than the original area-only certificate expected by this legacy test.
+const geometricBound=certificate(state({kerf:0,trim:0,
   parts:[certPart(60,60),certPart(60,60)],stocks:[certStock(100,100),certStock(120,120,0),certStock(130,130,0),certStock(140,140,0)]}));
-assert.equal(weakArea.proof.proven,false);
-assert.equal(weakArea.proof.lowerBound,1);
-assert.equal(weakArea.result.bins.length,2);
+assert.equal(geometricBound.proof.proven,true);
+assert.equal(geometricBound.proof.lowerBound,2);
+assert.equal(geometricBound.result.bins.length,2);
 const materialGroups=certificate(state({kerf:0,trim:0,
   parts:[certPart(100,100,'Birch'),certPart(100,100,'Pine')],
   stocks:[certStock(100,100,5,'Birch'),certStock(100,100,5,'Pine')]}));
