@@ -6,10 +6,13 @@
 
 Bulut kullanımı tamamen isteğe bağlıdır. Kullanıcının yerel stok verileri izinsiz otomatik yüklenmez ve bulut modundan yerel moda dönüldüğünde korunur.
 
-## Geliştirme dalı — tam stok ve maliyet V2 (19 Kasım 2026)
+## Yayındaki mimari — tam stok ve maliyet V2 (20 Kasım 2026)
 
-Bu bölüm `architecture/engine-boundaries-v1` geliştirme dalının durumunu
-tanımlar; `master` veya GitHub Pages yayınına alınmış olduğunu **iddia etmez**.
+V2 mimarisi PR #1 ile `master` dalına birleştirildi ve GitHub Pages üzerinde
+başarıyla dağıtıldı. PR #2 ile izole iPhone WebKit otomatik kabul testleri
+eklendi ve `master` üzerinde doğrulandı. **Bu, gerçek iPhone/Safari saha testi
+ve gerçek iki hesaplı Supabase kullanıcı kabulü yapıldığı anlamına gelmez.**
+Kaynak test listesi: `tests/SAFARI-UAT-CHECKLIST.md`.
 
 - `20261119_000002_full_stock_production.sql` Supabase'de uygulanmıştır.
   Eski 7 tablo korunmuş, tam stok, tam stok hareketi ve tamamlanmış üretim
@@ -41,9 +44,10 @@ tanımlar; `master` veya GitHub Pages yayınına alınmış olduğunu **iddia et
    `SECURITY DEFINER` RPC fonksiyonları üyelik kontrolünden sonra çalışır.
    Supabase güvenlik danışmanının bu RPC erişimi hakkındaki uyarıları
    izlenmeli ve periyodik olarak gözden geçirilmelidir.
-3. Gerçek iki cihazlı iOS/Safari testi, ağ kesintisi, gerçek bulut yetkisi,
-   PDF paylaşımı ve kullanıcı kabul testi tamamlanmadan `master` dalına
-   birleştirme yapılmamalıdır.
+3. Gerçek iki cihazlı iOS/Safari testi, ağ kesintisi, gerçek bulut yetkisi
+   ve PDF paylaşımı için saha kabulü **henüz yapılmadı**. V2 daha önce
+   `master` üzerinde yayınlandığı için bu eksikliği birleştirme engeli gibi
+   gösterme; gerçek fiziksel üretimde ayrıca doğrulama ve güvenli deneme şarttır.
 4. Eski bulut stoklarının veya geçmiş üretimlerin otomatik olarak V2
    maliyet kaydına dönüştürülmesi yapılmaz; geçmiş maliyetler uydurulmaz.
 5. Tam stokta miktar sıfıra düşse dahi kayıt ve hareket geçmişi silinmez.
