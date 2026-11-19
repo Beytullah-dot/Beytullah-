@@ -35,6 +35,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Verify module architecture and independent production audit
+        run: node tests/engine-contract.cjs
       - name: Verify analytical geometric lower bounds
         run: node tests/geometric-bounds.cjs
       - name: Verify background exact Worker against reference oracle
