@@ -116,8 +116,11 @@ function createClient(device,hash=''){
  const el=id=>{
   if(!nodes.has(id))nodes.set(id,{id,value:'',innerHTML:'',textContent:'',
    dataset:{},style:{},classList:className(id==='cloudRecoveryArea'?'cloud-hidden':''),disabled:false,
-   appendChild(child){this.lastAppended=child},click(){},select(){},focus(){},
-   closest(){return null}});
+   appendChild(child){this.lastAppended=child},append(child){this.lastAppended=child},
+   prepend(child){this.lastPrepended=child},insertBefore(child){this.lastAppended=child},
+   querySelector(selector){return el(id+':'+selector)},querySelectorAll(){return []},
+   addEventListener(){},setAttribute(){},removeAttribute(){},remove(){},
+   click(){},select(){},focus(){},closest(){return null}});
   return nodes.get(id)
  };
  const listeners={},doc={getElementById:el,addEventListener(type,handler,capture){
