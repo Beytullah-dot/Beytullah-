@@ -35,6 +35,7 @@ jobs:
           node-version: '22'
       - name: Run regression suite
         run: |
+          node tests/engine-contract.cjs
           node tests/cut-validation.test.cjs
           node tests/cloud-sync.test.cjs
       - name: Verify PostgreSQL permissions and atomic inventory operations
