@@ -381,7 +381,7 @@ tests+=4;
 const impossibleOne=verify(multiCase([[60,60],[60,60]],[[100,100,2],[110,60,1]]));
 assert.equal(impossibleOne.result.bins.length,2);
 const cannot=app.certifyStockCount(impossibleOne.result,impossibleOne.input,app.auditCutPlan(impossibleOne.result,impossibleOne.input));
-assert.equal(cannot.method,'exhaustive-geometry');
+assert.equal(cannot.method,'geometric-incompatibility');
 assert.equal(cannot.proven,true);
 tests+=3;
 
@@ -392,7 +392,7 @@ const twoMaterials=verify(multiCase(
 assert.equal(twoMaterials.result.bins.length,3);
 assert.equal(twoMaterials.result.exact.groups.length,2);
 const materialProof=app.certifyStockCount(twoMaterials.result,twoMaterials.input,app.auditCutPlan(twoMaterials.result,twoMaterials.input));
-assert.equal(materialProof.method,'exhaustive-geometry');
+assert.equal(materialProof.method,'geometric-incompatibility');
 assert.equal(materialProof.proven,true);
 tests+=4;
 
