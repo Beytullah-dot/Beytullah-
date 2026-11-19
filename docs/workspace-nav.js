@@ -158,4 +158,10 @@ for(const id of ['stockCount','remnantCount'])if($(id))observer.observe($(id),{s
 if($('remnantConfirmProductionBtn'))observer.observe($('remnantConfirmProductionBtn'),{attributes:true,attributeFilter:['disabled']});
 filter('all');show('inventory');shell.classList.remove('bh-detail');refresh();
 window.BeythausCutWorkspace={open,close,show,refresh};
+ // Password reset links open the account page immediately, including on phones.
+ const recovery=$('cloudRecoveryArea');
+ if(recovery&&!recovery.classList.contains('cloud-hidden')){
+  open('account');
+  $('cloudRecoveryPassword')?.focus({preventScroll:true});
+ }
 })();
