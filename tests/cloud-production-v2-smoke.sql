@@ -38,23 +38,24 @@ select public.beythaus_cloud_production_v2(current_setting('test.ws2')::uuid,
      "stock":{"l":2000,"w":100,"t":40,"material":"Meşe"},"cuts":[],"pieces":[]}
   ]}
  }'::jsonb);
-do $$declare s jsonb;b jsonb;r record;
+do $declare s jsonb;b jsonb;
 begin
  s=public.beythaus_cloud_snapshot_v2(current_setting('test.ws2')::uuid);
  if exists(select 1 from jsonb_array_elements(s->'fullStocks') f
     where (f->>'qty')::integer<>0 or (f->>'version')::integer<>2) then
   raise exception 'Full stock not decremented/versioned';end if;
- select * into r from public.beythaus_production_records
-  where workspace_id=current_setting('test.ws2')::uuid and id='B-v2-1';
- if not found or r.gross_stock_cost<>1200 or r.offcut_book_value<>600
-  or r.material_cost<>600 or r.extra_cost<>50 or r.total_cost<>650 or
-  r.extra_note<>'Bantlama' then
+ b=s->'batches'->0;
+ if b is null or (b->>'grossStockCost')::numeric<>1200 or
+  (b->>'offcutBookValue')::numeric<>600 or
+  (b->>'materialCost')::numeric<>600 or
+  (b->>'extraCost')::numeric<>50 or (b->>'totalCost')::numeric<>650 or
+  (b->>'extraNote')<>'Bantlama' then
   raise exception 'Production cost or note mismatch';end if;
- if (select book_value from public.beythaus_stock where
-  workspace_id=current_setting('test.ws2')::uuid and id='R-PA')<>500 then
+ if (select (p->>'bookValue')::numeric from jsonb_array_elements(s->'pieces') p
+  where p->>'id'='R-PA')<>500 then
   raise exception 'Panel offcut value mismatch';end if;
- if (select book_value from public.beythaus_stock where
-  workspace_id=current_setting('test.ws2')::uuid and id='R-MA')<>100 then
+ if (select (p->>'bookValue')::numeric from jsonb_array_elements(s->'pieces') p
+  where p->>'id'='R-MA')<>100 then
   raise exception 'Solid wood offcut value mismatch';end if;
  if jsonb_array_length(s->'batches')<>1 or
   (s->'batches'->0->>'productionCompleted')<>'true' then
@@ -65,8 +66,8 @@ select public.beythaus_cloud_production_v2(current_setting('test.ws2')::uuid,
  'bbbbbbbb-0000-4000-8000-000000000003'::uuid,
  '{"batchId":"B-forged-retry"}'::jsonb);
 do $$begin
- if (select count(*) from public.beythaus_production_records where
-  workspace_id=current_setting('test.ws2')::uuid)<>1 then
+ if jsonb_array_length(public.beythaus_cloud_snapshot_v2(
+   current_setting('test.ws2')::uuid)->'batches')<>1 then
   raise exception 'Repeated operation duplicated production';end if;
 end$$;
 -- Stale second device rolls back the whole request; no third offcut is created.
@@ -81,8 +82,8 @@ begin
      "stock":{"l":1000,"w":500,"t":18,"material":"Beyaz Meşe"}}]}}'::jsonb);
  exception when sqlstate '40001' then rejected:=true;end;
  if not rejected then raise exception 'Stale full stock not rejected';end if;
- if exists(select 1 from public.beythaus_stock where
-  workspace_id=current_setting('test.ws2')::uuid and id='R-FAIL') then
+ if exists(select 1 from jsonb_array_elements(public.beythaus_cloud_snapshot_v2(
+  current_setting('test.ws2')::uuid)->'pieces') p where p->>'id'='R-FAIL') then
   raise exception 'Failed production left a partial remnant';end if;
 end$$;
 -- Client cannot mint offcuts from a bin without matching physical source usage.
