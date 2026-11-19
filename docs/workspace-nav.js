@@ -106,6 +106,10 @@ function selectView(name){
  const isPlan=name==='plan';
  screen.hidden=isPlan;
  document.body.classList.toggle('bh-page-mode',!isPlan);
+ // Prevent keyboard navigation into the cutting page while another folder is shown.
+ const topbar=document.querySelector('.topbar'),workspaceEl=document.querySelector('.workspace');
+ if(topbar)topbar.inert=!isPlan;
+ if(workspaceEl)workspaceEl.inert=!isPlan;
  $('bhInventory').classList.toggle('active',name==='inventory');
  $('bhAccount').classList.toggle('active',name==='account');
  drawer.querySelectorAll('[data-bh-view]').forEach(b=>{
@@ -130,6 +134,7 @@ function open(){
  drawer.classList.add('open');shade.classList.add('open');
  drawer.setAttribute('aria-hidden','false');
  handle.setAttribute('aria-expanded','true');
+ handle.focus({preventScroll:true});
  handle.setAttribute('aria-label','Çalışma alanı çekmecesini kapat');
 }
 function close(){
