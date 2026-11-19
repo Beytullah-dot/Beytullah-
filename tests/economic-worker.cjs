@@ -122,6 +122,39 @@ for(let i=0;i<13;i++){
   complete++
  }
 }
+// Proof-safety: deliberately interrupted subsearch must not be interpreted
+// as no cheaper alternative. The incomplete reference cannot certify cost.
+const direct=new Function('self',fs.readFileSync(
+ path.join(root,'docs/economic-exact.js'),'utf8')+';return EconomicExact;')({});
+const partialData=input({pieces:[[50,100],[50,100]],
+ stocks:[[100,100,1,100],[50,100,2,25]]});
+const interrupted=direct.solve({
+ type:'economy',requestId:70,cutMode:'nest',priceMode:'panel',
+ data:partialData,incumbentBins:[{stockId:'s0',material:'MDF'}],
+ timeBudgetMs:1000,maxNodes:10000
+},()=>({status:'unknown',nodes:10}));
+assert.equal(interrupted.status,'partial','Unknown geometry may not prove cost');
+assert.equal(interrupted.groups[0].proven,false);
+unknown++;
+// A truncated candidate enumeration also cannot certify the minimum cost.
+const manyParts=Array.from({length:13},(_,i)=>({
+ id:'m'+i,l:1,w:1,t:null,material:'MDF',label:'M'+i,rotate:false
+}));
+const manyStocks=[
+ {id:'expensive',l:20,w:20,qty:1,price:2000,t:null,material:'MDF'},
+ ...[0,1,2].map(i=>({
+  id:'cheap'+i,l:20,w:20,qty:13,price:1,t:null,material:'MDF'
+ }))
+];
+const overScope=direct.solve({
+ type:'economy',requestId:71,cutMode:'nest',priceMode:'panel',
+ data:{parts:manyParts,stocks:manyStocks,trim:0,kerf:0},
+ incumbentBins:[{stockId:'expensive',material:'MDF'}]
+},()=>({status:'infeasible',nodes:1}));
+assert.equal(overScope.status,'partial','Out-of-scope enumeration cannot certify');
+assert.equal(overScope.groups[0].proven,false);
+unknown++;
+
 console.log('Economic Worker validation: '+complete+' complete cases, '+
  optimal+' optimum claims checked, '+unknown+
  ' unresolved/price-unknown cases. No false cost optimum in tested problems.');
