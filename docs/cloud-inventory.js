@@ -544,5 +544,5 @@ if(session&&config.url&&config.key){
  }).catch(()=>{session=null;draw();status('Oturum yenilemek için yeniden giriş yap.',true)})
 }
 window.BeythausCloud={sendPasswordResetEmail,finishPasswordRecovery,showRecoveryFromUrl,explainAuthError,active:()=>active,normalizeConfig,selectWorkspace,synchronize,mutate,login,
- signup,leave,signout,importLocal,changePassword};
+ signup,leave,signout,importLocal,changePassword,saveCloudFullStock,importLocalFullStocks};
 })();
