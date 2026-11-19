@@ -981,7 +981,11 @@ function renderRows(){
  ).join('');
  byId('partCount').textContent=fmt(state.parts.reduce((s,p)=>s+(Number(val(p.qty))||0),0),0);
  byId('stockCount').textContent=fmt(state.stocks.length,0);
- renderMaterialControls();syncThicknessVisibility()
+ renderMaterialControls();syncThicknessVisibility();
+ if(cloudInventoryActive){
+  for(const el of qsa('#stockRows input,#stockRows select,#stockRows button'))el.disabled=true;
+  for(const id of ['addStock','addStockTop'])byId(id).disabled=true
+ }
 }
 function syncThicknessVisibility(){if(state.parts.some(p=>stockKind(p)==='masif'))state.partsThicknessEnabled=true;for(const [flag,cardId,buttonId] of [['partsThicknessEnabled','partsCard','partsThicknessToggle'],['stocksThicknessEnabled','stocksCard','stocksThicknessToggle']]){const on=state[flag]!==false,btn=byId(buttonId);byId(cardId).classList.toggle('thickness-off',!on);btn.setAttribute('aria-pressed',String(on));btn.textContent='Kalınlık '+(on?'✓':'＋');btn.classList.toggle('thickness-on',on)}}
 for(const [flag,buttonId] of [['partsThicknessEnabled','partsThicknessToggle'],['stocksThicknessEnabled','stocksThicknessToggle']])byId(buttonId).onclick=()=>{if(flag==='partsThicknessEnabled'&&state.parts.some(p=>stockKind(p)==='masif')&&state[flag]){toast('Masif parçalarda kalınlık zorunludur.');return}state[flag]=!state[flag];syncThicknessVisibility();changed()};
@@ -1040,7 +1044,7 @@ bindTable('partRows','parts');bindTable('stockRows','stocks');
 function addPart(){const last=state.parts.at(-1);state.parts.push({id:uid(),l:'',w:'',t:last?.t??'',qty:1,category:last?.category||'masif',material:last?.material||state.singleMaterial||'Ahşap',label:nextPartLabel(state.parts),grain:'',rotate:true});renderRows();changed();const inputs=byId('partRows').lastElementChild?.querySelectorAll('input');inputs?.[0]?.focus()}
 function addStock(){const last=state.stocks.at(-1);state.stocks.push({id:uid(),l:'',w:'',t:last?.t??'',qty:1,category:last?.category||'masif',material:last?.material||'Ahşap',priceUnit:last?.category==='panel'?'panel':'m3',grain:'',location:last?.location||'',price:''});renderRows();changed();byId('stockRows').lastElementChild?.querySelector('input')?.focus()}
 for(const id of ['addPart','addPartTop'])byId(id).onclick=addPart;for(const id of ['addStock','addStockTop'])byId(id).onclick=addStock;
-byId('unitSelect').onchange=e=>{const newUnit=e.target.value,ratio=state.unit==='cm'?10:.1;for(const arr of [state.parts,state.stocks])for(const r of arr)for(const k of ['l','w'])if(Number.isFinite(val(r[k])))r[k]=round(val(r[k])*ratio,3);state.unit=newUnit;renderRows();changed();toast('Ölçüler '+newUnit+' birimine dönüştürüldü.')};
+byId('unitSelect').onchange=e=>{const newUnit=e.target.value,ratio=state.unit==='cm'?10:.1;for(const arr of [...new Set([state.parts,state.stocks,...(cloudInventoryActive?[localFullStockShadow,remnantDB.fullStocks]:[])].filter(Array.isArray))])for(const r of arr)for(const k of ['l','w'])if(Number.isFinite(val(r[k])))r[k]=round(val(r[k])*ratio,3);state.unit=newUnit;renderRows();changed();toast('Ölçüler '+newUnit+' birimine dönüştürüldü.')};
 for(const [id,k] of [['kerfInput','kerf'],['trimInput','trim'],['projectName','project'],['m3Input','m3Price'],['offcutEdgeInput','offcutMinEdgeMm'],['offcutAreaInput','offcutMinAreaCm2'],['offcutValueInput','offcutValuePerM2']])byId(id).addEventListener('input',e=>{state[k]=k==='project'?e.target.value:e.target.value;changed();if(k==='project')byId('resultTitle').textContent=state.project||'Kesim planı'});
 byId('modeSegment').onclick=e=>{const b=e.target.closest('button[data-mode]');if(!b)return;state.mode=b.dataset.mode;syncSettings();changed()};
 byId('priceSegment').onclick=e=>{const b=e.target.closest('button[data-price]');if(!b)return;state.priceMode=b.dataset.price;syncSettings();changed()};
