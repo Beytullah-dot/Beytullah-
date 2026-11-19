@@ -113,6 +113,27 @@
    totalBound+=r.lowerBound;
   }
   if(!allExact)return {...base,status:'unknown-bound'};
+  // A proven minimum number of sheets also proves minimum cost or area
+  // when EVERY eligible stock in each independent material group has
+  // identical objective value per sheet. This remains valid for 25+ sheets,
+  // even when the area-cover relaxation is far too weak.
+  if(!allowMaterialAssignment&&plan.stockProof?.proven===true&&
+     plan.stockProof.complete===true&&plan.stockProof.usedStockCount===plan.bins.length){
+   let uniform=true;
+   for(const [key] of groups){
+    const stockTypes=data.stocks.filter(s=>groupKey(s)===key&&s.qty>0);
+    if(!stockTypes.length){uniform=false;break}
+    const unit=stock=>objective==='count'?1:objective==='area'?
+      stock.l*stock.w:costOf(stock,{priceMode,m3});
+    const values=stockTypes.map(unit);
+    if(values.some(v=>v===null||!Number.isFinite(v)||v<0)||
+       values.some(v=>Math.abs(v-values[0])>1e-7)){
+     uniform=false;break
+    }
+   }
+   if(uniform)return {...base,proven:true,lowerBound:incumbent,gap:0,
+    status:'optimal',method:'proven-count-uniform-unit'};
+  }
   const tolerance=objective==='cost'?0.00001:objective==='count'?0:Math.max(EPS,Math.abs(totalBound)*1e-10);
   // If this inequality ever fails, input grouping or pricing is inconsistent;
   // do not turn an impossible stronger lower bound into a false proof.
