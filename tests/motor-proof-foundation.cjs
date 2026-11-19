@@ -118,6 +118,27 @@ assert.equal(certificate.certify(fixedPlan,fixedData,{objective:'cost',auditOK:t
 assert.equal(certificate.certify(fixedPlan,fixedData,{objective:'cost',auditOK:true,
  priceMode:'panel',allowMaterialAssignment:true}).proven,false);
 
+// Auto material assignment cannot inherit a proof for a fixed assignment.
+// Both pieces could use the larger oak stock, even if a heuristic selected
+// oak and pine separately. The category-relaxed lower bound correctly says 1.
+const flexibleData={parts:[
+ {...parts[0],id:'oa',l:50,w:100,material:'panel|oak'},
+ {...parts[0],id:'pi',l:50,w:100,material:'panel|pine'}
+],stocks:[
+ {...stocks[0],id:'oak',l:100,w:100,qty:1,price:100},
+ {...stocks[0],id:'pine',l:50,w:100,material:'panel|pine',qty:1,price:30}
+],trim:0,kerf:0};
+const chosenAssignment={bins:[{},{}],placedCount:2,unplaced:[],cost:130,
+ stockArea:15000};
+assert.equal(certificate.certify(chosenAssignment,flexibleData,{
+ objective:'count',auditOK:true,allowMaterialAssignment:false}).proven,true,
+ 'Separate fixed materials genuinely require two sheets');
+const globalAuto=certificate.certify(chosenAssignment,flexibleData,{
+ objective:'count',auditOK:true,allowMaterialAssignment:true});
+assert.equal(globalAuto.lowerBound,1);
+assert.equal(globalAuto.proven,false,
+ 'Selected assignment must never be mistaken for global auto minimum');
+
 // Independent exhaustive oracle for the bounded integer-area-cover model.
 let seed=94737;function random(n){seed=(seed*1664525+1013904223)>>>0;return seed%n}
 function oracle(types,demand,objective){
