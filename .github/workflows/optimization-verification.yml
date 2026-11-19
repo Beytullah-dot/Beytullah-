@@ -1,0 +1,38 @@
+name: Beythaus Cut - Optimizer Verification
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'docs/index.html'
+      - 'tests/**'
+      - '.github/workflows/optimization-verification.yml'
+  pull_request:
+    branches: [master]
+    paths:
+      - 'docs/index.html'
+      - 'tests/**'
+      - '.github/workflows/optimization-verification.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  independent-optimization-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify optimizer and proof claims
+        run: node tests/optimization-regression.cjs --json optimization-report.json
+      - name: Publish test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: optimizer-independent-validation
+          path: optimization-report.json
+          if-no-files-found: warn
