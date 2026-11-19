@@ -723,7 +723,7 @@ function stockProofDescription(proof){
  if(proof.proven)return 'Minimum stok sayısı kanıtlandı: '+proof.usedStockCount+
   ' stok. '+(proof.method==='exhaustive-geometry'?
     (state.mode==='guillotine'?'Kesin giyotin kesim ağacı araması daha az stoklu tüm kesim seçeneklerini eledi.':
-     'Kesin geometrik arama daha az stoklu tüm seçenekleri eledi.'):(proof.method==='geometric-incompatibility'?'Parçaların birlikte sığma zorunlulukları ve alan alt sınırları karşılandı.':proof.method==='kerf-cardinality'?'Parça boyutları, stok kapasitesi ve testere payından hesaplanan kesin alt sınıra ulaşıldı.':'Geçerli yerleşim alan alt sınırına ulaştı.'))+' Bu kanıt fire veya maliyet optimumluğu değildir.'+
+     'Kesin geometrik arama daha az stoklu tüm seçenekleri eledi.'):(proof.method==='geometric-incompatibility'?'Parçaların birlikte sığma zorunlulukları ve alan alt sınırları karşılandı.':proof.method==='kerf-cardinality'?'Parça boyutları, stok kapasitesi ve testere payından hesaplanan kesin alt sınıra ulaşıldı.':proof.method==='global-integer-cover'?'Karma otomatikte tüm uygun stok türlerini kapsayan tamsayılı kesin alt sınıra ulaşıldı.':'Geçerli yerleşim alan alt sınırına ulaştı.'))+' Bu kanıt fire veya maliyet optimumluğu değildir.'+
   (state.mode==='nest'?' Serbest yerleşim sonucu, panel testeresi için uygulanabilir kesim planı veya üretim uygunluğu kanıtı DEĞİLDİR.':'');
  if(proof.lowerBound===null)return 'Minimum stok sayısı kanıtlanamadı: '+proof.reason;
  return (proof.searchStatus==='limit'?'Kesin çözüm araması zaman veya işlem sınırına ulaştı. ':'')+'Minimum stok sayısı henüz kanıtlanmadı: kullanılan '+proof.usedStockCount+
