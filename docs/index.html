@@ -2024,7 +2024,8 @@ function acceptExactWorkerResult(data,initial,response){
     material:g.material,status:g.status,proven:g.proven,initialCount:g.initialCount,
     bestCount:g.bestCount,lowerBound:g.lowerBound,nodes:g.nodes,checked:g.checked
    }))},
-  search:{...initial.search,savedStockCount:(initial.search?.savedStockCount||0)+initial.bins.length-bins.length}
+  search:{...initial.search,savedStockCount:(initial.search?.savedStockCount||0)+initial.bins.length-bins.length},
+  economyProof:improved.length?null:initial.economyProof
  };
  if(bins.length>initial.bins.length||!auditCutPlan(proposal,data).ok)
   throw Error('Kesin arama sonucunun bağımsız geometri kontrolü başarısız.');
@@ -2274,6 +2275,10 @@ function startEconomyWorker(data,initial){
    return
   }
   try{
+   if(response.groups?.some(g=>g.status==='unknown-price')){
+    economySearchStatus('Stok türlerinden en az birinin fiyatı bilinmiyor. Minimum maliyet kanıtlanamadı.','warning');
+    return
+   }
    const result=acceptEconomyWorkerResult(data,initial,response),candidate=result.proposal;
    const proven=candidate.economyProof.proven;
    if(result.improved){
