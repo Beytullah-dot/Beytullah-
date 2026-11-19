@@ -54,6 +54,18 @@ for(const mode of ['nest','guillotine']){
   complete++;optimal++;
  }
 }
+// m³ mode: nominal stock geometry alone is not the price, thickness matters.
+// With unspecified piece thickness both stock types are geometrically allowed.
+const m3Data=input({pieces:[[50,100],[50,100]],
+ stocks:[[100,100,1,0],[50,100,2,0]],t:18});
+m3Data.stocks[1].t=24;
+for(const mode of ['nest','guillotine']){
+ const result=workerCost(m3Data,mode,[1,1],'m3',25000);
+ assert.equal(result.status,'optimal','m3 mode must have a cost proof');
+ assert.ok(Math.abs(result.groups[0].bestCost-4.5)<1e-9,'m3 optimum includes actual stock thickness');
+ assert.equal(result.groups[0].bestCount,1,'m3 lower-cost stock count');
+ complete++;optimal++
+}
 const unknownPrice=input({pieces:[[50,100],[50,100]],
  stocks:[[100,100,1,100],[50,100,2,0]]});
 for(const mode of ['nest','guillotine']){
