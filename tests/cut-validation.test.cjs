@@ -333,13 +333,13 @@ const geometricProof=state({
 app.setState(geometricProof);
 const gpIn=app.normalize(),gpPlan=app.optimize(gpIn);
 const gpCert=app.certifyStockCount(gpPlan,gpIn,app.auditCutPlan(gpPlan,gpIn));
-assert.equal(gpCert.lowerBound,1);
+assert.equal(gpCert.lowerBound,2);
 assert.equal(gpCert.usedStockCount,2);
-assert.equal(gpCert.method,'exhaustive-geometry');
+assert.equal(gpCert.method,'geometric-incompatibility');
 assert.equal(gpCert.proven,true);
 window.__testHooks.showResult(gpIn,gpPlan);
-assert.ok(node('optimalityRow').textContent.includes('Kesin geometrik arama'));
-assert.ok(window.__testHooks.makePdfDocument().content.some(x=>String(x.text||'').includes('Kesin geometrik arama')));
+assert.ok(node('optimalityRow').textContent.includes('Parçaların birlikte sığma zorunlulukları'));
+assert.ok(window.__testHooks.makePdfDocument().content.some(x=>String(x.text||'').includes('Parçaların birlikte sığma zorunlulukları')));
 tests+=7;
 
 let oracleSeed=91501;
