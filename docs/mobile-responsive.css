@@ -11,7 +11,7 @@ button,.btn,.bh-navitem,.sheet-tab,summary{touch-action:manipulation}
 .bh-content-scroll,.projects-list,.remnant-history-list,.modal-body{-webkit-overflow-scrolling:touch}
 .card-title,.card-sub,.kv strong,.remnant-detail,.cloud-hint,.bh-intro{overflow-wrap:anywhere}
 
-@media(max-width:900px){
+@media screen and (max-width:900px){
  .workspace{grid-template-columns:minmax(0,1fr);width:min(760px,calc(100% - 32px));margin-inline:auto;gap:15px}
  .sidebar,.main-area{gap:13px}
  .metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -21,7 +21,7 @@ button,.btn,.bh-navitem,.sheet-tab,summary{touch-action:manipulation}
 }
 
 /* Comfortable touch controls and responsive cards on phones. */
-@media(max-width:640px){
+@media screen and (max-width:640px){
  :root{--bh-handle-left:calc(env(safe-area-inset-left,0px) + 11px);--bh-handle-width:42px}
  .container{width:calc(100% - 24px)}
  .topbar{padding-top:env(safe-area-inset-top,0px)}
@@ -260,7 +260,7 @@ button,.btn,.bh-navitem,.sheet-tab,summary{touch-action:manipulation}
 }
 
 /* 320–365px: make every action reachable without horizontal viewport overflow. */
-@media(max-width:365px){
+@media screen and (max-width:365px){
  .topbar-inner{gap:3px}
  .topbar .brand-name{font-size:13px}
  .topbar .brand-name span{display:none}
@@ -281,7 +281,7 @@ button,.btn,.bh-navitem,.sheet-tab,summary{touch-action:manipulation}
 }
 
 /* Landscape phones: usable vertical room and reduced sheet footprint. */
-@media(max-height:520px) and (orientation:landscape){
+@media screen and (max-height:520px) and (orientation:landscape){
  .bh-drawer-content{padding-top:55px;padding-bottom:8px;overflow-y:auto}
  .bh-drawer-heading{padding-bottom:8px}
  .bh-navitems{gap:3px}
@@ -296,7 +296,7 @@ button,.btn,.bh-navitem,.sheet-tab,summary{touch-action:manipulation}
 }
 
 /* Keyboard editing should not be obscured by bottom controls. */
-@media(max-width:640px){
+@media screen and (max-width:640px){
  body:has(input:focus-visible) .mobile-run,
  body:has(textarea:focus-visible) .mobile-run,
  body:has(select:focus-visible) .mobile-run{display:none!important}
