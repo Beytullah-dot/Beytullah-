@@ -6,8 +6,11 @@
 üretim emrine dönüştürmeyi önlemek ve matematik motorunu UI/QR/bulut koduna
 dokunmadan test edebilmek.
 
-Bu çalışma **davranış koruyan mimari ayrımıdır**; matematiksel algoritma, fiyat
-formülü, saha koşulları veya kullanıcı verisi değiştirilmedi.
+**2026-11-20 motor güncellemesi:** Yalnız parça üzerindeki yön bilgisi stokun
+boy/en eksenlerine göre döndürme kısıtıdır. Matematik motoruna, 20–25 levhalık
+büyük ve tekrarlı projelerde de çalışabilen tam sayılı alan/maliyet örtüsü
+ve testere paylı eş parça kapasitesi sertifikaları eklendi. Mevcut müşteri
+stokları değiştirilmedi; bu gelişme tüm projelerde optimum garanti etmez.
 
 ## Yeni devre şeması
 
@@ -31,6 +34,9 @@ formülü, saha koşulları veya kullanıcı verisi değiştirilmedi.
          |--------> serbest yerleşim     aynı modelde minimum stok sayısı
          |--------> giyotin kesim       docs/guillotine-exact.js
          |--------> en düşük ek maliyet docs/economic-exact.js
+         |--------> 25+ levha alan/maliyet alt sınırı
+         |           docs/engine/optimality-certificate.js
+         |           docs/optimality-worker.js
          |                               süre limiti = UNKNOWN, kanıt DEĞİL
          v
  [P2  YENİDEN BAĞIMSIZ DENETİM]        Worker adayı tekrar denetlenir
@@ -53,7 +59,7 @@ formülü, saha koşulları veya kullanıcı verisi değiştirilmedi.
 | P0 Giriş | Proje/stock verisini normalize etmek | Henüz büyük HTML içindedir | Yanlış birim/kalınlık |
 | P1 Hesaplama | Geçerli stok yerleşim adayları ve alt sınırlar | UI, DOM, ağ, PDF yok | Kötü verim, eksik aday |
 | P2 Denetim | Kesimi bağımsız yeniden kontrol etmek | Çözüm üretmez | Kısa kesim, kerf, çakışma |
-| P3 Kesin arama | Bağımsız çözüm/alt-üst sınır ve işlem bütçesi | Sınırda UNKNOWN | Kanıtlanmamış optimum |
+| P3 Kesin arama | Bağımsız çözüm, tam sayılı alt sınır ve işlem bütçesi | Sınırda UNKNOWN | Kanıtlanmamış optimum |
 | P4 UI | Sonuç, onay, iptal ve arayüz durumu | Algoritma yazmamalıdır | Eski Worker yanıtı |
 | P5 Üretim | Yalnız denetimden geçen fiziksel üretim | Serbest plan taslaktır | Yanlış PDF/yanlış stok |
 | P6 CI | Değişikliklerin standart testleri | Gerçek saha testi yerine geçmez | Regresyon |
@@ -139,3 +145,25 @@ ayrı takip edilmelidir.
 
 Her adımın şartı: **ana davranışın referans sonuçlarla aynı kalması, denetimin
 çalışması, CI'ın yeşil olması ve geri alma yolunun hazır bulunması.**
+
+## Yeni matematiksel garanti sınırı (2026-11-20)
+
+- **Parça yönü:** yalnız parçaya ait `serbest`, `boyuna`, `enine`.
+  Stokun girilmiş boy/en eksenleri referanstır; stokun eski `grain` alanı
+  kesim yönü kısıtı değildir. Tarihî stok kayıtları silinmez.
+- **Giyotin kesim:** sahada üretime uygun kesim ağacı bağımsız denetlenir.
+  Araştırma/test amaçlı serbest yerleşim üretim planı sayılmaz.
+- **Kanıt:** `optimality-certificate.js` stok türlerinin sınırlı miktarları
+  arasında tam Pareto dinamik programlama yapar. Önce geometriyi gevşeten
+  güvenli **alan** alt sınırı, eş ölçülü/tek yönlü parçalar için ayrıca
+  **kerf'li maksimum parça adedi** alt sınırı kurulur. Denetlenmiş plan
+  bu alt sınıra ulaşırsa ilgili tek amacın optimumluğu kanıtlanır.
+- **25 levha kanıtı:** 400 adet 22×22 mm parça, 100×100 mm 25 stok,
+  3 mm kerf; her stokta en çok 16 parça; minimum 25 stok ve aynı tip/fiyat
+  stok koşullarında global maliyet/brüt alan optimumluğu fiziksel audit
+  ile gösterilir. Bu **tüm farklı ölçülü 25 levha projelerini kapsamaz**.
+- **İşlem limiti:** DP kesilir veya çözüm alt sınıra ulaşamazsa
+  `UNKNOWN`/optimumluk aralığı açıkça korunur. Matematiksel kanıtı olmayan
+  sonuçlara `OPTIMAL` etiketi verilmez.
+- Reprodüksiyon ve mühürleme ön koşulları:
+  [`tests/MOTOR-PROOF-STATUS.md`](../tests/MOTOR-PROOF-STATUS.md).
