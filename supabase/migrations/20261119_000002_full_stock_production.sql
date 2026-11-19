@@ -163,7 +163,7 @@ declare
  v_gross_known boolean:=true;v_offcut_known boolean:=true;
  v_cost_material numeric;v_total numeric;v_areas jsonb:='{}'::jsonb;
  v_unit_cost numeric;v_source_area numeric;v_area numeric;
- v_note text;v_location text;
+ v_note text;v_extra_note text;v_location text;
 begin
  if v_uid is null then raise exception 'Authentication required' using errcode='28000';end if;
  if p_operation is null or jsonb_typeof(p_payload)<>'object' then
@@ -181,7 +181,7 @@ begin
  v_offcuts=p_payload->'created';v_snapshot=p_payload->'planSnapshot';
  v_bins=v_snapshot->'bins';
  v_extra=coalesce((p_payload->>'extraCost')::numeric,0);
- v_note=coalesce(p_payload->>'extraNote','');
+ v_extra_note=coalesce(p_payload->>'extraNote','');
  if v_batch is null or char_length(v_batch) not between 1 and 90 or
     jsonb_typeof(v_used_full)<>'array' or jsonb_typeof(v_consumed)<>'array' or
     jsonb_typeof(v_offcuts)<>'array' or jsonb_typeof(v_bins)<>'array' or
@@ -189,7 +189,7 @@ begin
     jsonb_array_length(v_used_full)>100 or jsonb_array_length(v_consumed)>100 or
     jsonb_array_length(v_offcuts)>300 or
     octet_length(v_snapshot::text)>500000 or
-    v_extra<0 or v_extra>1000000000000 or char_length(v_note)>120 then
+    v_extra<0 or v_extra>1000000000000 or char_length(v_extra_note)>120 then
   raise exception 'Invalid production structure' using errcode='22023';end if;
  if exists(select 1 from public.beythaus_production_records
   where workspace_id=p_workspace and id=v_batch) then
@@ -344,7 +344,7 @@ begin
   v_used_full,v_consumed,v_created,
   case when v_gross_known then round(v_gross,4) else null end,
   case when v_offcut_known then round(v_offcut,4) else null end,
-  v_cost_material,v_extra,v_note,v_total);
+  v_cost_material,v_extra,v_extra_note,v_total);
  insert into public.beythaus_batches(workspace_id,id,project_name,signature,operation_id)
  values(p_workspace,v_batch,v_project,v_signature,p_operation);
  v_result=jsonb_build_object('ok',true,'kind','production_v2','batchId',v_batch,
