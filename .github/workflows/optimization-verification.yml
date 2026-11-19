@@ -39,6 +39,8 @@ jobs:
         run: node tests/optimization-worker.cjs
       - name: Verify exact guillotine cut trees and proofs
         run: node tests/guillotine-worker.cjs
+      - name: Verify real atelier PDF has full-length cuts and safe draft marking
+        run: node tests/atolye-production-safety.cjs
       - name: Verify exact incremental stock-cost optimum
         run: node tests/economic-worker.cjs
       - name: Validate economic plan acceptance and tamper rejection
