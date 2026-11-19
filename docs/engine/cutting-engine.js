@@ -726,7 +726,7 @@ function stockProofDescription(proof){
   ', matematiksel alt sınır '+proof.lowerBound+' stok. Daha iyi bir planın varlığı da kanıtlanmış değil.';
 }
 
- return Object.freeze({binCost,mkBin,collectOffcuts,offcutOptimizationDescription,optimize,grossWasteProofDescription,certifyStockCount,stockProofDescription,validateLayout,auditCutPlan,auditGuillotineCuts,minStockCountLowerBound});
+ return Object.freeze({binCost,mkBin,collectOffcuts,offcutOptimizationDescription,optimize,grossWasteProofDescription,certifyStockCount,stockProofDescription,validateLayout,auditCutPlan,auditGuillotineCuts,minStockCountLowerBound,refineUsableOffcuts,offcutMetrics,betterOffcuts,enumerateBoardMultisets,exactGrossAreaRefine,exactUniformFeasibility,exactVariableFeasibility,exactRefinePlan});
 }
 root.BeythausCutEngine=Object.freeze({contractVersion:CONTRACT_VERSION,createEngine});
 })(typeof window!=='undefined'?window:globalThis);
