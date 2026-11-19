@@ -120,7 +120,13 @@ async function main() {
   for (const choice of ['minimum', 'economic']) {
     await page.locator('#autoPlanChoice [data-choice="' + choice + '"]').click();
   }
-  console.log('PASS 5: Explicit stock exclusion, audited cut, two plan choices, no stock consumption');
+  await page.waitForFunction(() => {
+    const area=document.querySelector('#grossWasteProofRow');
+    const cost=document.querySelector('#globalCostProofRow');
+    return area?.classList.contains('is-proven') &&
+      cost?.classList.contains('is-proven');
+  }, null, { timeout });
+  console.log('PASS 5: Explicit stock exclusion, audited cut, two plan choices, independently certified cost and area, no stock consumption');
 
   await page.reload({ waitUntil: 'load' });
   await page.waitForFunction(() => Boolean(window.BeythausCutWorkspace), null, { timeout });
