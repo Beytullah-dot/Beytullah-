@@ -32,13 +32,12 @@ drawer.setAttribute('aria-label','Beythaus çalışma alanları');
 drawer.setAttribute('aria-hidden','true');
 drawer.innerHTML=[
  '<div class="bh-drawer-content">',
-  '<div class="bh-drawer-heading"><span class="bh-eyebrow">BEYTHAUS WORKSPACE</span><strong>Beythaus <span>Cut</span></strong><p>Çalışma alanları</p></div>',
+  '<div class="bh-drawer-heading"><span class="bh-eyebrow">WORKSPACE</span></div>',
   '<nav class="bh-navitems" aria-label="Çalışma alanları">',
    '<button class="bh-navitem" type="button" data-bh-view="plan"><span class="bh-navglyph">▧</span><span>Kesim Planı</span><span class="bh-navarrow" aria-hidden="true">›</span></button>',
    '<button class="bh-navitem" type="button" data-bh-view="inventory"><span class="bh-navglyph">▦</span><span>Stok Envanteri</span><span class="bh-navarrow" aria-hidden="true">›</span></button>',
    '<button class="bh-navitem" type="button" data-bh-view="account"><span class="bh-navglyph">♙</span><span>Hesap Ayarları</span><span class="bh-navarrow" aria-hidden="true">›</span></button>',
   '</nav>',
-  '<div class="bh-navnote">Bir klasör seçildiğinde çekmece kapanır. Simge çekmecenin kulpu olarak her zaman görünür kalır.</div>',
  '</div>'
 ].join('');
 const screen=document.createElement('section');
