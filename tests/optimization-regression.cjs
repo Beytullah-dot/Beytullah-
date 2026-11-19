@@ -6,15 +6,12 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path');
 const {solve,audit}=require('./optimization-oracle.cjs');
-const html=fs.readFileSync(path.join(__dirname,'../docs/index.html'),'utf8');
-const from=html.indexOf('function intersect('),to=html.indexOf('const colors=',from);
-if(from<0||to<0)throw Error('Core markers not found');
+const {createEngine}=require('./engine-harness.cjs');
 const state={mode:'nest',kerf:'0',offcutMinEdgeMm:50,offcutMinAreaCm2:100,priceMode:'panel'};
 const val=x=>Number(String(x).replace(',','.'));
 const mkey=x=>String(x).trim().toLocaleLowerCase('tr-TR');
 const fmt=(x,n)=>Number(x).toFixed(n??0);
-const engine=new Function('state','val','mkey','fmt',
- html.slice(from,to)+';return {optimize,auditCutPlan,certifyStockCount};')(state,val,mkey,fmt);
+const engine=createEngine(state,val,mkey,fmt);
 
 const fixtures=[
  {name:'four quarters, zero kerf',board:[100,100],pieces:[[50,50],[50,50],[50,50],[50,50]],kerf:0,expected:1},
