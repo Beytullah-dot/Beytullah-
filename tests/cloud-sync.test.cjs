@@ -38,7 +38,7 @@ const server={items:[
  notes:'',status:'available',version:1,sourceKey:'existing:1',projectName:'Başlangıç',
  createdAt:1700000000000,updatedAt:1700000000000,usedAt:null}
 ],movements:[],workspace:{id:'w1',name:'Beythaus Atölye',defaultLocation:'Raf A'},
- operations:new Map(),failNext:false};
+ operations:new Map(),failNext:false,recoveryRedirect:null,updatedPassword:null};
 let totalRequests=0,idCounter=0,globalUuidCounter=0;
 function fakeFetch(url,options){
  totalRequests++;
@@ -48,6 +48,15 @@ function fakeFetch(url,options){
  if(ending==='/auth/v1/token')return Promise.resolve(okay({
    access_token:'signed-in-token',refresh_token:'refresh-token',expires_in:3600}));
  if(ending==='/auth/v1/signup')return Promise.resolve(okay({user:{id:'test-user'}}));
+ if(ending==='/auth/v1/recover'){
+  server.recoveryRedirect=new URL(url).searchParams.get('redirect_to');
+  return Promise.resolve(okay({}))
+ }
+ if(ending==='/auth/v1/user'&&options.method==='PUT'){
+  if(options.headers.Authorization!=='Bearer recovery-token')return Promise.resolve(fail(401,'Invalid recovery token'));
+  server.updatedPassword=request.password;
+  return Promise.resolve(okay({id:'test-user'}))
+ }
  if(ending==='/auth/v1/logout')return Promise.resolve(okay({}));
  if(!options.headers.Authorization?.startsWith('Bearer '))return Promise.resolve(fail(401,'Login required'));
  if(ending.endsWith('/beythaus_cloud_workspaces'))return Promise.resolve(okay([
@@ -98,7 +107,7 @@ function fakeFetch(url,options){
  }
  return Promise.resolve(fail(404,'Unknown mock route '+ending))
 }
-function createClient(device){
+function createClient(device,hash=''){
  const nodes=new Map(),className=()=>({toggle(){},add(){},remove(){},contains(){return false}});
  const el=id=>{
   if(!nodes.has(id))nodes.set(id,{id,value:'',innerHTML:'',textContent:'',
@@ -123,7 +132,7 @@ function createClient(device){
   openRemnantEditor(){},getSelectedRemnantSource(){return 'qr'}
  };
  const window={BeythausCut:app,sessionStorage,
-  location:{protocol:'https:'},crypto:{randomUUID:()=>'00000000-0000-4000-8000-'+String(++globalUuidCounter).padStart(12,'0')},
+  location:{protocol:'https:',pathname:'/Beytullah-/',search:'',hash},history:{replaceState(...args){this.lastReplace=args}},crypto:{randomUUID:()=>'00000000-0000-4000-8000-'+String(++globalUuidCounter).padStart(12,'0')},
   addEventListener(){},print(){}};
  const context={document:doc,window,localStorage,navigator:{},URL,fetch:fakeFetch,
   setInterval(){return 1},clearInterval(){},setTimeout(){},console,Date,JSON,Number,String,
@@ -150,10 +159,35 @@ function createClient(device){
   checks+=3;
  }
  assert.match(a.api.explainAuthError({error_code:'email_not_confirmed'},400),/henüz doğrulanmadı/);
- assert.match(a.api.explainAuthError({error_code:'over_email_send_rate_limit'},429),/Yeni hesap oluşturma/);
+ assert.match(a.api.explainAuthError({error_code:'over_email_send_rate_limit'},429),/kısa aralıklarla/);
+ assert.match(a.api.explainAuthError({error_code:'invalid_credentials'},400),/Şifremi unuttum/);
  assert.match(a.api.explainAuthError({error_code:'email_exists'},422),/Giriş yap/);
  assert.match(a.api.explainAuthError({error_code:'weak_password'},422),/Daha güçlü/);
- checks+=4;
+ checks+=5;
+ // Safe user-initiated password reset; do not send a reset email from tests.
+ await a.api.sendPasswordResetEmail();
+ assert.equal(server.recoveryRedirect,'https://beytullah-dot.github.io/Beytullah-/');
+ assert.match(a.el('cloudStatus').textContent,/Şifre sıfırlama isteği alındı/);
+ checks+=2;
+ // Recovery links are only accepted with type=recovery, and immediately
+ // removed from the address bar before entering a new password.
+ const recovered=createClient('Recovery','#access_token=recovery-token&refresh_token=refresh-token&type=recovery');
+ assert.ok(!recovered.el('cloudRecoveryArea').classList.contains('cloud-hidden'));
+ assert.equal(recovered.window.history.lastReplace[2],'/Beytullah-/');
+ recovered.el('cloudRecoveryPassword').value='new-test-password-2026';
+ recovered.el('cloudRecoveryConfirm').value='not-matching';
+ await assert.rejects(()=>recovered.api.finishPasswordRecovery(),/aynı değil/);
+ assert.equal(server.updatedPassword,null);
+ recovered.el('cloudRecoveryConfirm').value='new-test-password-2026';
+ await recovered.api.finishPasswordRecovery();
+ assert.equal(server.updatedPassword,'new-test-password-2026');
+ assert.ok(recovered.el('cloudRecoveryArea').classList.contains('cloud-hidden'));
+ await assert.rejects(()=>recovered.api.finishPasswordRecovery(),/bağlantısını aç/);
+ checks+=8;
+ const invalid=createClient('Invalid','#error=access_denied&error_code=otp_expired&type=recovery');
+ assert.match(invalid.el('cloudStatus').textContent,/geçersiz veya süresi dolmuş/);
+ assert.ok(invalid.el('cloudRecoveryArea').classList.contains('cloud-hidden'));
+ checks+=2;
  assert.throws(()=>a.api.normalizeConfig('https://attacker.example','sb_publishable_key'),/supabase/);
  assert.throws(()=>a.api.normalizeConfig('http://someproject.supabase.co','sb_publishable_key'),/HTTPS/);
  assert.throws(()=>a.api.normalizeConfig('https://someproject.supabase.co','sb_secret_abc'),/Gizli/);
