@@ -158,6 +158,7 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
  .exact-search-line{align-items:flex-start}
  .exact-search-line button{min-height:44px}
 }
+.auto-plan-choice{padding:14px;border:1px solid #d8e6db;border-radius:10px;margin:12px 0;background:#f7faf6}.auto-plan-choice>strong{font-size:12px;display:block;margin-bottom:8px}.auto-plan-choice .segment{margin-bottom:5px}
 .material-control{padding:13px 14px;border-bottom:1px solid #e2eae2;display:grid;gap:8px;font-size:12px;color:#395849}
 .material-control label{font-weight:650}.material-control select{width:100%;border:1px solid #d5e1d6;background:#fff;padding:9px 10px;border-radius:8px;min-height:40px;color:#2c4435}
 #singleMaterialWrap{display:grid;gap:5px}.stock-overview{border-top:1px solid #e3ebe4;padding:11px 13px;font-size:11px;color:#395849}.stock-overview strong{display:block;margin-bottom:6px}
@@ -213,6 +214,7 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
 </section>
 <main class="main-area" id="results">
   <section class="card hero"><div class="eyebrow">PROJE ANALİZİ</div><h1 id="resultTitle">Kesim planı</h1><div class="hero-sub" id="summarySub">Parçalar ve stok hazır.</div>
+    <div id="autoPlanChoice" class="auto-plan-choice hidden"><strong>Hangi planı uygulamak istiyorsunuz?</strong><div class="segment"><button type="button" data-choice="economic">En ekonomik</button><button type="button" data-choice="minimum">En az stok</button></div><p id="autoPlanNote" class="settings-note"></p></div>
     <div class="metrics"><div class="metric feature"><strong id="mSheets">—</strong><span>Gerekli stok</span></div><div class="metric"><strong id="mYield">—</strong><span>Verimlilik</span></div><div class="metric"><strong id="mCost">—</strong><span>Malzeme maliyeti</span></div><div class="metric"><strong id="mParts">—</strong><span>Yerleşen parça</span></div></div>
     <div class="status-line" id="status"><span class="status-dot"></span><span>Hesaplamak için düğmeye basın.</span></div>
     <div class="exact-search-line production-safety hidden" id="productionSafetyLine" role="alert">
@@ -352,6 +354,7 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
 <script src="./engine/material-policy.js"></script>
 <script src="./engine/production-audit.js"></script>
 <script src="./engine/cutting-engine.js"></script>
+<script src="./engine/material-allocator.js"></script>
 <script>
 (()=>{'use strict';
 const byId=id=>document.getElementById(id),qsa=s=>Array.from(document.querySelectorAll(s));
@@ -373,7 +376,7 @@ function sanitize(o){if(!o||typeof o!=='object'||!Array.isArray(o.parts)||!Array
 p.offcutValuePerM2=String(o.offcutValuePerM2??'').trim()!==''&&
  Number.isFinite(val(o.offcutValuePerM2))&&val(o.offcutValuePerM2)>=0?
  String(val(o.offcutValuePerM2)):'';
-p.useRemnantStock=o.useRemnantStock!==false;p.mode='guillotine';p.materialMode=['single','auto','manual'].includes(o.materialMode)?o.materialMode:(new Set(o.parts.map(x=>String(x.material||'Ahşap'))).size>1?'manual':'single');p.singleMaterial=String(o.singleMaterial||o.parts[0]?.material||'Ahşap').slice(0,80);p.allowedStockIds=Array.isArray(o.allowedStockIds)?o.allowedStockIds.filter(x=>typeof x==='string').slice(0,800):null;p.priceMode=o.priceMode==='panel'?'panel':'m3';p.m3Price=Number.isFinite(val(o.m3Price))?val(o.m3Price):25000;p.partsThicknessEnabled=typeof o.partsThicknessEnabled==='boolean'?o.partsThicknessEnabled:o.parts.some(x=>String(x.t??'').trim()!=='');p.stocksThicknessEnabled=typeof o.stocksThicknessEnabled==='boolean'?o.stocksThicknessEnabled:o.stocks.some(x=>String(x.t??'').trim()!=='');p.parts=o.parts.slice(0,250).map(x=>({id:uid(),l:x.l??'',w:x.w??'',t:x.t??'',qty:x.qty??1,material:String(x.material??'Ahşap').slice(0,80),category:x.category==='masif'?'masif':x.category==='panel'?'panel':(o.priceMode==='panel'?'panel':'masif'),grain:BeythausMaterialPolicy.grain(x.grain),label:String(x.label??'').slice(0,70),rotate:x.rotate!==false}));p.stocks=o.stocks.slice(0,100).map(x=>({id:uid(),l:x.l??'',w:x.w??'',t:x.t??'',qty:x.qty??1,material:String(x.material??'Ahşap').slice(0,80),category:x.category==='masif'?'masif':x.category==='panel'?'panel':(o.priceMode==='panel'?'panel':'masif'),priceUnit:x.priceUnit==='m3'||x.priceUnit==='panel'?x.priceUnit:(x.category==='masif'||(!x.category&&o.priceMode!=='panel')?'m3':'panel'),grain:BeythausMaterialPolicy.grain(x.grain),price:x.price??(x.category==='masif'||(!x.category&&o.priceMode!=='panel')?o.m3Price??'':'')}));return p}
+p.useRemnantStock=o.useRemnantStock!==false;p.mode='guillotine';p.materialMode=['single','auto','manual'].includes(o.materialMode)?o.materialMode:(new Set(o.parts.map(x=>String(x.material||'Ahşap'))).size>1?'manual':'single');p.singleMaterial=String(o.singleMaterial||o.parts[0]?.material||'Ahşap').slice(0,80);p.singleCategory=o.singleCategory==='panel'?'panel':o.singleCategory==='masif'?'masif':(o.priceMode==='panel'?'panel':'masif');p.allowedStockIds=Array.isArray(o.allowedStockIds)?o.allowedStockIds.filter(x=>typeof x==='string').slice(0,800):null;p.priceMode=o.priceMode==='panel'?'panel':'m3';p.m3Price=Number.isFinite(val(o.m3Price))?val(o.m3Price):25000;p.partsThicknessEnabled=typeof o.partsThicknessEnabled==='boolean'?o.partsThicknessEnabled:o.parts.some(x=>String(x.t??'').trim()!=='');p.stocksThicknessEnabled=typeof o.stocksThicknessEnabled==='boolean'?o.stocksThicknessEnabled:o.stocks.some(x=>String(x.t??'').trim()!=='');p.parts=o.parts.slice(0,250).map(x=>({id:typeof x.id==='string'&&x.id?x.id:uid(),l:x.l??'',w:x.w??'',t:x.t??'',qty:x.qty??1,material:String(x.material??'Ahşap').slice(0,80),category:x.category==='masif'?'masif':x.category==='panel'?'panel':(o.priceMode==='panel'?'panel':'masif'),grain:BeythausMaterialPolicy.grain(x.grain),label:String(x.label??'').slice(0,70),rotate:x.rotate!==false}));p.stocks=o.stocks.slice(0,100).map(x=>({id:typeof x.id==='string'&&x.id?x.id:uid(),l:x.l??'',w:x.w??'',t:x.t??'',qty:x.qty??1,material:String(x.material??'Ahşap').slice(0,80),category:x.category==='masif'?'masif':x.category==='panel'?'panel':(o.priceMode==='panel'?'panel':'masif'),priceUnit:x.priceUnit==='m3'||x.priceUnit==='panel'?x.priceUnit:(x.category==='masif'||(!x.category&&o.priceMode!=='panel')?'m3':'panel'),grain:BeythausMaterialPolicy.grain(x.grain),price:x.price??(x.category==='masif'||(!x.category&&o.priceMode!=='panel')?o.m3Price??'':'')}));return p}
 try{state=sanitize(stored()||defaultData())}catch{state=defaultData()}
 
 // A separate, device-local physical stock ledger. Every item represents ONE
@@ -895,7 +898,7 @@ function renderRows(){
 function syncThicknessVisibility(){if(state.parts.some(p=>stockKind(p)==='masif'))state.partsThicknessEnabled=true;for(const [flag,cardId,buttonId] of [['partsThicknessEnabled','partsCard','partsThicknessToggle'],['stocksThicknessEnabled','stocksCard','stocksThicknessToggle']]){const on=state[flag]!==false,btn=byId(buttonId);byId(cardId).classList.toggle('thickness-off',!on);btn.setAttribute('aria-pressed',String(on));btn.textContent='Kalınlık '+(on?'✓':'＋');btn.classList.toggle('thickness-on',on)}}
 for(const [flag,buttonId] of [['partsThicknessEnabled','partsThicknessToggle'],['stocksThicknessEnabled','stocksThicknessToggle']])byId(buttonId).onclick=()=>{if(flag==='partsThicknessEnabled'&&state.parts.some(p=>stockKind(p)==='masif')&&state[flag]){toast('Masif parçalarda kalınlık zorunludur.');return}state[flag]=!state[flag];syncThicknessVisibility();changed()};
 function syncSettings(){syncThicknessVisibility();byId('unitSelect').value=state.unit;byId('kerfInput').value=state.kerf;byId('trimInput').value=state.trim;byId('projectName').value=state.project;byId('m3Input').value=state.m3Price;byId('offcutEdgeInput').value=state.offcutMinEdgeMm;byId('offcutAreaInput').value=state.offcutMinAreaCm2;byId('offcutValueInput').value=state.offcutValuePerM2??'';byId('useRemnantStockInput').checked=state.useRemnantStock;for(const b of qsa('#modeSegment button'))b.classList.toggle('active',b.dataset.mode===state.mode);for(const b of qsa('#priceSegment button'))b.classList.toggle('active',b.dataset.price===state.priceMode);byId('m3Field').classList.toggle('hidden',state.priceMode==='panel');byId('priceHelp').textContent=state.priceMode==='m3'?'Toplam maliyet, kullanılan tam stokların hacmine göre hesaplanır.':'Her stok satırının ₺ / Panel fiyatı kullanılır.';byId('modeHelp').textContent=state.mode==='nest'?'Serbest yerleşim: daha sıkı dizilim; CNC ve uygun içten kesim yöntemleri için.':'Düz kesim: her adımda kenardan kenara tam kesim yapılabilecek yerleşim.';byId('resultTitle').textContent=state.project||'Kesim planı'}
-function changed(){cancelExactSearch(true);cancelEconomySearch(true);dirty=true;lastAudit=null;refreshRemnantUI();refreshProductionSafety();byId('planCard').querySelector('.card-title').textContent=state.mode==='nest'?'Yerleşim taslağı · Üretime uygun değil':'Kesim yerleşimi';byId('optimalityRow').textContent='Girdiler değişti. Optimumluk yeniden hesaplanmalı.';byId('optimalityRow').classList.remove('is-proven');byId('grossWasteProofRow').textContent='Girdiler değişti. Brüt fire yeniden hesaplanmalı.';byId('grossWasteProofRow').classList.remove('is-proven');invalidateCachedPdf();save();if(solution){for(const id of ['zoomBtn','downloadPdfTopBtn','printBtn'])byId(id).disabled=true;byId('status').className='status-line warning';byId('status').innerHTML='<span class="status-dot"></span><span>Girdiler değişti. Yeni plan için tekrar hesaplayın.</span>'}}
+function changed(){autoPlanCache=null;cancelExactSearch(true);cancelEconomySearch(true);dirty=true;lastAudit=null;refreshRemnantUI();refreshProductionSafety();byId('planCard').querySelector('.card-title').textContent=state.mode==='nest'?'Yerleşim taslağı · Üretime uygun değil':'Kesim yerleşimi';byId('optimalityRow').textContent='Girdiler değişti. Optimumluk yeniden hesaplanmalı.';byId('optimalityRow').classList.remove('is-proven');byId('grossWasteProofRow').textContent='Girdiler değişti. Brüt fire yeniden hesaplanmalı.';byId('grossWasteProofRow').classList.remove('is-proven');invalidateCachedPdf();save();if(solution){for(const id of ['zoomBtn','downloadPdfTopBtn','printBtn'])byId(id).disabled=true;byId('status').className='status-line warning';byId('status').innerHTML='<span class="status-dot"></span><span>Girdiler değişti. Yeni plan için tekrar hesaplayın.</span>'}}
 function toast(msg){const el=byId('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove('show'),2800)}
 function bindTable(id,key){
  const root=byId(id);
@@ -1816,6 +1819,26 @@ byId('economySearchApply').onclick=()=>{
  }
 };
 
+let autoPlanCache=null;
+const materialAllocator=window.BeythausMaterialAllocator.createAllocator({optimize,audit:auditCutPlan,offcutMetrics,binCost});
+function showAutoPlan(choice){
+ const item=autoPlanCache?.[choice];if(!item)return;
+ autoPlanCache.selected=choice;
+ showResult(item.data,item.plan);
+ byId('autoPlanChoice').classList.remove('hidden');
+ for(const b of qsa('#autoPlanChoice button'))b.classList.toggle('active',b.dataset.choice===choice);
+ byId('autoPlanNote').textContent=autoPlanCache.candidates+' malzeme dağılımı denendi'+
+  (autoPlanCache.estimatedSpace>autoPlanCache.candidates?' (arama sınırlandı)':'')+
+  '. Her planın kesim ağacı doğrulandı; küresel optimumluk kanıtlanmadı.';
+ byId('optimalityRow').textContent='Karma otomatik: tüm malzeme dağılımları için minimum stok kanıtlanmadı.';
+ byId('optimalityRow').classList.remove('is-proven');
+ byId('grossWasteProofRow').textContent='Karma otomatik: tüm malzeme dağılımları için maksimum kullanılabilir artık kanıtlanmadı.';
+ byId('grossWasteProofRow').classList.remove('is-proven');
+ economySearchStatus('Karma otomatik için ekonomik optimumluk kanıtlanmadı.','warning');
+}
+byId('autoPlanChoice').onclick=e=>{
+ const b=e.target.closest('button[data-choice]');if(b)showAutoPlan(b.dataset.choice)
+};
 let processing=false;
 function run(){
  if(processing)return;
@@ -1828,12 +1851,22 @@ function run(){
  byId('mobileRunBtn').textContent='Hesaplanıyor…';
  requestAnimationFrame(()=>setTimeout(()=>{
   try{
-   const sol=optimize(data,true,false),errors=validateLayout(sol,{kerf:data.kerf,trim:data.trim});
-   if(errors.length)throw Error(errors.join(' '));
-   showResult(data,sol);
+   if(state.materialMode==='auto'){
+    autoPlanCache=materialAllocator.allocate(data);
+    showAutoPlan('economic');
+    if(autoPlanCache.economic.plan.unplaced.length)toast(autoPlanCache.economic.plan.unplaced.length+' parça yerleştirilemedi.');
+   }else{
+    autoPlanCache=null;byId('autoPlanChoice').classList.add('hidden');
+    const sol=optimize(data,true,false),errors=validateLayout(sol,{kerf:data.kerf,trim:data.trim});
+    if(errors.length)throw Error(errors.join(' '));
+    showResult(data,sol);
+    if(sol.unplaced.length)toast(sol.unplaced.length+' parça yerleştirilemedi.');
+    if(data.parts.some(p=>p.grain)||data.stocks.some(s=>s.grain)){
+     exactSearchStatus('Damar kısıtı için kesin arama henüz desteklenmiyor; plan doğrulandı, optimumluk kanıtlanmadı.','warning');
+     economySearchStatus('Damar kısıtıyla minimum maliyet kesinliği henüz kanıtlanmadı.','warning');
+    }else startExactWorker(data,sol);
+   }
    byId('results').scrollIntoView({behavior:'smooth',block:'start'});
-   if(sol.unplaced.length)toast(sol.unplaced.length+' parça yerleştirilemedi.');
-   startExactWorker(data,sol);
   }catch(error){console.error(error);toast('Hesaplama hatası: '+error.message)}
   finally{
    processing=false;
