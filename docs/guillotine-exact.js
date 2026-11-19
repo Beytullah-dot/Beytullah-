@@ -183,7 +183,7 @@ const GuillotineExact=(()=>{
      const rest=cover(mask^sub,quantities,left-1);
      quantities[t]++;
      if(rest===null)return null;
-     if(rest!==false){const result=[fit,...rest];memo.set(key,result);return result}
+     if(Array.isArray(rest)){const result=[fit,...rest];memo.set(key,result);return result}
      if(rest==='unknown')uncertain=true
     }
    }
