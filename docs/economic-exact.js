@@ -60,7 +60,10 @@ const EconomicExact=(()=>{
    g.initialCost=g.bestCost=bestCost;
    const actualCost=list=>list.reduce((sum,b)=>sum+price(b.stock,cfg),0);
    const needed=parts.reduce((sum,p)=>sum+p.l*p.w,0);
-   const maxBoards=Math.min(7,parts.length,stocks.reduce((sum,s)=>sum+s.qty,0));
+   // A cheaper solution may require MORE boards than the incumbent.
+   // Capping here at 7 would produce an unsound cost-optimality certificate.
+   // Any complete packing uses at most one nonempty board per piece.
+   const maxBoards=Math.min(parts.length,stocks.reduce((sum,s)=>sum+s.qty,0));
    const combinations=[],selection=new Array(stocks.length).fill(0);
    // Exhaustively enumerate finite stock quantities. A cap is an UNKNOWN,
    // not a proof: we only keep combinations below the incumbent cost.
