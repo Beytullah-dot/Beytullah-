@@ -17,6 +17,13 @@ const val=x=>Number(String(x).replace(',','.'));
 const api=new Function('state','val','mkey','fmt',html.slice(begin,end)+
  ';return {optimize,auditCutPlan,certifyStockCount,mkBin,binCost};')(
  state,val,mkey,(x,n)=>Number(x).toFixed(n??0));
+const acceptStart=html.indexOf('function acceptExactWorkerResult(');
+const acceptEnd=html.indexOf('function startExactWorker(',acceptStart);
+assert.ok(acceptStart>=0&&acceptEnd>acceptStart,'Main-thread Worker handler missing');
+const accept=new Function('state','mkBin','binCost','auditCutPlan','mkey',
+ html.slice(acceptStart,acceptEnd)+';return acceptExactWorkerResult;')(
+ state,api.mkBin,api.binCost,api.auditCutPlan,mkey
+);
 const context={last:null,postMessage(msg){this.last=msg}};
 new Function('self',guillotineJS)(context);
 new Function('self',workerJS)(context);
@@ -103,7 +110,20 @@ for(let index=0;index<fixtures.length;index++){
   assert.equal(first.bins.length,2);
   assert.equal(bins.length,1);
   assert.ok(bins[0].cuts.length>0);
-  assert.equal(response.status,'optimal')
+  assert.equal(response.status,'optimal');
+  // Integration: the actual main-thread acceptance function must preserve
+  // cut steps, offcuts and a correct optimum certificate.
+  const accepted=accept(data,first,response);
+  assert.equal(accepted.improvedCount,1);
+  assert.ok(accepted.proposal.bins[0].cuts.length>0);
+  assert.ok(api.auditCutPlan(accepted.proposal,data).ok);
+  assert.equal(api.certifyStockCount(accepted.proposal,data,
+    api.auditCutPlan(accepted.proposal,data)).proven,true);
+  // A forged cut step is rejected, not silently applied.
+  const forged=JSON.parse(JSON.stringify(response));
+  forged.groups[0].layout[0].cuts[0].at+=100;
+  assert.throws(()=>accept(data,first,forged),
+   'Main-thread validation must reject a forged cut');
  }
  checks++
 }
