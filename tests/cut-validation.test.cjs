@@ -1294,7 +1294,7 @@ const remotePhysical={id:'REMOTE-STOCK-001',l:300,w:200,t:18,version:7,
  material:'Wood',location:'Ortak Raf',notes:'Server record',status:'available',
  sourceKey:'remote:one',projectName:'Ortak Atölye',createdAt:1730000000000};
 const remoteSnapshot={workspace:{id:'workspace-1',name:'Beythaus',defaultLocation:'Ortak Raf'},
- pieces:[remotePhysical],batches:[],movements:[]};
+ pieces:[remotePhysical],fullStocks:[],batches:[],movements:[]};
 app.setState(state({project:'Cloud-only stock',mode:'guillotine',unit:'mm',
  parts:[{l:150,w:100,t:'',qty:1,material:'Wood',label:'CloudPart',rotate:false}],
  stocks:[],useRemnantStock:true,kerf:3,trim:0,offcutMinEdgeMm:50,offcutMinAreaCm2:100}));
@@ -1317,11 +1317,13 @@ assert.equal(app.auditCutPlan(cloudPlan,cloudInput).ok,true);
 window.__testHooks.showResult(cloudInput,cloudPlan);
 const cloudRequest=app.cloudProductionPayload();
 assert.ok(cloudRequest);
-assert.equal(cloudRequest.kind,'production');
+assert.equal(cloudRequest.kind,'production_v2');
 assert.equal(cloudRequest.payload.consumed.length,1);
 assert.equal(cloudRequest.payload.consumed[0].id,'REMOTE-STOCK-001');
 assert.equal(cloudRequest.payload.consumed[0].expectedVersion,7);
 assert.ok(cloudRequest.payload.created.length>=1);
+assert.equal(cloudRequest.payload.created[0].binIndex,0);
+assert.deepEqual(Array.from(cloudRequest.payload.usedFull),[]);
 assert.equal(app.cloudProductionPayload().operationId,cloudRequest.operationId,
  'Retries of a physical production must reuse the same idempotency key');
 assert.equal(app.registerRemnantProduction(),false,
