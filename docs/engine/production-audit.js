@@ -88,6 +88,7 @@ function auditCutPlan(result,data){
    const rotated=original.rotate&&eq(piece.w,original.w)&&eq(piece.h,original.l);
    if(!((!piece.rotated&&straight)||(piece.rotated&&rotated)))error('Parça ölçüsü veya dönüşü değişmiş: '+piece.label);
    if(mkey(piece.material)!==mkey(original.material)||mkey(piece.material)!==mkey(stock.material))error('Malzeme eşleşmiyor: '+piece.label);
+    if(root.BeythausMaterialPolicy&&!root.BeythausMaterialPolicy.grainAllows(original,stock,!!piece.rotated))error('Damar yönü eşleşmiyor: '+piece.label);
    if((original.t===null)!==(piece.t===null)||(original.t!==null&&!eq(original.t,piece.t)))error('Parça kalınlığı değişmiş: '+piece.label);
    if(original.t!==null&&(stock.t===null||!eq(original.t,stock.t)))error('Stok kalınlığı eşleşmiyor: '+piece.label);
    if(piece.x<data.trim-eps||piece.y<data.trim-eps||piece.x+piece.w>stock.l-data.trim+eps||piece.y+piece.h>stock.w-data.trim+eps)error('Kenar veya stok sınırı ihlali: '+piece.label);
