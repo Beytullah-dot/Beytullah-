@@ -989,7 +989,7 @@ const historical={version:1,pieces:[
   createdAt:1730000000000,sourceKey:'legacy:one',projectName:'Eski kayıt'}
 ],batches:[]};
 const oldStore=new Map([['beythaus-cut-remnant-library-v1',JSON.stringify(historical)]]);
-const oldWindow={addEventListener(){},BeythausCutEngine:window.BeythausCutEngine,BeythausCutProductionAudit:window.BeythausCutProductionAudit},oldDocument={
+const oldWindow={addEventListener(){},BeythausCutEngine:window.BeythausCutEngine,BeythausCutProductionAudit:window.BeythausCutProductionAudit,BeythausMaterialPolicy:window.BeythausMaterialPolicy,BeythausMaterialAllocator:window.BeythausMaterialAllocator},oldDocument={
  getElementById:id=>node('_legacy_'+id),querySelectorAll(){return []},
  addEventListener(){},createElement(){return node('_legacy_temp')},
  head:{appendChild(){}},body:{classList:emptyClasses(),append(){}}
