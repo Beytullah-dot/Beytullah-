@@ -3,7 +3,7 @@
 (()=>{'use strict';
 const app=window.BeythausCut,root=document.getElementById('cloudSettingsRoot');
 if(!app||!root)return;
-root.innerHTML="\n<div class=\"card cloud-card\">\n <div class=\"card-head\"><div><div class=\"card-title\">Bulut stok envanteri</div><div class=\"card-sub\">Ortak atölye · isteğe bağlı</div></div><span id=\"cloudBadge\" class=\"cloud-status-pill\" data-mode=\"local\">Yerel</span></div>\n <div class=\"cloud-body\">\n  <p id=\"cloudStatus\" class=\"cloud-status\">Bulut bağlantısı kapalı. Yerel envanter korunuyor.</p>\n  <div class=\"cloud-form-grid\">\n   <div class=\"cloud-field span-all\"><label for=\"cloudUrl\">Supabase proje URL'si</label><input id=\"cloudUrl\" type=\"url\" autocomplete=\"url\" placeholder=\"https://proje.supabase.co\"></div>\n   <div class=\"cloud-field span-all\"><label for=\"cloudKey\">Publishable / anon API anahtarı (secret değil)</label><input id=\"cloudKey\" type=\"text\" autocomplete=\"off\" spellcheck=\"false\"></div>\n   <div class=\"cloud-field\"><label for=\"cloudEmail\">E-posta</label><input id=\"cloudEmail\" type=\"email\" autocomplete=\"email\"></div>\n   <div class=\"cloud-field\"><label for=\"cloudPassword\">Parola</label><input id=\"cloudPassword\" type=\"password\" autocomplete=\"current-password\"></div>\n  </div>\n  <div class=\"cloud-buttons\"><button id=\"cloudConnectBtn\" class=\"btn primary\" type=\"button\">Giriş yap</button>\n    <button id=\"cloudSignupBtn\" class=\"btn\" type=\"button\">Hesap oluştur</button>\n    <button id=\"cloudSignOutBtn\" class=\"btn cloud-hidden\" type=\"button\">Oturumu kapat</button></div>\n  <div id=\"cloudWorkspaceArea\" class=\"cloud-workspace-control cloud-hidden\">\n   <div class=\"cloud-separator\"></div>\n   <div class=\"cloud-subheading\">Ortak atölye</div>\n   <div class=\"cloud-field\"><label for=\"cloudWorkspaceSelect\">Atölye seç</label><select id=\"cloudWorkspaceSelect\"></select></div>\n   <div class=\"cloud-buttons\"><button id=\"cloudOpenBtn\" class=\"btn primary\" type=\"button\">Atölyeyi aç</button>\n    <button id=\"cloudRefreshBtn\" class=\"btn\" type=\"button\">Stokları eşitle</button>\n    <button id=\"cloudLeaveBtn\" class=\"btn\" type=\"button\">Yerel envantere dön</button></div>\n   <div class=\"cloud-field\"><label for=\"cloudNewWorkspace\">Yeni atölye adı</label><input id=\"cloudNewWorkspace\" type=\"text\" maxlength=\"80\" placeholder=\"Beythaus Atölye\"></div>\n   <div class=\"cloud-buttons\"><button id=\"cloudCreateBtn\" class=\"btn\" type=\"button\">Atölye oluştur</button>\n    <button id=\"cloudInviteBtn\" class=\"btn\" type=\"button\">Katılım kodu üret (yönetici)</button></div>\n   <div class=\"cloud-field\"><label for=\"cloudInviteCode\">Ekip katılım kodu</label><input id=\"cloudInviteCode\" type=\"text\" autocomplete=\"off\" spellcheck=\"false\"></div>\n   <div class=\"cloud-buttons\"><button id=\"cloudJoinBtn\" class=\"btn\" type=\"button\">Kodla katıl</button>\n    <button id=\"cloudCopyInvite\" class=\"btn\" type=\"button\">Kodu kopyala</button></div>\n   <div class=\"cloud-separator\"></div>\n   <div class=\"cloud-buttons\"><button id=\"cloudImportLocalBtn\" class=\"btn\" type=\"button\">Yerel stokları buluta aktar (yönetici)</button></div>\n   <p class=\"cloud-hint\">Yerel stoklar otomatik aktarılmaz. Bulut modunda stok değişiklikleri yalnız sunucu onayından sonra kesinleşir. Çevrimdışı stok tüketimi yapılamaz.</p>\n  </div>\n  <p class=\"cloud-hint\">Önce Supabase SQL kurulumunu yap. Tarayıcıya yalnız publishable/anon anahtarı gir; service_role veya secret anahtarı girmeyin. Bulut ayarlanmazsa yerel mod aynen çalışır. Hesap oluşturduktan sonra Supabase doğrulama e-postası gelebilir; bu e-posta onaylanmadan giriş yapılamaz.</p>\n  <p id=\"cloudError\" class=\"cloud-error\" aria-live=\"polite\"></p>\n </div>\n</div>";
+root.innerHTML="\n<div class=\"card cloud-card\">\n <div class=\"card-head\"><div><div class=\"card-title\">Bulut stok envanteri</div><div class=\"card-sub\">Ortak atölye · isteğe bağlı</div></div><span id=\"cloudBadge\" class=\"cloud-status-pill\" data-mode=\"local\">Yerel</span></div>\n <div class=\"cloud-body\">\n  <p id=\"cloudStatus\" class=\"cloud-status\">Bulut bağlantısı kapalı. Yerel envanter korunuyor.</p>\n  <div class=\"cloud-form-grid\">\n   <div class=\"cloud-field span-all\"><label for=\"cloudUrl\">Supabase proje URL'si</label><input id=\"cloudUrl\" type=\"url\" autocomplete=\"url\" placeholder=\"https://proje.supabase.co\"></div>\n   <div class=\"cloud-field span-all\"><label for=\"cloudKey\">Publishable / anon API anahtarı (secret değil)</label><input id=\"cloudKey\" type=\"text\" autocomplete=\"off\" spellcheck=\"false\"></div>\n   <div class=\"cloud-field\"><label for=\"cloudEmail\">E-posta</label><input id=\"cloudEmail\" type=\"email\" autocomplete=\"email\"></div>\n   <div class=\"cloud-field\"><label for=\"cloudPassword\">Parola</label><input id=\"cloudPassword\" type=\"password\" autocomplete=\"current-password\"></div>\n  </div>\n  <div class=\"cloud-buttons\"><button id=\"cloudConnectBtn\" class=\"btn primary\" type=\"button\">Giriş yap</button>\n    <button id=\"cloudSignupBtn\" class=\"btn\" type=\"button\">Hesap oluştur</button>\n    <button id=\"cloudSignOutBtn\" class=\"btn cloud-hidden\" type=\"button\">Oturumu kapat</button>\n    <button id=\"cloudForgotBtn\" class=\"btn\" type=\"button\">Şifremi unuttum</button></div>\n   <div id=\"cloudRecoveryArea\" class=\"cloud-workspace-control cloud-hidden\" role=\"region\" aria-label=\"Yeni parola belirle\">\n    <div class=\"cloud-separator\"></div>\n    <div class=\"cloud-subheading\">Beythaus Cut için yeni parola belirle</div>\n    <p class=\"cloud-hint\">E-postadaki sıfırlama bağlantısını açtıktan sonra yeni parolanı yalnızca buraya yaz.</p>\n    <div class=\"cloud-form-grid\">\n     <div class=\"cloud-field\"><label for=\"cloudRecoveryPassword\">Yeni parola</label><input id=\"cloudRecoveryPassword\" type=\"password\" autocomplete=\"new-password\" minlength=\"8\"></div>\n     <div class=\"cloud-field\"><label for=\"cloudRecoveryConfirm\">Yeni parola (tekrar)</label><input id=\"cloudRecoveryConfirm\" type=\"password\" autocomplete=\"new-password\" minlength=\"8\"></div>\n    </div>\n    <div class=\"cloud-buttons\"><button id=\"cloudResetPasswordBtn\" class=\"btn primary\" type=\"button\">Yeni parolayı kaydet</button></div>\n   </div>\n  <div id=\"cloudWorkspaceArea\" class=\"cloud-workspace-control cloud-hidden\">\n   <div class=\"cloud-separator\"></div>\n   <div class=\"cloud-subheading\">Ortak atölye</div>\n   <div class=\"cloud-field\"><label for=\"cloudWorkspaceSelect\">Atölye seç</label><select id=\"cloudWorkspaceSelect\"></select></div>\n   <div class=\"cloud-buttons\"><button id=\"cloudOpenBtn\" class=\"btn primary\" type=\"button\">Atölyeyi aç</button>\n    <button id=\"cloudRefreshBtn\" class=\"btn\" type=\"button\">Stokları eşitle</button>\n    <button id=\"cloudLeaveBtn\" class=\"btn\" type=\"button\">Yerel envantere dön</button></div>\n   <div class=\"cloud-field\"><label for=\"cloudNewWorkspace\">Yeni atölye adı</label><input id=\"cloudNewWorkspace\" type=\"text\" maxlength=\"80\" placeholder=\"Beythaus Atölye\"></div>\n   <div class=\"cloud-buttons\"><button id=\"cloudCreateBtn\" class=\"btn\" type=\"button\">Atölye oluştur</button>\n    <button id=\"cloudInviteBtn\" class=\"btn\" type=\"button\">Katılım kodu üret (yönetici)</button></div>\n   <div class=\"cloud-field\"><label for=\"cloudInviteCode\">Ekip katılım kodu</label><input id=\"cloudInviteCode\" type=\"text\" autocomplete=\"off\" spellcheck=\"false\"></div>\n   <div class=\"cloud-buttons\"><button id=\"cloudJoinBtn\" class=\"btn\" type=\"button\">Kodla katıl</button>\n    <button id=\"cloudCopyInvite\" class=\"btn\" type=\"button\">Kodu kopyala</button></div>\n   <div class=\"cloud-separator\"></div>\n   <div class=\"cloud-buttons\"><button id=\"cloudImportLocalBtn\" class=\"btn\" type=\"button\">Yerel stokları buluta aktar (yönetici)</button></div>\n   <p class=\"cloud-hint\">Yerel stoklar otomatik aktarılmaz. Bulut modunda stok değişiklikleri yalnız sunucu onayından sonra kesinleşir. Çevrimdışı stok tüketimi yapılamaz.</p>\n  </div>\n  <p class=\"cloud-hint\">Önce Supabase SQL kurulumunu yap. Tarayıcıya yalnız publishable/anon anahtarı gir; service_role veya secret anahtarı girmeyin. Bulut ayarlanmazsa yerel mod aynen çalışır. Hesap oluşturduktan sonra Supabase doğrulama e-postası gelebilir; bu e-posta onaylanmadan giriş yapılamaz.</p>\n  <p id=\"cloudError\" class=\"cloud-error\" aria-live=\"polite\"></p>\n </div>\n</div>";
 const $=id=>document.getElementById(id),KEY='beythaus-cloud-config-v1',
  SESSION='beythaus-cloud-session-v1',LOCAL='beythaus-cut-remnant-library-v1';
 let storage=null;try{storage=window.sessionStorage}catch{}
@@ -47,9 +47,11 @@ function fromInputs(){
 }
 function explainAuthError(body,statusCode){
  const code=String(body?.error_code||body?.code||'');
+ if(code==='invalid_credentials')return 'E-posta adresi veya Beythaus Cut parolası uyuşmuyor. Supabase yönetim hesabının parolası ayrı olabilir. E-posta adresini kontrol et veya Şifremi unuttum seçeneğini kullan.';
+ if(code==='otp_expired'||code==='otp_disabled')return 'Şifre sıfırlama bağlantısı süresi dolmuş veya kullanılmış. Yeniden Şifremi unuttum ile bağlantı iste.';
  if(code==='email_not_confirmed')return 'Hesabın oluşturuldu ancak e-posta adresin henüz doğrulanmadı. Supabase doğrulama e-postasını aç (Spam / Gereksiz klasörünü de kontrol et), bağlantıya dokun ve ardından Giriş yap.';
  if(code==='over_email_send_rate_limit'||(statusCode===429&&code.includes('rate_limit')))
-  return 'Doğrulama e-postası kısa süre önce istendiği için Supabase yeni isteği geçici olarak engelliyor. Yeni hesap oluşturma; gelen kutusu ve Spam klasöründeki ilk doğrulama e-postasını kullan. Gerekirse daha sonra tekrar dene.';
+  return 'Supabase kısa aralıklarla gönderilen e-postaları geçici olarak sınırlıyor. Yeni hesap oluşturma; gelen kutundaki son bağlantıyı kullan veya biraz sonra yeniden Şifremi unuttum seçeneğini dene.';
  if(code==='email_address_invalid')return 'E-posta adresi geçerli görünmüyor. Adresi kontrol et.';
  if(code==='weak_password')return 'Parola Supabase güvenlik koşullarını karşılamıyor. Daha güçlü bir parola seç.';
  if(code==='signup_disabled')return 'Bu Supabase projesinde yeni hesap oluşturma kapalı.';
@@ -113,6 +115,55 @@ async function signup(){
  const response=await http('/auth/v1/signup',{method:'POST',body:JSON.stringify({email,password})});
  if(response.access_token){remember(response);await workspaces()}
  status(response.access_token?'Hesap oluşturuldu ve giriş yapıldı.':'Hesabın oluşturuldu. Supabase doğrulama e-postasını gönderdi. Gelen kutusu ve Spam/Gereksiz klasörünü kontrol et, doğrulama bağlantısına dokun, ardından Giriş yap. Aynı e-posta için tekrar Hesap oluştur seçeneğini kullanma.')
+}
+// GoTrue implicit password recovery on our GitHub Pages app. Recovery JWTs
+// are never persisted; URL hash is removed immediately after capture.
+const RECOVERY_REDIRECT='https://beytullah-dot.github.io/Beytullah-/';
+let recoveryToken=null;
+async function sendPasswordResetEmail(){
+ fromInputs();
+ const email=$('cloudEmail').value.trim();
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+  throw Error('Önce Beythaus Cut hesabında kullandığın e-posta adresini gir.');
+ await http('/auth/v1/recover?redirect_to='+encodeURIComponent(RECOVERY_REDIRECT),
+  {method:'POST',body:JSON.stringify({email})});
+ status('Şifre sıfırlama isteği alındı. Bu e-posta hesabına kayıtlıysa Supabase bir bağlantı gönderir. Gelen kutusu ve Spam klasörünü kontrol et. Bağlantıyı açınca yeni parola alanı görünecek.')
+}
+function showRecoveryFromUrl(){
+ const raw=String(window.location?.hash||'');
+ if(!raw)return false;
+ let params;
+ try{params=new URL('https://example.invalid/?'+raw.slice(1)).searchParams}catch{return false}
+ const type=params.get('type'),access=params.get('access_token'),
+  error=params.get('error_code');
+ if(type!=='recovery'&&!error)return false;
+ // Do not leave bearer credentials in the browser URL or history.
+ window.history?.replaceState?.(null,'',String(window.location.pathname||'/')+String(window.location.search||''));
+ if(error){
+  status('Şifre sıfırlama bağlantısı geçersiz veya süresi dolmuş. Şifremi unuttum seçeneğiyle yeni bağlantı iste.',true);
+  return false
+ }
+ if(!access||access.length>12000){
+  status('Sıfırlama bağlantısında yetkilendirme eksik. Yeniden Şifremi unuttum seçeneğini kullan.',true);
+  return false
+ }
+ recoveryToken=access;
+ $('cloudRecoveryArea').classList.remove('cloud-hidden');
+ status('E-posta bağlantısı doğrulama için alındı. Şimdi yeni Beythaus Cut parolanı iki kez gir ve kaydet.');
+ return true
+}
+async function finishPasswordRecovery(){
+ if(!recoveryToken)throw Error('Önce e-postadaki şifre sıfırlama bağlantısını aç.');
+ const password=$('cloudRecoveryPassword').value,repeat=$('cloudRecoveryConfirm').value;
+ if(password.length<8)throw Error('Yeni parola en az 8 karakterli olmalı.');
+ if(password!==repeat)throw Error('Girilen yeni parolalar aynı değil.');
+ await http('/auth/v1/user',{
+  method:'PUT',headers:{Authorization:'Bearer '+recoveryToken},
+  body:JSON.stringify({password})},false);
+ recoveryToken=null;
+ $('cloudRecoveryPassword').value='';$('cloudRecoveryConfirm').value='';
+ $('cloudRecoveryArea').classList.add('cloud-hidden');
+ status('Beythaus Cut parolan güncellendi. Şimdi e-postan ve yeni parolanla Giriş yap.')
 }
 function stopPoll(){if(poll)clearInterval(poll);poll=null}
 function leave(){
@@ -266,6 +317,7 @@ document.addEventListener('submit',e=>{
 },true);
 function bind(id,fn){$(id).onclick=()=>run(fn)}
 bind('cloudConnectBtn',login);bind('cloudSignupBtn',signup);bind('cloudSignOutBtn',signout);
+bind('cloudForgotBtn',sendPasswordResetEmail);bind('cloudResetPasswordBtn',finishPasswordRecovery);
 bind('cloudOpenBtn',()=>selectWorkspace($('cloudWorkspaceSelect').value));
 bind('cloudRefreshBtn',()=>synchronize(true));
 bind('cloudLeaveBtn',async()=>{if(active)leave()});
@@ -280,12 +332,13 @@ bind('cloudCopyInvite',async()=>{
 window.addEventListener('online',()=>{if(active)synchronize(true)});
 document.addEventListener('visibilitychange',()=>{if(active&&document.visibilityState==='visible')synchronize(false)});
 draw();
+showRecoveryFromUrl();
 if(session&&config.url&&config.key){
  workspaces().then(items=>{
   if(config.workspace&&items.some(x=>x.id===config.workspace))return selectWorkspace(config.workspace);
   status('Bulut oturumu mevcut. Atölye seç.')
  }).catch(()=>{session=null;draw();status('Oturum yenilemek için yeniden giriş yap.',true)})
 }
-window.BeythausCloud={explainAuthError,active:()=>active,normalizeConfig,selectWorkspace,synchronize,mutate,login,
+window.BeythausCloud={sendPasswordResetEmail,finishPasswordRecovery,showRecoveryFromUrl,explainAuthError,active:()=>active,normalizeConfig,selectWorkspace,synchronize,mutate,login,
  signup,leave,signout,importLocal};
 })();
