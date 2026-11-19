@@ -33,7 +33,7 @@ assert.ok(html.includes('href="./cloud-inventory.css"'));
 assert.ok(sw.includes('./cloud-inventory.js')&&sw.includes('./cloud-inventory.css'));
 checks+=4;
 const clone=x=>JSON.parse(JSON.stringify(x));
-const server={items:[
+const server={fullStocks:[],items:[
  {id:'R-shared-1',l:150,w:90,t:18,material:'Wood',location:'Raf A',
  notes:'',status:'available',version:1,sourceKey:'existing:1',projectName:'Başlangıç',
  createdAt:1700000000000,updatedAt:1700000000000,usedAt:null}
@@ -61,12 +61,24 @@ function fakeFetch(url,options){
  if(!options.headers.Authorization?.startsWith('Bearer '))return Promise.resolve(fail(401,'Login required'));
  if(ending.endsWith('/beythaus_cloud_workspaces'))return Promise.resolve(okay([
   {id:'w1',name:'Beythaus Atölye',role:'owner'}]));
- if(ending.endsWith('/beythaus_cloud_snapshot')){
+ if(ending.endsWith('/beythaus_cloud_snapshot_v2')){
   if(request.p_workspace!=='w1')return Promise.resolve(fail(403,'No membership'));
   return Promise.resolve(okay({workspace:server.workspace,pieces:server.items,
-   batches:[],movements:server.movements}));
+   batches:[],fullStocks:server.fullStocks,movements:server.movements}));
  }
- if(ending.endsWith('/beythaus_cloud_mutate')){
+ if(ending.endsWith('/beythaus_cloud_save_full_stock')){
+   if(request.p_workspace!=='w1')return Promise.resolve(fail(403,'No workspace access'));
+   const old=server.fullStocks.find(x=>x.id===request.p_payload.id);
+   if(old&&old.version!==request.p_payload.expectedVersion)
+    return Promise.resolve(fail(409,'Full stock changed on another device; refresh'));
+   if(!old&&request.p_payload.expectedVersion!==null)
+    return Promise.resolve(fail(409,'Unknown full stock record'));
+   if(old){Object.assign(old,request.p_payload);old.version++}
+   else server.fullStocks.push({...request.p_payload,version:1});
+   return Promise.resolve(okay({ok:true,id:request.p_payload.id,kind:'full_stock_save',
+    version:old?old.version:1}))
+  }
+  if(ending.endsWith('/beythaus_cloud_mutate')){
   if(request.p_workspace!=='w1')return Promise.resolve(fail(403,'No workspace access'));
   const op=request.p_operation;
   if(server.operations.has(op))return Promise.resolve(okay(server.operations.get(op)));
