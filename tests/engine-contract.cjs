@@ -4,11 +4,15 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const docs=path.join(__dirname,'../docs');
+const policySource=fs.readFileSync(path.join(docs,'engine/material-policy.js'),'utf8');
+const allocationSource=fs.readFileSync(path.join(docs,'engine/material-allocator.js'),'utf8');
 const auditSource=fs.readFileSync(path.join(docs,'engine/production-audit.js'),'utf8');
 const engineSource=fs.readFileSync(path.join(docs,'engine/cutting-engine.js'),'utf8');
 const html=fs.readFileSync(path.join(docs,'index.html'),'utf8');
 const sw=fs.readFileSync(path.join(docs,'sw.js'),'utf8');
 const win={};
+vm.runInNewContext(policySource,{window:win},{filename:'material-policy.js'});
+vm.runInNewContext(allocationSource,{window:win},{filename:'material-allocator.js'});
 vm.runInNewContext(auditSource,{window:win},{filename:'production-audit.js'});
 vm.runInNewContext(engineSource,{window:win},{filename:'cutting-engine.js'});
 assert.equal(win.BeythausCutEngine.contractVersion,1);
@@ -55,5 +59,6 @@ assert.ok(auditTag>=0&&coreTag>auditTag&&inlineTag>coreTag,'Browser loads in dep
 assert.equal(html.includes('function auditCutPlan('),false,'Auditor not duplicated in HTML');
 assert.equal(html.includes('function optimize(data,enhanced=true,exact=true)'),false,'Solver not duplicated in HTML');
 assert.ok(html.includes('window.BeythausCutEngine?.createEngine'));
+assert.ok(sw.includes('./engine/material-policy.js')&&sw.includes('./engine/material-allocator.js'));
 assert.ok(sw.includes('./engine/production-audit.js')&&sw.includes('./engine/cutting-engine.js'));
 console.log('Engine architecture contract: 20 public methods preserved, mutable project switching safe, independent audit rejects partial cuts, load order/PWA verified.');
