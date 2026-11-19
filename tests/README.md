@@ -173,3 +173,24 @@ Test komutları:
 Birincisi fiyat karşılaştırmasını bağımsız koordinat/kesim ağacı oracle'ıyla
 doğrular. İkincisi ana uygulamanın ekonomik adayı kabul ederken sahte
 yerleşimleri, fiyatları ve kesim sıralarını reddettiğini sınar.
+
+## V6: Üretilebilirlik kapısı — gerçek atölye PDF hatası
+
+11 parçalı **Atölye projesi** PDF'si, serbest yerleşimde 3000 × 300 mm
+stoktan tek panelle hesaplanıyordu. Bu yerleşimde tam karşı-kenar
+kesim sırası yoktu; PDF'nin ÜRETİM DOSYASI başlığı risk oluşturuyordu.
+
+**Artık yeni projelerin varsayılan modu Düz kesim.** Serbest yerleşim
+yalnız yerleşim taslağıdır. Bu modun PDF'sine ÜRETİME UYGUN DEĞİL
+ibaresi, filigran ve TASLAK dosya adı eklenir. Eski yerleşimler
+otomatik dönüştürülmez, yeniden hesaplanmalıdır.
+
+Gerçek dosyadaki net parçalarla kesim doğrulama komutu:
+
+    node tests/atolye-production-safety.cjs
+
+Bu test tek panelde giyotin imkânsızlığını kanıtlar, iki panelin
+kesim ağacını doğrular, bilerek kısaltılmış kesimleri reddeder
+ve yeni PDF başlığı/uyarı davranışını kontrol eder.
+
+Teknik rapor: `tests/atolye-production-safety-report.md`.
