@@ -61,4 +61,45 @@ assert.equal(html.includes('function optimize(data,enhanced=true,exact=true)'),f
 assert.ok(html.includes('window.BeythausCutEngine?.createEngine'));
 assert.ok(sw.includes('./engine/material-policy.js')&&sw.includes('./engine/material-allocator.js'));
 assert.ok(sw.includes('./engine/production-audit.js')&&sw.includes('./engine/cutting-engine.js'));
+
+const materialPolicy=win.BeythausMaterialPolicy;
+assert.equal(materialPolicy.nextGrain(''),'width');
+assert.equal(materialPolicy.nextGrain('width'),'length');
+assert.equal(materialPolicy.nextGrain('length'),'');
+assert.equal(materialPolicy.grainSymbol('width'),'=');
+assert.equal(materialPolicy.grainSymbol('length'),'Ⅱ');
+assert.equal(materialPolicy.stockPrice({l:1000,w:500,t:20,priceUnit:'panel',price:950}),950);
+assert.equal(materialPolicy.stockPrice({l:1000,w:500,t:20,priceUnit:'m3',price:25000}),250);
+assert.equal(materialPolicy.stockPrice({l:1000,w:500,t:20,priceUnit:'m3',price:30000}),300);
+assert.equal(materialPolicy.stockPrice({l:1000,w:500,t:20,priceUnit:'m3',price:''}),null);
+assert.equal(materialPolicy.stockPrice({isRemnant:true,bookValue:77}),77);
+assert.equal(materialPolicy.stockPrice({isRemnant:true,bookValue:null}),null);
+const grainPiece={id:'grain-piece',l:40,w:20,t:null,material:'wood',label:'G',rotate:true,grain:'width',order:0};
+const grainStock={id:'grain-stock',l:100,w:100,t:null,material:'wood',grain:'length',qty:1,price:100,priceUnit:'panel',category:'panel',order:0};
+const grainData={parts:[grainPiece],stocks:[grainStock],trim:0,kerf:0,minEdge:0,minArea:0,m3:0};
+const grainPlan=engine.optimize(grainData,true,false);
+assert.equal(grainPlan.unplaced.length,0,'Grain-compatible placement exists');
+assert.equal(grainPlan.bins[0].placed[0].rotated,true,'Grain requires a 90-degree turn');
+assert.equal(engine.auditCutPlan(grainPlan,grainData).ok,true);
+const forbidden=JSON.parse(JSON.stringify(grainPlan));
+forbidden.bins[0].placed[0].rotated=false;
+assert.equal(engine.auditCutPlan(forbidden,grainData).ok,false,'Independent audit rejects forbidden grain');
+const squareGrain={...grainPiece,id:'square',l:20,w:20};
+const squareData={...grainData,parts:[squareGrain]};
+const squarePlan=engine.optimize(squareData,true,false);
+assert.equal(squarePlan.bins[0].placed[0].rotated,true,'Square still has meaningful grain rotation');
+assert.equal(engine.auditCutPlan(squarePlan,squareData).ok,true);
+const stockPine={...grainStock,id:'pine',material:'panel|pine',grain:'',price:60};
+const stockBeech={...grainStock,id:'beech',material:'panel|beech',grain:'',price:140};
+const autoData={parts:[{...grainPiece,id:'auto',category:'panel',material:'__AUTO__',grain:'',l:40,w:20,order:0}],
+ stocks:[stockPine,stockBeech],trim:0,kerf:0,minEdge:0,minArea:0,m3:0};
+const allocator=win.BeythausMaterialAllocator.createAllocator({
+ optimize:engine.optimize,audit:engine.auditCutPlan,
+ offcutMetrics:engine.offcutMetrics,binCost:engine.binCost
+});
+const choice=allocator.allocate(autoData);
+assert.ok(choice.economic&&choice.minimum&&choice.candidates===2);
+assert.equal(choice.economic.plan.bins[0].stock.id,'pine','User stock pricing picks cheaper stock');
+assert.equal(choice.proven,false,'Bounded allocation must not claim global proof');
+
 console.log('Engine architecture contract: 20 public methods preserved, mutable project switching safe, independent audit rejects partial cuts, load order/PWA verified.');
