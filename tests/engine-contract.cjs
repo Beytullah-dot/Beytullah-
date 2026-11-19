@@ -13,7 +13,7 @@ vm.runInNewContext(auditSource,{window:win},{filename:'production-audit.js'});
 vm.runInNewContext(engineSource,{window:win},{filename:'cutting-engine.js'});
 assert.equal(win.BeythausCutEngine.contractVersion,1);
 assert.equal(win.BeythausCutProductionAudit.contractVersion,1);
-const exports=['optimize','binCost','mkBin','collectOffcuts','auditCutPlan',
+const expectedMethods=['optimize','binCost','mkBin','collectOffcuts','auditCutPlan',
  'auditGuillotineCuts','certifyStockCount','minStockCountLowerBound',
  'stockProofDescription','grossWasteProofDescription','exactRefinePlan',
  'exactGrossAreaRefine','exactVariableFeasibility','exactUniformFeasibility',
@@ -26,7 +26,7 @@ const engine=win.BeythausCutEngine.createEngine({
  mkey:s=>String(s).trim().toLocaleLowerCase('tr-TR'),
  fmt:(v,n=0)=>Number(v).toFixed(n)
 });
-for(const name of exports)assert.equal(typeof engine[name],'function','Facade: '+name);
+for(const name of expectedMethods)assert.equal(typeof engine[name],'function','Facade: '+name);
 assert.ok(Object.isFrozen(engine));
 assert.throws(()=>win.BeythausCutEngine.createEngine({}),/dependencies/);
 assert.throws(()=>win.BeythausCutProductionAudit.createAudit({}),/requires/);
