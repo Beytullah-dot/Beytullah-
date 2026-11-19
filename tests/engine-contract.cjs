@@ -4,6 +4,7 @@
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const docs=path.join(__dirname,'../docs');
+const archiveSource=fs.readFileSync(path.join(docs,'engine/production-archive.js'),'utf8');
 const policySource=fs.readFileSync(path.join(docs,'engine/material-policy.js'),'utf8');
 const allocationSource=fs.readFileSync(path.join(docs,'engine/material-allocator.js'),'utf8');
 const auditSource=fs.readFileSync(path.join(docs,'engine/production-audit.js'),'utf8');
@@ -11,6 +12,7 @@ const engineSource=fs.readFileSync(path.join(docs,'engine/cutting-engine.js'),'u
 const html=fs.readFileSync(path.join(docs,'index.html'),'utf8');
 const sw=fs.readFileSync(path.join(docs,'sw.js'),'utf8');
 const win={};
+vm.runInNewContext(archiveSource,{window:win},{filename:'production-archive.js'});
 vm.runInNewContext(policySource,{window:win},{filename:'material-policy.js'});
 vm.runInNewContext(allocationSource,{window:win},{filename:'material-allocator.js'});
 vm.runInNewContext(auditSource,{window:win},{filename:'production-audit.js'});
@@ -102,4 +104,14 @@ assert.ok(choice.economic&&choice.minimum&&choice.candidates===2);
 assert.equal(choice.economic.plan.bins[0].stock.id,'pine','User stock pricing picks cheaper stock');
 assert.equal(choice.proven,false,'Bounded allocation must not claim global proof');
 
+const archived=win.BeythausProductionArchive.createPdfDefinition({
+ id:'B-TEST',projectName:'Test üretim',createdAt:Date.now(),productionCompleted:true,
+ grossStockCost:200,offcutBookValue:40,materialCost:160,extraCost:15,totalCost:175,
+ planSnapshot:{kerf:3,trim:0,bins:[{stock:{l:100,w:80,t:18,material:'Beyaz MDF'},
+ pieces:[{x:0,y:0,w:40,h:40,label:'P01',rotated:false}],
+ cuts:[{axis:'vertical',source:{x:0,y:0,w:100,h:80},at:43,number:1}]}]}
+});
+assert.ok(archived.content.some(c=>typeof c.svg==='string'&&c.svg.includes('<line ')));
+assert.ok(archived.content.some(c=>c.table?.body?.some(r=>r[0]==='Toplam proje maliyeti')));
+assert.ok(sw.includes('./engine/production-archive.js'));
 console.log('Engine architecture contract: 20 public methods preserved, mutable project switching safe, independent audit rejects partial cuts, load order/PWA verified.');
