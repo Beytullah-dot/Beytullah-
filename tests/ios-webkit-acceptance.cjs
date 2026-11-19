@@ -123,8 +123,10 @@ async function main() {
   await page.waitForFunction(() => {
     const area=document.querySelector('#grossWasteProofRow');
     const cost=document.querySelector('#globalCostProofRow');
+    const count=document.querySelector('#optimalityRow');
     return area?.classList.contains('is-proven') &&
-      cost?.classList.contains('is-proven');
+      cost?.classList.contains('is-proven') &&
+      count?.classList.contains('is-proven');
   }, null, { timeout });
   console.log('PASS 5: Explicit stock exclusion, audited cut, two plan choices, independently certified cost and area, no stock consumption');
 
