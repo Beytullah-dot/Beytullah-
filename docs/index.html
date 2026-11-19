@@ -371,7 +371,12 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const defaultData=()=>({version:2,partsThicknessEnabled:true,stocksThicknessEnabled:true,project:'Atölye projesi',unit:'cm',kerf:3,trim:0,offcutMinEdgeMm:50,offcutMinAreaCm2:100,offcutValuePerM2:'',useRemnantStock:true,mode:'guillotine',priceMode:'m3',m3Price:25000,materialMode:'single',singleMaterial:'Ahşap',allowedStockIds:null,parts:[[40,24,30,2,'Ahşap','P01'],[38,24,30,1,'Ahşap','P02'],[31,24,30,1,'Ahşap','P03'],[180,5,30,2,'Ahşap','P04'],[40,5,30,3,'Ahşap','P05'],[52,12,30,2,'Ahşap','P06']].map(([l,w,t,qty,material,label])=>({id:uid(),l,w,t,qty,material,label,category:'masif',grain:'',rotate:true})),stocks:[{id:uid(),l:300,w:30,t:30,qty:999,material:'Ahşap',category:'masif',priceUnit:'m3',grain:'',price:25000}]});
 let state,solution=null,activeSheet=0,dirty=true,lastSaved='';
 const stored=()=>{try{const txt=localStorage.getItem('beythaus-cut-v2');return txt?JSON.parse(txt):null}catch{return null}};
-const save=()=>{try{localStorage.setItem('beythaus-cut-v2',JSON.stringify(state));if(typeof projectLibrary!=='undefined'&&activeProjectId){let p=projectLibrary.find(x=>x.id===activeProjectId);if(p){p.name=String(state.project||'İsimsiz proje').slice(0,60);p.updatedAt=Date.now();p.data=JSON.parse(JSON.stringify(state));localStorage.setItem('beythaus-cut-project-library-v1',JSON.stringify(projectLibrary))}}}catch(err){console.warn('Yerel kayıt yapılamadı',err)}};
+const save=()=>{try{
+ if(typeof remnantDB!=='undefined'&&!cloudInventoryActive){
+  remnantDB.fullStocks=JSON.parse(JSON.stringify(state.stocks));
+  localStorage.setItem(REMNANT_KEY,JSON.stringify(remnantDB))
+ }
+ localStorage.setItem('beythaus-cut-v2',JSON.stringify(state));if(typeof projectLibrary!=='undefined'&&activeProjectId){let p=projectLibrary.find(x=>x.id===activeProjectId);if(p){p.name=String(state.project||'İsimsiz proje').slice(0,60);p.updatedAt=Date.now();p.data=JSON.parse(JSON.stringify(state));localStorage.setItem('beythaus-cut-project-library-v1',JSON.stringify(projectLibrary))}}}catch(err){console.warn('Yerel kayıt yapılamadı',err)}};
 function sanitize(o){if(!o||typeof o!=='object'||!Array.isArray(o.parts)||!Array.isArray(o.stocks))throw Error('Geçersiz proje dosyası');let p=defaultData();p.project=String(o.project||p.project).slice(0,60);p.unit=o.unit==='mm'?'mm':'cm';p.kerf=Number.isFinite(val(o.kerf))?val(o.kerf):3;p.trim=Number.isFinite(val(o.trim))?val(o.trim):0;p.offcutMinEdgeMm=Number.isFinite(val(o.offcutMinEdgeMm))?val(o.offcutMinEdgeMm):50;p.offcutMinAreaCm2=Number.isFinite(val(o.offcutMinAreaCm2))?val(o.offcutMinAreaCm2):100;
 p.offcutValuePerM2=String(o.offcutValuePerM2??'').trim()!==''&&
  Number.isFinite(val(o.offcutValuePerM2))&&val(o.offcutValuePerM2)>=0?
@@ -456,13 +461,13 @@ function cleanRemnant(raw){
 function readRemnantDB(){
  try{
   const obj=JSON.parse(localStorage.getItem(REMNANT_KEY)||'null');
-  if(!obj||obj.version!==1||!Array.isArray(obj.pieces))return {version:1,pieces:[],batches:[],movements:[],defaultLocation:''};
+  if(!obj||obj.version!==1||!Array.isArray(obj.pieces))return {version:1,pieces:[],batches:[],movements:[],defaultLocation:'',fullStocks:null};
   const pieces=[],seen=new Set();
   for(const item of obj.pieces.slice(0,MAX_REMNANTS)){
    const p=cleanRemnant(item);
    if(p&&!seen.has(p.id)){seen.add(p.id);pieces.push(p)}
   }
-  return {version:1,pieces,batches:Array.isArray(obj.batches)?obj.batches.slice(-900):[],movements:Array.isArray(obj.movements)?obj.movements.slice(-MAX_REMNANT_HISTORY).map(cleanRemnantEvent).filter(Boolean):[],defaultLocation:String(obj.defaultLocation??'').trim().slice(0,80)}
+  return {version:1,pieces,batches:Array.isArray(obj.batches)?obj.batches.slice(-900):[],movements:Array.isArray(obj.movements)?obj.movements.slice(-MAX_REMNANT_HISTORY).map(cleanRemnantEvent).filter(Boolean):[],defaultLocation:String(obj.defaultLocation??'').trim().slice(0,80),fullStocks:Array.isArray(obj.fullStocks)?obj.fullStocks.slice(0,100):null}
  }catch{return {version:1,pieces:[],batches:[],movements:[],defaultLocation:''}}
 }
 let remnantDB=readRemnantDB(),cloudInventoryActive=false;
@@ -804,6 +809,13 @@ try{activeProjectId=localStorage.getItem('beythaus-cut-active-project-v1')||''}c
 if(!projectLibrary.length){activeProjectId=uid()+Date.now().toString(36);projectLibrary=[{id:activeProjectId,name:state.project||'İlk projem',updatedAt:Date.now(),data:JSON.parse(JSON.stringify(state))}];try{localStorage.setItem('beythaus-cut-project-library-v1',JSON.stringify(projectLibrary));localStorage.setItem('beythaus-cut-active-project-v1',activeProjectId)}catch{}}
 else{const active=projectLibrary.find(x=>x.id===activeProjectId)||projectLibrary[0];activeProjectId=active.id;try{state=sanitize(active.data);localStorage.setItem('beythaus-cut-active-project-v1',activeProjectId)}catch{}}
 
+// Full stocks are globally shared across projects. Existing projects are
+// migrated once; the authoritative local snapshot is the inventory ledger.
+if(!Array.isArray(remnantDB.fullStocks)){
+ remnantDB.fullStocks=JSON.parse(JSON.stringify(state.stocks));
+ try{localStorage.setItem(REMNANT_KEY,JSON.stringify(remnantDB))}catch{}
+}else state.stocks=JSON.parse(JSON.stringify(remnantDB.fullStocks));
+const copyGlobalStocks=()=>JSON.parse(JSON.stringify(remnantDB.fullStocks||[]));
 const icons={};
 const materialPolicy=window.BeythausMaterialPolicy;
 const stockKind=s=>s.category==='masif'?'masif':'panel';
@@ -963,7 +975,7 @@ byId('unitSelect').onchange=e=>{const newUnit=e.target.value,ratio=state.unit===
 for(const [id,k] of [['kerfInput','kerf'],['trimInput','trim'],['projectName','project'],['m3Input','m3Price'],['offcutEdgeInput','offcutMinEdgeMm'],['offcutAreaInput','offcutMinAreaCm2'],['offcutValueInput','offcutValuePerM2']])byId(id).addEventListener('input',e=>{state[k]=k==='project'?e.target.value:e.target.value;changed();if(k==='project')byId('resultTitle').textContent=state.project||'Kesim planı'});
 byId('modeSegment').onclick=e=>{const b=e.target.closest('button[data-mode]');if(!b)return;state.mode=b.dataset.mode;syncSettings();changed()};
 byId('priceSegment').onclick=e=>{const b=e.target.closest('button[data-price]');if(!b)return;state.priceMode=b.dataset.price;syncSettings();changed()};
-byId('clearBtn').onclick=()=>{if(!confirm('Tüm parçalar ve stoklar temizlensin mi?'))return;state.parts=[];state.stocks=[];solution=null;renderRows();save();showEmpty();toast('Proje temizlendi.')};
+byId('clearBtn').onclick=()=>{if(!confirm('Bu projenin parçaları temizlensin mi? Ortak stok envanteri korunur.'))return;state.parts=[];solution=null;renderRows();save();showEmpty();toast('Proje temizlendi.')};
 function download(blob,filename){const a=document.createElement('a'),url=URL.createObjectURL(blob);a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500)}
 byId('fileInput').onchange=async e=>{const file=e.target.files?.[0];if(!file)return;try{
  const data=JSON.parse(await file.text());
@@ -975,8 +987,8 @@ byId('fileInput').onchange=async e=>{const file=e.target.files?.[0];if(!file)ret
  }catch(err){toast('Dosya okunamadı: '+err.message)}e.target.value=''};
 
 function persistProjectArchive(){try{localStorage.setItem('beythaus-cut-project-library-v1',JSON.stringify(projectLibrary));localStorage.setItem('beythaus-cut-active-project-v1',activeProjectId);return true}catch(err){toast('Yeterli depolama alanı yok. Lütfen yedek alın.');return false}}
-function openSavedProject(id){const p=projectLibrary.find(x=>x.id===id);if(!p)return;activeProjectId=id;state=sanitize(p.data);solution=null;dirty=true;renderRows();syncSettings();save();showEmpty();persistProjectArchive();closeProjects();toast('Proje açıldı.')}
-function createProject(data,name){const x=sanitize(data);x.project=String(name||'Yeni proje').slice(0,60);const id=uid()+Date.now().toString(36);projectLibrary.unshift({id:id,name:x.project,updatedAt:Date.now(),data:x});activeProjectId=id;state=x;solution=null;dirty=true;renderRows();syncSettings();save();showEmpty();persistProjectArchive();renderProjects();return id}
+function openSavedProject(id){const p=projectLibrary.find(x=>x.id===id);if(!p)return;activeProjectId=id;state=sanitize(p.data);state.stocks=copyGlobalStocks();solution=null;dirty=true;renderRows();syncSettings();save();showEmpty();persistProjectArchive();closeProjects();toast('Proje açıldı.')}
+function createProject(data,name){const x=sanitize(data);x.project=String(name||'Yeni proje').slice(0,60);const id=uid()+Date.now().toString(36);projectLibrary.unshift({id:id,name:x.project,updatedAt:Date.now(),data:x});activeProjectId=id;state=x;state.stocks=copyGlobalStocks();solution=null;dirty=true;renderRows();syncSettings();save();showEmpty();persistProjectArchive();renderProjects();return id}
 function renderProjects(){const q=(byId('projectsSearch').value||'').toLocaleLowerCase('tr-TR').trim();const rows=projectLibrary.slice().sort((a,b)=>(b.updatedAt||0)-(a.updatedAt||0)).filter(p=>String(p.name||'').toLocaleLowerCase('tr-TR').includes(q));byId('projectsCount').textContent=String(projectLibrary.length);byId('projectsList').innerHTML=rows.length?rows.map(p=>{const n=(p.data.parts||[]).reduce((a,x)=>a+(parseInt(x.qty,10)||0),0);const dt=new Date(p.updatedAt||Date.now()).toLocaleString('tr-TR',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});return '<div class="project-entry '+(p.id===activeProjectId?'current':'')+'"><div class="project-symbol">▦</div><div class="project-detail"><strong>'+esc(p.name||'İsimsiz proje')+(p.id===activeProjectId?' · Açık':'')+'</strong><small>'+esc(dt)+' · '+n+' parça</small></div><div class="project-ops"><button class="btn" data-project-action="open" data-project-id="'+esc(p.id)+'">Aç</button><button class="btn" data-project-action="copy" data-project-id="'+esc(p.id)+'">Kopyala</button><button class="btn" data-project-action="rename" data-project-id="'+esc(p.id)+'">Adlandır</button><button class="btn danger" data-project-action="delete" data-project-id="'+esc(p.id)+'">Sil</button></div></div>'}).join(''):'<div class="empty-state" style="min-height:120px"><strong>Proje bulunamadı.</strong></div>'}
 function showProjects(){byId('projectsSearch').value='';byId('projectsSearch').classList.add('hidden');byId('projectsSearchToggle').setAttribute('aria-expanded','false');renderProjects();byId('projectsOverlay').classList.remove('hidden')}
 function closeProjects(){byId('projectsOverlay').classList.add('hidden')}
