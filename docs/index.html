@@ -1600,7 +1600,9 @@ function certifyStockCount(plan,data,audit){
 function stockProofDescription(proof){
  if(!proof?.complete)return 'Optimumluk: Tüm parçalar yerleşmeden stok sayısı kanıtlanamaz.';
  if(proof.proven)return 'Minimum stok sayısı kanıtlandı: '+proof.usedStockCount+
-  ' stok. '+(proof.method==='exhaustive-geometry'?'Kesin geometrik arama daha az stoklu tüm seçenekleri eledi.':(proof.method==='geometric-incompatibility'?'Parçaların birlikte sığma zorunlulukları ve alan alt sınırları karşılandı.':'Geçerli yerleşim alan alt sınırına ulaştı.'))+' Bu kanıt fire veya maliyet optimumluğu değildir.';
+  ' stok. '+(proof.method==='exhaustive-geometry'?
+    (state.mode==='guillotine'?'Kesin giyotin kesim ağacı araması daha az stoklu tüm kesim seçeneklerini eledi.':
+     'Kesin geometrik arama daha az stoklu tüm seçenekleri eledi.'):(proof.method==='geometric-incompatibility'?'Parçaların birlikte sığma zorunlulukları ve alan alt sınırları karşılandı.':'Geçerli yerleşim alan alt sınırına ulaştı.'))+' Bu kanıt fire veya maliyet optimumluğu değildir.';
  if(proof.lowerBound===null)return 'Minimum stok sayısı kanıtlanamadı: '+proof.reason;
  return (proof.searchStatus==='limit'?'Kesin çözüm araması zaman veya işlem sınırına ulaştı. ':'')+'Minimum stok sayısı henüz kanıtlanmadı: kullanılan '+proof.usedStockCount+
   ', matematiksel alt sınır '+proof.lowerBound+' stok. Daha iyi bir planın varlığı da kanıtlanmış değil.';
@@ -1984,7 +1986,15 @@ function acceptExactWorkerResult(data,initial,response){
    if(!stock||mkey(stock.material)!==g.material||!Array.isArray(candidate.pieces))
     throw Error('Kesin arama bilinmeyen stok kullandı.');
    const bin=mkBin(stock,data.trim);
-   bin.free=[];bin.placed=candidate.pieces.map(p=>{
+   // A guillotine result includes an exact cut sequence and residual leaves.
+   // auditCutPlan replays the cuts; positions alone cannot certify feasibility.
+   if(state.mode==='guillotine'){
+    if(!Array.isArray(candidate.cuts)||!Array.isArray(candidate.free))
+     throw Error('Kesin düz kesim için kesim ağacı eksik.');
+    bin.cuts=candidate.cuts;
+    bin.free=candidate.free;
+   }else bin.free=[];
+   bin.placed=candidate.pieces.map(p=>{
     const original=piecesById.get(p.id);
     if(!original)throw Error('Kesin arama bilinmeyen parça kullandı.');
     return {...original,x:p.x,y:p.y,w:p.w,h:p.h,rotated:p.rotated}
@@ -2019,10 +2029,6 @@ function acceptExactWorkerResult(data,initial,response){
  return {proposal,improvedCount:initial.bins.length-bins.length}
 }
 function startExactWorker(data,initial){
- if(state.mode!=='nest'){
-  exactSearchStatus('Düz kesim için kapsamlı kesin arama henüz etkin değil; mevcut planın kanıt durumu yukarıda.','warning');
-  return
- }
  if(initial.unplaced.length||!initial.bins.length){
   exactSearchStatus('Bütün parçalar yerleşmediği için optimumluk araması başlatılmadı.','warning');
   return
@@ -2038,8 +2044,9 @@ function startExactWorker(data,initial){
  const groupCounts=new Map();
  for(const p of data.parts){const key=mkey(p.material);groupCounts.set(key,(groupCounts.get(key)||0)+1)}
  const eligible=[...groupCounts].some(([key,count])=>
-  count<=12&&data.stocks.filter(s=>mkey(s.material)===key&&s.qty>0).length<=4&&
-  initial.bins.filter(b=>mkey(b.stock.material)===key).length<=6);
+  count<=(state.mode==='guillotine'?11:14)&&
+  data.stocks.filter(s=>mkey(s.material)===key&&s.qty>0).length<=4&&
+  initial.bins.filter(b=>mkey(b.stock.material)===key).length<=(state.mode==='guillotine'?5:7));
  if(!eligible){
   exactSearchStatus('Bu proje kesin Worker aramasının kapsamı dışında. Geçerli plan korunuyor; optimumluk kanıtı yok.','warning');
   return
@@ -2053,7 +2060,10 @@ function startExactWorker(data,initial){
  }
  const requestId=++exactRequest;
  exactWorker=worker;
- exactSearchStatus('Kesin geometrik arama sürüyor. Bu sırada kesim planını inceleyebilir veya aramayı durdurabilirsiniz.','running',true);
+ exactSearchStatus(state.mode==='guillotine'?
+  'Kesin düz kesim ağacı araması sürüyor. Planı inceleyebilir veya aramayı durdurabilirsiniz.':
+  'Kesin geometrik arama sürüyor. Bu sırada kesim planını inceleyebilir veya aramayı durdurabilirsiniz.',
+  'running',true);
  function fail(msg){
   if(requestId!==exactRequest||exactWorker!==worker)return;
   clearTimeout(exactTimer);exactTimer=null;worker.terminate();exactWorker=null;
@@ -2108,11 +2118,13 @@ function startExactWorker(data,initial){
    exactSearchStatus('Kesin arama sonucu doğrulanamadı; hızlı plan değişmeden korundu.','warning')
   }
  };
- exactTimer=setTimeout(()=>fail('Kesin arama süre sınırına ulaştı. Mevcut plan geçerli, optimumluk kanıtlanmadı.'),5500);
+ exactTimer=setTimeout(()=>fail('Kesin arama süre sınırına ulaştı. Mevcut plan geçerli, optimumluk kanıtlanmadı.'),8000);
  worker.postMessage({type:'solve',requestId,mode:state.mode,
   data:{parts:data.parts,stocks:data.stocks,kerf:data.kerf,trim:data.trim},
   incumbentBins:initial.bins.map(b=>({stockId:b.stock.id,material:b.stock.material})),
-  bounds:initial.stockProof?.details||[],timeBudgetMs:4200,maxNodes:350000})
+  bounds:initial.stockProof?.details||[],
+  timeBudgetMs:state.mode==='guillotine'?6500:4200,
+  maxNodes:state.mode==='guillotine'?500000:350000})
 }
 let processing=false;
 function run(){
