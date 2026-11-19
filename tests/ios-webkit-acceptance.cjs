@@ -88,13 +88,10 @@ async function main() {
     assert.equal(await part.getAttribute('data-grain'), expected);
   }
   await page.evaluate(() => window.BeythausCutWorkspace.show('inventory'));
-  const stock = page.locator('#stockRows tr[data-id="uat-A"] .grain-cycle');
-  for (const expected of ['width', 'length', '']) {
-    await stock.click();
-    assert.equal(await stock.getAttribute('data-grain'), expected);
-  }
+  assert.equal(await page.locator('#stockRows .grain-cycle').count(), 0,
+    'Stock dimensions define axes; stock no longer has a direction control');
   await page.locator('#bhBackToPlan').click();
-  console.log('PASS 4: Part and stock grain cycle: empty → width → length → empty');
+  console.log('PASS 4: Part-only direction cycle: empty → width → length → empty');
 
   await page.locator('#materialModeSelect').selectOption('auto');
   const excluded = page.locator('#autoStockChoices input[data-stock-id="uat-B"]');
