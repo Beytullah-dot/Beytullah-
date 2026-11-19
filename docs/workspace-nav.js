@@ -99,6 +99,7 @@ function refreshCosts(){
    '<div class="stock-overview-item">Malzeme maliyeti: <b>'+amount(r.materialCost)+'</b></div>'+
    '<div class="stock-overview-item">Ek maliyet: '+amount(r.extraCost||0)+(r.extraNote?' · '+esc(r.extraNote):'')+'</div>'+
    '<div class="stock-overview-item">Toplam maliyet: <b>'+amount(r.totalCost)+'</b></div>'+
+   '<button class="btn small" data-bh-cost-pdf="'+esc(r.id)+'">Üretim PDF</button>'+
    '<div class="stock-overview-item">Tüketilen tam stok: '+(r.usedFullStocks||[]).reduce((n,x)=>n+x.qty,0)+' · Artık stok: '+(r.usedIds||[]).length+' · Oluşan artık: '+(r.createdIds||[]).length+'</div></div>').join('')
 }
 function refresh(){
@@ -180,6 +181,7 @@ drawer.addEventListener('click',e=>{
  close(); // Selection reverses the SAME drawer and handle transitions.
 });
 screen.addEventListener('click',e=>{
+ const pdf=e.target.closest('[data-bh-cost-pdf]');if(pdf){app.exportCostRecordPdf?.(pdf.dataset.bhCostPdf);return}
  const tab=e.target.closest('[data-bh-filter]');
  if(tab)filter(tab.dataset.bhFilter);
 });
