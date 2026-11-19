@@ -109,7 +109,8 @@ async function main() {
   assert.ok(policy.allow.includes('uat-A'), 'Included stock must remain selectable');
   assert.ok(!policy.allow.includes('uat-B'), 'Excluded stock must not be selectable');
   assert.ok(!policy.stocks.includes('uat-B'), 'Excluded stock must not enter optimizer');
-  await page.locator('#runBtn').click();
+  // In phone layout the desktop run button is intentionally hidden.
+  await page.locator('#mobileRunBtn').click();
   await page.waitForFunction(() =>
     !document.querySelector('#autoPlanChoice').classList.contains('hidden'),
     null, { timeout });
