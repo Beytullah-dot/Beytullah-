@@ -671,7 +671,7 @@ function minStockCountLowerBound(data){
   g.push(p);partGroups.set(k,g)}
  for(const s of data.stocks){const k=mkey(s.material),g=stockGroups.get(k)||[];
   g.push(s);stockGroups.set(k,g)}
- let total=0,geometricUsed=false;
+ let total=0,geometricUsed=false,itemCapacityUsed=false;
  for(const [material,parts]of partGroups){
   const required=parts.reduce((sum,p)=>sum+p.l*p.w,0);
   if(!Number.isFinite(required)||required<0)
@@ -696,20 +696,21 @@ function minStockCountLowerBound(data){
    parts,stocks,data.trim,kerf);
   const itemBound=cardinality?.status==='optimal-relaxation'?cardinality.lowerBound:0;
   const lowerBound=Math.max(areaLB,geometry.count,itemBound);
-  if(geometry.count>areaLB||itemBound>areaLB)geometricUsed=true;
+  if(geometry.count>areaLB)geometricUsed=true;
+  if(itemBound>Math.max(areaLB,geometry.count))itemCapacityUsed=true;
   total+=lowerBound;
   details.push({material,requiredArea:required,lowerBound,areaLowerBound:areaLB,
    incompatibilityLowerBound:geometry.count,itemCapacityLowerBound:itemBound,
    inspectedPieces:geometry.examined,totalPieces:geometry.total});
  }
- return {lowerBound:total,method:geometricUsed?'pairwise-incompatibility':'area',reason:null,details};
+ return {lowerBound:total,method:itemCapacityUsed?'kerf-cardinality':geometricUsed?'pairwise-incompatibility':'area',reason:null,details};
 }
 function certifyStockCount(plan,data,audit){
  const bound=minStockCountLowerBound(data),complete=!!audit?.ok&&plan.unplaced.length===0&&plan.placedCount===data.parts.length;
  const count=plan.bins.length,byArea=complete&&bound.lowerBound!==null&&count===bound.lowerBound;
  const byExact=complete&&plan.exact?.proof===true&&plan.exact?.optimumCount===count;
  const proven=byArea||byExact,method=byExact&&!byArea?'exhaustive-geometry':
-  bound.method==='pairwise-incompatibility'?'geometric-incompatibility':'area';
+  bound.method==='pairwise-incompatibility'?'geometric-incompatibility':bound.method==='kerf-cardinality'?'kerf-cardinality':'area';
  return {goal:'minimum-stock-count',proven,complete,
   usedStockCount:count,lowerBound:bound.lowerBound,method,searchStatus:plan.exact?.status||'skipped',
   gap:complete&&bound.lowerBound!==null?Math.max(0,count-bound.lowerBound):null,
@@ -722,7 +723,7 @@ function stockProofDescription(proof){
  if(proof.proven)return 'Minimum stok sayısı kanıtlandı: '+proof.usedStockCount+
   ' stok. '+(proof.method==='exhaustive-geometry'?
     (state.mode==='guillotine'?'Kesin giyotin kesim ağacı araması daha az stoklu tüm kesim seçeneklerini eledi.':
-     'Kesin geometrik arama daha az stoklu tüm seçenekleri eledi.'):(proof.method==='geometric-incompatibility'?'Parçaların birlikte sığma zorunlulukları ve alan alt sınırları karşılandı.':'Geçerli yerleşim alan alt sınırına ulaştı.'))+' Bu kanıt fire veya maliyet optimumluğu değildir.'+
+     'Kesin geometrik arama daha az stoklu tüm seçenekleri eledi.'):(proof.method==='geometric-incompatibility'?'Parçaların birlikte sığma zorunlulukları ve alan alt sınırları karşılandı.':proof.method==='kerf-cardinality'?'Parça boyutları, stok kapasitesi ve testere payından hesaplanan kesin alt sınıra ulaşıldı.':'Geçerli yerleşim alan alt sınırına ulaştı.'))+' Bu kanıt fire veya maliyet optimumluğu değildir.'+
   (state.mode==='nest'?' Serbest yerleşim sonucu, panel testeresi için uygulanabilir kesim planı veya üretim uygunluğu kanıtı DEĞİLDİR.':'');
  if(proof.lowerBound===null)return 'Minimum stok sayısı kanıtlanamadı: '+proof.reason;
  return (proof.searchStatus==='limit'?'Kesin çözüm araması zaman veya işlem sınırına ulaştı. ':'')+'Minimum stok sayısı henüz kanıtlanmadı: kullanılan '+proof.usedStockCount+
