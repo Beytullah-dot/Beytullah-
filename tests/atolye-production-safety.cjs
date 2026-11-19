@@ -107,7 +107,9 @@ const refresh=new Function('state','byId',html.slice(bannerFrom,bannerTo)+
 state.mode='nest';refresh();
 state.mode='guillotine';refresh();
 assert.deepEqual(toggle,[{name:'hidden',hidden:false},{name:'hidden',hidden:true}]);
-assert.ok(html.includes("mode:'guillotine',priceMode:'m3'"),'New projects should default to physical cutting');
+const defaultAt=html.indexOf('const defaultData=');
+assert.ok(defaultAt>0&&html.slice(defaultAt,defaultAt+800).includes("mode:'guillotine'"),'New projects must default to physical cutting');
+assert.ok(!html.slice(defaultAt,defaultAt+800).includes('qty:999'),'New projects must not create fake physical stock');
 console.log('Atelier 11-part PDF: free=1 stock / no cuts, guillotine=2 stocks with valid full cuts; '+
  '1-stock guillotine impossibility proved ('+exact.nodes+' nodes). '+
  'Forged partial cut rejected. Free PDF marked NOT FOR PRODUCTION.');
