@@ -208,6 +208,13 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
         <button class="btn small" id="exactSearchCancel" type="button" aria-label="Kesin aramayı durdur">Durdur</button>
       </div>
     </div>
+    <div class="exact-search-line hidden" id="economySearchLine" role="status" aria-live="polite">
+      <span id="economySearchText"></span>
+      <div class="exact-search-actions">
+        <button class="btn small primary hidden" id="economySearchApply" type="button">Ekonomik planı uygula</button>
+        <button class="btn small hidden" id="economySearchCancel" type="button">Ekonomik aramayı durdur</button>
+      </div>
+    </div>
   </section>
   <section class="card" id="planCard"><div class="plans-head"><div><div class="card-title">Kesim yerleşimi</div><div class="card-sub" id="planSub">Stok başına plan</div></div><div class="card-actions"><button class="btn small plan-backup-icon" id="icloudBackupBtn" type="button" title="Bu projeyi iCloud Drive’a yedekle" aria-label="Bu projeyi yedekle">☁</button><button class="btn small" id="zoomBtn" disabled>⤢ Büyüt</button><button class="hidden" id="printBtn" disabled aria-hidden="true" tabindex="-1">PDF</button></div></div>
     <div class="plan-tabs" id="planTabs"></div><div id="planBody" class="empty-state"><div class="empty-icon">▤</div><strong>Kesim planı burada görünecek</strong><p>Parça ve stok ölçülerini girip yerleşimi hesaplayın. Kalınlık isteğe bağlıdır.</p></div>
