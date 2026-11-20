@@ -131,4 +131,4 @@ if(require.main===module){
   largestTestedBoards:summary.largestTestedBoards
  }));
 }
-module.exports={makeCase,benchmark,specs};
+module.exports={makeCase,benchmark,specs,engine};

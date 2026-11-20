@@ -41,7 +41,7 @@ function evalFit(fr,w,h,variant){const dw=fr.w-w,dh=fr.h-h;if(dw< -1e-7||dh< -1e
 function binCost(s,cfg){const p=root.BeythausMaterialPolicy;if(p)return p.stockPrice(s,cfg);if(s.isRemnant)return 0;if(cfg.priceMode==='panel')return s.price>0?s.price:null;if(s.t===null||!(cfg.m3>0))return null;return s.l*s.w*s.t/1e9*cfg.m3}
 function mkBin(s,trim){let w=s.l-2*trim,h=s.w-2*trim;return{stock:s,x:trim,y:trim,w,h,free:[{x:trim,y:trim,w,h}],placed:[],cuts:[]}}
 function orientationChoices(it){const all=it.rotate&&(Math.abs(it.l-it.w)>1e-7||!!it.grain)?[[it.l,it.w,false],[it.w,it.l,true]]:[[it.l,it.w,false]];return all.filter(([, ,rotated])=>!root.BeythausMaterialPolicy||root.BeythausMaterialPolicy.grainAllows(it,null,rotated))}
-function findFit(bin,it,variant){if(it.t!==null&&(bin.stock.t===null||Math.abs(it.t-bin.stock.t)>1e-6))return null;let best=null;for(let j=0;j<bin.free.length;j++){const fr=bin.free[j];for(const [w,h,rotated]of orientationChoices(it)){if(root.BeythausMaterialPolicy&&!root.BeythausMaterialPolicy.grainAllows(it,bin.stock,rotated))continue;if(w>fr.w+1e-8||h>fr.h+1e-8)continue;if(state.mode==='guillotine'){const k=val(state.kerf),rx=fr.w-w,ry=fr.h-h;if(rx>1e-6&&rx<k-1e-6||ry>1e-6&&ry<k-1e-6)continue}let score=evalFit(fr,w,h,variant);if(score===Infinity)continue;const tie=(fr.x+fr.y)*.00001+Number(rotated)*.00001;score+=tie;if(!best||score<best.score)best={freeIndex:j,x:fr.x,y:fr.y,w,h,rotated,score,fr}}}return best}
+function findFit(bin,it,variant,cfg){if(it.t!==null&&(bin.stock.t===null||Math.abs(it.t-bin.stock.t)>1e-6))return null;let best=null;for(let j=0;j<bin.free.length;j++){const fr=bin.free[j];for(const [w,h,rotated]of orientationChoices(it)){if(root.BeythausMaterialPolicy&&!root.BeythausMaterialPolicy.grainAllows(it,bin.stock,rotated))continue;if(w>fr.w+1e-8||h>fr.h+1e-8)continue;if(cfg.mode==='guillotine'){const k=cfg.kerf,rx=fr.w-w,ry=fr.h-h;if(rx>1e-6&&rx<k-1e-6||ry>1e-6&&ry<k-1e-6)continue}let score=evalFit(fr,w,h,variant);if(score===Infinity)continue;const tie=(fr.x+fr.y)*.00001+Number(rotated)*.00001;score+=tie;if(!best||score<best.score)best={freeIndex:j,x:fr.x,y:fr.y,w,h,rotated,score,fr}}}return best}
 
 function applyFit(bin,it,fit,cfg,splitVariant){
  const used={...it,x:fit.x,y:fit.y,w:fit.w,h:fit.h,rotated:fit.rotated};
@@ -63,8 +63,8 @@ function applyFit(bin,it,fit,cfg,splitVariant){
  }
 }
 function packAttempt(items,stocks,cfg,trial){const ordered=orderParts(items,trial),bins=[],unplaced=[],used={},suffix=new Array(ordered.length+1).fill(0);for(let k=ordered.length-1;k>=0;k--)suffix[k]=suffix[k+1]+ordered[k].l*ordered[k].w;const variant=Math.floor(trial/2)%5,splitVariant=Math.floor(trial/5)%4,stockSelect=Math.floor(trial/7)%4;
-for(let idx=0;idx<ordered.length;idx++){const it=ordered[idx];let match=null;for(let bi=0;bi<bins.length;bi++){const fit=findFit(bins[bi],it,variant);if(fit&&(!match||fit.score<match.fit.score))match={bin:bins[bi],fit}}if(match){applyFit(match.bin,it,match.fit,cfg,splitVariant);continue}
-let choices=[];for(const s of stocks){if(used[s.id]>=s.qty||s.qty===0)continue;const tmp=mkBin(s,cfg.trim);if(tmp.w<=0||tmp.h<=0)continue;const fit=findFit(tmp,it,variant);if(!fit)continue;const remainingArea=suffix[idx];const usableArea=tmp.w*tmp.h;const cost=binCost(s,cfg),missingCost=cost===null,rankCost=cost??0;let rank;
+for(let idx=0;idx<ordered.length;idx++){const it=ordered[idx];let match=null;for(let bi=0;bi<bins.length;bi++){const fit=findFit(bins[bi],it,variant,cfg);if(fit&&(!match||fit.score<match.fit.score))match={bin:bins[bi],fit}}if(match){applyFit(match.bin,it,match.fit,cfg,splitVariant);continue}
+let choices=[];for(const s of stocks){if(used[s.id]>=s.qty||s.qty===0)continue;const tmp=mkBin(s,cfg.trim);if(tmp.w<=0||tmp.h<=0)continue;const fit=findFit(tmp,it,variant,cfg);if(!fit)continue;const remainingArea=suffix[idx];const usableArea=tmp.w*tmp.h;const cost=binCost(s,cfg),missingCost=cost===null,rankCost=cost??0;let rank;
 if(stockSelect===0)rank=rankCost+(usableArea-it.l*it.w)*.000001;
 else if(stockSelect===1)rank=Math.ceil(remainingArea/usableArea)*Math.max(rankCost,1)+usableArea*.0000001;
 else if(stockSelect===2)rank=usableArea;
@@ -111,7 +111,7 @@ function repackFixedBoards(items,boards,cfg,trial){
  for(const item of ordered){
   let selected=null;
   for(const bin of bins){
-   const fit=findFit(bin,item,Math.floor(trial/3)%5);
+   const fit=findFit(bin,item,Math.floor(trial/3)%5,cfg);
    if(!fit)continue;
    const score=fit.score+(bin.placed.length?0:0.00000001);
    if(!selected||score<selected.score)selected={bin,fit,score};
