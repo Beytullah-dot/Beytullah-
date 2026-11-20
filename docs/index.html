@@ -1986,6 +1986,7 @@ function acceptEconomyWorkerResult(data,initial,response){
   areaProof:changes?{status:'objective-replacement',proven:false,countProven:false,areaSaved:0}:initial.areaProof,
   globalAreaProof:changes?null:initial.globalAreaProof,
   globalCostProof:changes?null:initial.globalCostProof,
+  globalCountProof:changes?null:initial.globalCountProof,
   search:changes?{...initial.search,savedStockCount:0}:initial.search
  };
  // Every target-specific result, including UNKNOWN/partial improvements,
