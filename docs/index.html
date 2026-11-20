@@ -1351,6 +1351,7 @@ function certifyLargePlan(data,plan){
     (Number.isFinite(cost?.lowerBound)?' · kanıtlı alt sınır '+money(cost.lowerBound):'')+
     '. Daha ekonomik bir kesim planı bulunabilir.';
   }
+  syncSelectedObjectiveProof(plan);
  };
  boundProofTimer=setTimeout(()=>{
   if(boundProofWorker!==worker)return;
