@@ -1971,18 +1971,19 @@ function acceptEconomyWorkerResult(data,initial,response){
   salvageBefore:before,salvageAfter:after}
 }
 function launchEconomyAfterCount(data,plan){
- if(plan.economyProof?.proven&&plan.economyProof.minimumCost!==null&&
-    Math.abs(plan.economyProof.minimumCost-plan.cost)<0.01){
-  economySearchStatus('Minimum ek stok maliyeti önceden kanıtlandı: '+money(plan.cost)+'.');
+ const objective=state.objective==='area'?'area':'cost';
+ if(plan.economyProof?.proven&&plan.economyProof.objective===objective&&
+   (objective==='area'?Math.abs(plan.economyProof.minimumArea-plan.stockArea)<0.01:
+    plan.cost!==null&&Math.abs(plan.economyProof.minimumCost-plan.cost)<0.01)){
+  economySearchStatus('Seçilen '+(objective==='area'?'brüt fire':'maliyet')+' hedefinin minimumu önceden kanıtlandı.');
   return
  }
  startEconomyWorker(data,plan)
 }
 function startEconomyWorker(data,initial){
  cancelEconomySearch(true);
- if(data.parts.some(p=>p.grain)){
-  economySearchStatus('Damar kısıtıyla minimum maliyet kesinliği henüz desteklenmiyor.','warning');return
- }
+ const objective=state.objective==='area'?'area':'cost';
+ const label=objective==='area'?'brüt fire':'kayıtlı stok maliyeti';
  if(initial.unplaced.length||!initial.bins.length){
   economySearchStatus('Eksik parçalar bulunduğu için minimum maliyet kanıtlanamıyor.','warning');
   return
@@ -2005,7 +2006,7 @@ function startEconomyWorker(data,initial){
  }
  const requestId=++economyRequest;
  economyWorker=worker;
- economySearchStatus('En düşük ek stok maliyeti aranıyor. Bu sonuç minimum panel sayısından bağımsızdır.','running',true);
+ economySearchStatus('Minimum '+label+' için fiziksel kesim araması sürüyor; minimum stok sayısı ayrı hedeftir.','running',true);
  function fail(message){
   if(requestId!==economyRequest||economyWorker!==worker)return;
   if(economyTimer!==null){clearTimeout(economyTimer);economyTimer=null}
@@ -2021,12 +2022,12 @@ function startEconomyWorker(data,initial){
   if(response.type==='error'){fail(response.message||'Ekonomik arama başarısız.');return}
   if(economyTimer!==null){clearTimeout(economyTimer);economyTimer=null}
   worker.terminate();economyWorker=null;
-  if(dirty||solution!==initial){
-   economySearchStatus('Girdiler veya plan değişti; önceki ekonomik arama sonucu atlandı.','warning');
+  if(dirty||solution!==initial||state.objective!==objective){
+    economySearchStatus('Girdiler, plan veya hedef değişti; önceki kesin arama yanıtı atlandı.','warning');
    return
   }
   try{
-   if(response.groups?.some(g=>g.status==='unknown-price')){
+   if(objective==='cost'&&response.groups?.some(g=>g.status==='unknown-price')){
     economySearchStatus('Stok türlerinden en az birinin fiyatı bilinmiyor. Minimum maliyet kanıtlanamadı.','warning');
     return
    }
@@ -2070,7 +2071,7 @@ function startEconomyWorker(data,initial){
   }
  };
  economyTimer=setTimeout(()=>fail('Ekonomik arama süre sınırına ulaştı; minimum maliyet kanıtlanmadı.'),6900);
- worker.postMessage({type:'economy',requestId,cutMode:state.mode,priceMode:state.priceMode,
+ worker.postMessage({type:'economy',requestId,cutMode:state.mode,objective,priceMode:state.priceMode,
   m3:data.m3,data:{parts:data.parts,stocks:data.stocks,kerf:data.kerf,trim:data.trim},
   incumbentBins:initial.bins.map(b=>({stockId:b.stock.id,material:b.stock.material})),
   timeBudgetMs:5300,maxNodes:250000})
