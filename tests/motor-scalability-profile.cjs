@@ -12,7 +12,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const docs=path.join(__dirname,'../docs'),root={};
 for(const name of ['material-policy.js','optimality-certificate.js',
- 'production-audit.js','cutting-engine.js']){
+ 'production-audit.js','guillotine-block-repair.js','cutting-engine.js']){
  vm.runInNewContext(fs.readFileSync(path.join(docs,'engine',name),'utf8'),
   {window:root},{filename:name});
 }
@@ -89,14 +89,20 @@ function benchmark(spec){
  // The generator's split tree is a mathematical feasibility witness,
  // but is intentionally hidden from the production engine.
  const begin=performance.now();
- const plan=engine.optimize(data,false,false);
- const elapsedMs=Math.round(performance.now()-begin);
+ const baseline=engine.optimize(data,false,false);
+ const baselineMs=Math.round(performance.now()-begin);
+ const refinedAt=performance.now();
+ const plan=engine.optimize(data,true,false);
+ const elapsedMs=Math.round(performance.now()-refinedAt);
  const complete=plan.unplaced.length===0&&plan.placedCount===data.parts.length;
  const audit=engine.auditCutPlan(plan,data);
  if(complete)assert.equal(audit.ok,true,'Audited full cutting tree: '+spec.name);
  const certified=complete?engine.certifyStockCount(plan,data,audit):null;
  return {name:data.name,parts:data.parts.length,stockTypes:data.stocks.length,
   plantedBoards:spec.boards,usedBoards:plan.bins.length,
+  baselineUnplaced:baseline.unplaced.length,baselineMs,
+  blockRepairAttempts:plan.search?.blockRepairAttempts||0,
+  blockRescuedPieces:plan.search?.blockRescuedPieces||0,
   unplaced:plan.unplaced.length,feasible:complete&&audit.ok,
   exactCountProven:!!certified?.proven,
   countLowerBound:certified?.lowerBound??null,
