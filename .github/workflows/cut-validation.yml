@@ -43,10 +43,24 @@ jobs:
         run: |
           docker run --rm -d --name beythaus-ci-postgres -e POSTGRES_PASSWORD=test postgres:17 >/dev/null
           trap 'docker stop beythaus-ci-postgres >/dev/null 2>&1 || true' EXIT
-          for i in {1..60}; do
-            if docker exec beythaus-ci-postgres pg_isready -U postgres >/dev/null 2>&1; then break; fi
+          # The official Postgres image starts a TEMPORARY server for first-run
+          # setup, shuts it down, then starts the final server. pg_isready alone
+          # can report ready during that temporary phase (a flaky CI failure).
+          # Wait for first-run initialization to finish AND the final server.
+          POSTGRES_READY=0
+          for i in {1..90}; do
+            if docker logs beythaus-ci-postgres 2>&1 | grep -q 'PostgreSQL init process complete; ready for start up.' &&
+               docker exec beythaus-ci-postgres pg_isready -U postgres >/dev/null 2>&1; then
+              POSTGRES_READY=1
+              break
+            fi
             sleep 1
           done
+          if [ "$POSTGRES_READY" -ne 1 ]; then
+            docker logs beythaus-ci-postgres >&2
+            echo 'Final PostgreSQL server did not become ready' >&2
+            exit 1
+          fi
           docker exec -i beythaus-ci-postgres psql -U postgres -v ON_ERROR_STOP=1 < tests/cloud-db-bootstrap.sql
           docker exec -i beythaus-ci-postgres psql -U postgres -v ON_ERROR_STOP=1 < supabase/migrations/20261118_000001_cloud_inventory.sql
           docker exec -i beythaus-ci-postgres psql -U postgres -v ON_ERROR_STOP=1 < tests/cloud-db-smoke.sql
