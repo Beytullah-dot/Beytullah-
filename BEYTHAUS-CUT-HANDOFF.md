@@ -281,46 +281,92 @@ masaüstü uyumlu bir web/PWA; yalın, işlev odaklı arayüz.
 - **Supabase şeması/gerçek stoklar değiştirilmedi.** WebKit CI
   gerçek iPhone/Safari veya sahada fiziksel kesim testi sayılmaz.
 
+### 20 Kasım 2026 — PR #4, parça limiti yerine ölçümlü motor araştırması
+
+- Kullanıcı isteği açık: **25 levha bir maksimum değildir**; gerçek
+  bir atölye işi sadece örnektir. Kullanıcıya keyfî levha/parça
+  girişi sınırı dayatılmayacak. Kanıtlanabilir tek bir en yüksek
+  parça sayısı matematiksel olarak tanımlanamaz. Basit çok büyük
+  örnekler kanıtlanabilirken küçük heterojen örnekler zor olabilir.
+- **PR #4 master'a birleştirildi**:
+  https://github.com/Beytullah-dot/Beytullah-/pull/4
+  Merge commit `c38bb567b5f6b2d0251ab4b4c9872e5946a286d2`.
+  Bu PR yalnız araştırma/test altyapısıdır; motor algoritması
+  veya gerçek stok/sunucu kayıtları değişmedi.
+- **11 adet kesinlikle fiziksel kesilebilir planted-guillotine
+  benchmark** oluşturuldu; 5/10/25/50 stok, 20–400 parça,
+  3 mm testere payı, 4/8 parça/levha ve üç farklı stok ölçüsü.
+  Kaynak kod: `tests/motor-scalability-profile.cjs`.
+  Test raporu: `tests/MOTOR-SCALABILITY-RESEARCH.md`.
+  İlk CI: https://github.com/Beytullah-dot/Beytullah-/actions/runs/44651625204
+- **Gerçek ölçüm:** 4 örnekte plan eksiksiz ve stok sayısı
+  optimal kanıtlı; 7 örnekte, çözümün kesin var olduğu bilinmesine
+  rağmen bazı parçalar yerleşmedi. Örneğin 200 parça / 25 levha,
+  3 kesim seviyesinde **23 parça yerleşmedi**; üç farklı
+  stok türü içeren eş boyuttaki işte **36 parça yerleşmedi**.
+  200 parça / 50 levha, 2 seviyeli kesimde ise **tamamı yerleşti,
+  minimum stok kanıtlandı**. Bunlar yalnız ölçülen başlangıç
+  fixture'ları, tüm projelerin başarı oranı değildir.
+- **Kök engel:** `packAttempt` tek parça açgözlü yerleşim
+  yapıyor; `improveGroupPacking` çözüm eksikse veya 8 levhadan
+  fazlaysa devre dışı. Bu yüzden basit başlangıçta açılmış
+  yanlış kesim boşluklarını 25 levhalık zor bir projede
+  geri alacak kurtarma fazı yok. Aynı zamanda subset exact solver'ın
+  11–12 parça civarı sınırı üstel durum uzayı ve bitmask'ten
+  doğuyor; bu limiti körlemesine kaldırmak hatalı.
+- **Akademik yön:** stage-unrestricted guillotine için
+  blok/desen oluşturma ve maximal-spaces tree-search;
+  büyük işleri toparlamak için large-neighborhood
+  repair / anytime iteratif arama; ispat için sınıfa uygun
+  pattern-column generation / branch-and-price / sınırlar.
+  Yöntemlerin exact çözüm sınıfları karıştırılmamalı.
+- **MOTOR HENÜZ MÜHÜRLENMEDİ.** Bu araştırma, sonucu iyi
+  göstermek yerine gerçek eksik yerleşim sorununu ölçtü.
+
 ## E. Son tamamlanan adım / sıradaki adım
 
-**Son tamamlanan (20 Kasım):** PR #3 mevcut yayımlanmış Beythaus Cut
-uygulamasına birleştirildi. Motorun parça yönü yalnız parçaya taşındı,
-20–25 levhalık tekrarlı büyük planlarda kanıt üreten iki yeni alt sınır
-katmanı eklendi. 400 parça / 25 levha / 3 mm testere payı,
-fiziksel kesim denetimi ve **minimum 25 levha optimumluk kanıtı** geçti.
-Aynı merge SHA'da geometri, optimizer, WebKit CI ve Pages başarıyla tamamlandı.
+**Son tamamlanan (20 Kasım 2026):** PR #4 ile ölçümlü motor
+araştırma altyapısı `master` dalına alındı (merge:
+`c38bb567b5f6b2d0251ab4b4c9872e5946a286d2`).
+Motor algoritması değiştirilmedi. 11 kesin fiziksel
+olarak üretilebilir heterojen benchmark'ın **4'ü tam ve kanıtlı,
+7'si eksik** çıktı. Ölçülen örnekler en az 5–50 stok,
+20–400 parça; evrensel parça sınırı belirlenmez.
 
-**Kullanıcının son önceliği:** Diğer özellikleri ertele; **kesim
-optimizasyon motorunu doğruluk/ölçek/kanıt bakımından tamamlayıp
-mühürleme kriterleri karşılanana kadar** bu konuyu öncele.
-`tests/MOTOR-PROOF-STATUS.md` içindeki eksikler önem sırasıyla:
+**Kullanıcının onaylı yeni önceliği:** Mevcut matematiksel
+araştırmalardan yararlanarak, **sabit maksimum parça veya
+levha sınırı kurmadan** motoru ilerlet. Önce ağır
+heterojen işlerde tam geçerli kesim planı üret,
+sonra optimumluk iyileştirme/kanıt katmanını güçlendir.
+20–25 levha yalnız saha ölçeği örneğidir, ürün
+maksimumu değildir.
 
-1. 20–25 levhalık **farklı ölçülü** parçalar, farklı fiyat/ebattaki stoklar,
-   panel/masif ve karma otomatik atama için resmî benchmark/gerçek
-   atölye fixture seti oluştur. Başarı oranını kanıtlı/kanıtsız,
-   optimumluk aralığı ve süre olarak raporla; 400 aynı parça
-   örneğinden genelleme yapma.
-2. **Hedefi hesaplamadan önce** sor: minimum kayıtlı stok maliyeti veya
-   minimum brüt fire. Hedef seçimi gerçek arama planına uygulansın;
-   seçilmemiş hedef motoru gereksiz yere yormasın. Kullanılabilir
-   artık ayrıca raporlansın, ispatlanmış fire ile karıştırılmasın.
-3. Heterojen giyotin desenleri için **kesin branch-and-bound,
-   column generation / MILP / CP-SAT** yöntemlerinden ölçülerek en
-   uygununu uygula; her çalışmada fiziksel kesim denetimi ve
-   `OPTIMAL / FEASIBLE / UNKNOWN / INFEASIBLE` ayrımı korunsun.
-4. Sınır aşımı / sayısal tolerans / stok alternatifi / çoklu malzeme
-   yanlış ispatına karşı bağımsız regresyon ve alan verisiyle kontrol.
-   **Kanıt yoksa optimum iddia etme.**
-5. Tüm matematik ve performans kabul koşulları tamamlanınca ayrı
-   `MOTOR-SEALED` release/tag aç; sadece başarılı basit fixture'larla
-   veya UI çıktısıyla mühürleme yapma.
+**Sıradaki teknik adım:**
 
-**Bekleyen ama son isteğe göre ikinci sırada:** Gerçek iPhone/Safari,
-iki gerçek kullanıcıyla TEST stoklu Supabase UAT; çalışmadan gerçek
-fiziksel stok üretimini tüketme. `tests/SAFARI-UAT-CHECKLIST.md`.
+1. **Eksik parçalı plan kurtarma** fazı yaz:
+   giyotin blok/strip deseni üretme, çoklu başlangıç,
+   birbirine bağlı birkaç levhayı yeniden yerleştirme
+   (large-neighborhood repair). Mevcut 25 levhalık
+   8 parça/levha fixture'larının altkümesinde çalışan
+   gerçek üretim planları oluştur.
+2. Her adayı `production-audit.js` ile tekrar denetle;
+   bağımsız fiziksel kesim ağacı yoksa üretim olarak kabul
+   etme. Üretim her zaman mevcut envanter sınırında kalsın.
+3. Benchmark'ta **tam yerleşim**, **stok sayısı/maliyet/fire**,
+   **optimumluk ispatı**, **süre/bellek** metriklerini ayrı ölç.
+   2DPackLib gerçek benchmark'larını da dahil et.
+4. Hedef seçimini önceden al (maliyet veya brüt fire) ve
+   bu amaca özel *anytime* arama/kanıt yaklaşımını kur.
+   `OPTIMAL`, `FEASIBLE`, `UNKNOWN`,
+   `INFEASIBLE` semantiği korunsun.
+5. Subset DP'nin doğal üstel sınırı olduğu için bitmask
+   sınırını körlemesine silme; yerine çoklu parça tiplerini
+   ve büyük ölçekli desenleri yöneten yeni algoritma gerekir.
+   **Motoru henüz mühürleme**.
 
-**Öncelik:** Matematiksel doğruluk ve fiziksel kesim güvenliği >
-genel optimumluk kanıtı > motor performansı > diğer arayüz/yan özellikler.
+**Ertelenen ikinci katman:** gerçek iPhone/Safari ve iki
+hesaplı TEST Supabase stok UAT'si. Gerçek kullanıcı stokunu
+bilinçsizce değiştirme.
 
 ## F. Her yeni sohbet için çalışma kuralı
 
