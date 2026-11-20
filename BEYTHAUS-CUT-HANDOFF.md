@@ -380,7 +380,13 @@ dengesiz blok onarımı ve işe ait testere payının kullanılması geliştiril
 11/11 temel ve 34/34 stres işi tam. Resmî 2DPackLib BENG ailesinde sabit yön,
 sıfır kerf ve giyotin kısıtıyla 10/10 tam plan, 7/10 minimum levha kanıtı.
 Ölçüm, kaynak ve yeniden çalıştırma: `tests/MOTOR-BLOCK-REPAIR-RESULTS.md`.
-Yayın durumunu bu değişikliği taşıyan master commit ve Pages run ile doğrula.
+PR #6 master'a birleşti: `7629b66330285c716b07760646d1d8678b30e1f5`.
+[Pages yayını](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44660360621),
+master geometri (44660361085), optimizasyon (44660361097) ve iPhone WebKit
+emülasyonu (44660361141) başarılı. İki motor dosyası ile sw.js canlı URL'den
+alınıp bu sürümle bayt düzeyinde karşılaştırıldı. PR araştırma CI: 44660199269.
+Genel regresyonda 72/72 geçerli plan; `alternate stock types` örneğinde
+minimum 1 levha iken sezgisel plan 2 levha kullanıyor.
 
 **Son açık kullanıcı hedefi:** Önce matematiksel
 kesim motorunu tamamlama/mühürleme; kullanıcıya
