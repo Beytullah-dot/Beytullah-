@@ -1826,16 +1826,20 @@ function startExactWorker(data,initial){
   }
   try{
    const outcome=acceptExactWorkerResult(data,initial,response);
-   const unknownCost=initial.cost===null||outcome.proposal.cost===null;
-   const costIncrease=!unknownCost&&outcome.proposal.cost>initial.cost+0.01;
-   if(outcome.improvedCount>0&&(costIncrease||unknownCost)){
+   const objective=state.objective==='area'?'area':'cost';
+   const oldValue=objective==='area'?initial.stockArea:initial.cost;
+   const newValue=objective==='area'?outcome.proposal.stockArea:outcome.proposal.cost;
+   const cannotCompare=!Number.isFinite(oldValue)||!Number.isFinite(newValue);
+   const goalWorse=!cannotCompare&&newValue>oldValue+(objective==='area'?0.00001:0.01);
+   if(outcome.improvedCount>0&&(goalWorse||cannotCompare)){
     // Minimum stock count and purchase cost are different objectives.
     // Do not silently replace a less expensive or unpriced plan.
     exactPending={data,proposal:outcome.proposal,source:initial,saved:outcome.improvedCount};
-    const costMessage=unknownCost?'Toplam maliyet karşılaştırılamıyor.':
-     'Toplam maliyet '+money(outcome.proposal.cost-initial.cost)+' artıyor.';
+    const goalMessage=cannotCompare?'Seçilen hedefin maliyeti karşılaştırılamıyor.':
+     objective==='area'?'Brüt stok alanı '+fmt((outcome.proposal.stockArea-initial.stockArea)/1e6,4)+' m² artıyor.':
+     'Kayıtlı stok maliyeti '+money(outcome.proposal.cost-initial.cost)+' artıyor.';
     exactSearchStatus('Kesin arama '+outcome.improvedCount+
-     ' stok daha az kullanan alternatif buldu. '+costMessage+
+     ' stok daha az kullanan alternatif buldu. '+goalMessage+
      ' Mevcut plan korundu. Alternatifi uygulamak için onay verin.','warning');
     byId('exactSearchApply').classList.remove('hidden');
     return
@@ -2116,7 +2120,7 @@ function showAutoPlan(choice){
   '. Taslaklar bağımsız giyotin denetiminden geçti; tüm malzeme atamaları için küresel optimumluk iddia edilmez.';
  byId('optimalityRow').textContent='Karma otomatik: tüm malzeme dağılımlarında minimum stok henüz kanıtlanmadı.';
  byId('optimalityRow').classList.remove('is-proven');
- startEconomyWorker(item.data,item.plan)
+ startExactWorker(item.data,item.plan)
 }
 byId('autoPlanChoice').onclick=e=>{
  const b=e.target.closest('button[data-choice]');
@@ -2203,7 +2207,7 @@ function run(){
     if(errors.length)throw Error(errors.join(' '));
     showResult(data,sol);
     if(sol.unplaced.length)toast(sol.unplaced.length+' parça yerleştirilemedi.');
-    startEconomyWorker(data,sol);
+    startExactWorker(data,sol);
    }
    byId('results').scrollIntoView({behavior:'smooth',block:'start'});
   }catch(error){console.error(error);toast('Hesaplama hatası: '+error.message)}
