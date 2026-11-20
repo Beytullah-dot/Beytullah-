@@ -409,6 +409,8 @@ kullanılıyor. Üretim kodu planı parça ölçülerinden yeniden buluyor.
 BENG ailesinde 10/10 tam ve minimum levha adedi kanıtlı; sıfır kerf,
 sabit yön ve tek stok ölçüsü. `node tests/motor-beng.cjs` ile tekrarlanır.
 
+**Yayın doğrulaması (PR #9):** [PR #9](https://github.com/Beytullah-dot/Beytullah-/pull/9) master dalına birleşti (`dd35f5fb26fb06b95bfabc8308fe327810075caf`). [Pages](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44727291803), geometri (44727292415), optimizasyon (44727292316) ve [mobil WebKit](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44727292297) başarılı. Karma deney CI: 44727133187. Yayındaki index.html, cutting-engine.js ve sw.js birleştirilen kaynakla bayt düzeyinde eşleşti.
+
 **Karma atölye ölçümü (20 Kasım):** Pozitif testere ve kenar payı, üç
 stok ebadı, sonlu adet ve üç parça yönü birlikte sınandı. İki iş hem masif
 hem panel içeriyor. 26/26 tam ve denetlenmiş; 16/26 minimum levha kanıtlı,
