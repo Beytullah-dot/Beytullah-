@@ -24,6 +24,13 @@ for(const c of cases){
   c.name+' must never worsen placed-piece count');
  assert.ok(r.usedBoards<=c.boards,
   c.name+' must respect physical stock quantity');
+ if(/^full-stock-(single|varied)-/.test(c.name)||
+    /^salvage-strip-/.test(c.name)){
+  assert.equal(r.unplaced,0,
+   c.name+' is a mandatory complete physical production-plan regression');
+  assert.equal(r.feasible,true,
+   c.name+' must replay an independently verified cutting tree');
+ }
  if(r.unplaced<r.baselineUnplaced)improved++;
  if(r.unplaced>r.baselineUnplaced)worse++;
  if(r.feasible)full++;
