@@ -643,3 +643,24 @@ konunun doğrulandığı iddia edilmez. **Motor mühürlenmedi.**
 Kanıt açığının kök nedenine göre genel amaçlı, sound bir alt sınır
 veya kesim ağacı arama iyileştirmesi geliştir. Sonra yeni holdout,
 tüm regresyonlar, Pages ve yayın baytları doğrulansın.
+
+**CI teşhis sonucu (Optimizer Verification run 44785879435 — SUCCESS):**
+- Orijinal 180 bağımsız küçük işin 133'ü mümkün; 133/133 bağımsız
+  minimum levha bulundu, 120/133 motor kanıtı üretildi; oracle UNKNOWN 0.
+- Açık 13 işin **tamamında** Worker hedefi `unknown`; 13/13
+  `exact-unknown`, 0 `scope-limited`, 0 yalnız `bound-or-search`.
+  Hepsinde motorun mevcut levha sayısı bağımsız optimumla eşit,
+  fakat matematiksel alt sınır tam **bir levha** daha gevşek.
+- İndeksler: 0, 7, 11, 32, 36, 75, 78, 113, 127, 135,
+  163, 166, 170. Tam yeniden üretilebilir vaka girdileri ve
+  hedef başına düğüm sayıları CI `proof-gaps.json` artifact'inde.
+- `unknown` çoğu vakada düşük düğüm sayısıyla (78–2787) oluştu;
+  yalnız süre veya 500.000 düğüm sınırına takılma açıklaması
+  desteklenmiyor. `guillotine-exact.js` içindeki geometrik
+  Pareto adayının `cutPlan` aşamasında kurulamaması nedeniyle
+  `ambiguous` işaretlenmesi ve gerçek uygulanabilirliği
+  etkilemeyen çok küçük atık kesimlerinin ele alınışı
+  sonraki kök neden incelemesidir.
+- CI: https://github.com/Beytullah-dot/Beytullah-/actions/runs/44785879435
+  (başarılı). Üretim motoru değiştirilmedi; gerçek stok ve
+  Supabase etkilenmedi.
