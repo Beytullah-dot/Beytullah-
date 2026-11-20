@@ -167,6 +167,7 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
 .grain-cycle{min-width:32px;min-height:34px;border:1px solid #cbdacb;border-radius:7px;background:#f4f7f2;color:#304f3d;font-size:18px;font-weight:700;cursor:pointer}
 .material-inline-select,.category-inline-select{width:100%;min-width:87px;padding:7px 2px;border-radius:5px;border:1px solid #e1e9df;font-size:11px;background:#fff}
 .material-tag{font-size:10px;color:#6c866f}#singleMaterialWrap.hidden,#autoMaterialWrap.hidden{display:none!important}.legacy-cut-mode,.legacy-price-mode{display:none!important}
+#quantityResult:not(.hidden) ~ section{display:none}
 </style>
 <link rel="stylesheet" href="./qr-inventory.css">
 <link rel="stylesheet" href="./remnant-history.css">
@@ -214,6 +215,7 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
   <div class="runbar"><button class="btn primary" id="runBtn">▣ &nbsp;Yerleşimi hesapla</button><button class="btn" id="clearBtn" title="Projeyi temizle">Temizle</button></div>
 </section>
 <main class="main-area" id="results">
+  <section class="card hero hidden" id="quantityResult" aria-live="polite"></section>
   <section class="card hero"><div class="eyebrow">PROJE ANALİZİ</div><h1 id="resultTitle">Kesim planı</h1><div class="hero-sub" id="summarySub">Parçalar ve stok hazır.</div>
     <div id="autoPlanChoice" class="auto-plan-choice hidden"><strong>Hangi planı uygulamak istiyorsunuz?</strong><div class="segment"><button type="button" data-choice="economic">En ekonomik</button><button type="button" data-choice="minimum">En az stok</button></div><p id="autoPlanNote" class="settings-note"></p></div>
     <div class="metrics"><div class="metric feature"><strong id="mSheets">—</strong><span>Gerekli stok</span></div><div class="metric"><strong id="mYield">—</strong><span>Verimlilik</span></div><div class="metric"><strong id="mCost">—</strong><span>Malzeme maliyeti</span></div><div class="metric"><strong id="mParts">—</strong><span>Yerleşen parça</span></div></div>
@@ -356,6 +358,7 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
  <script src="./engine/optimality-certificate.js"></script>
 <script src="./engine/production-audit.js"></script>
  <script src="./engine/guillotine-block-repair.js"></script>
+<script src="./engine/quantity-plan.js"></script>
 <script src="./engine/cutting-engine.js"></script>
 <script src="./engine/material-allocator.js"></script>
 <script src="./engine/production-archive.js"></script>
@@ -1007,7 +1010,7 @@ function renderRows(){
 function syncThicknessVisibility(){if(state.parts.some(p=>stockKind(p)==='masif'))state.partsThicknessEnabled=true;for(const [flag,cardId,buttonId] of [['partsThicknessEnabled','partsCard','partsThicknessToggle'],['stocksThicknessEnabled','stocksCard','stocksThicknessToggle']]){const on=state[flag]!==false,btn=byId(buttonId);byId(cardId).classList.toggle('thickness-off',!on);btn.setAttribute('aria-pressed',String(on));btn.textContent='Kalınlık '+(on?'✓':'＋');btn.classList.toggle('thickness-on',on)}}
 for(const [flag,buttonId] of [['partsThicknessEnabled','partsThicknessToggle'],['stocksThicknessEnabled','stocksThicknessToggle']])byId(buttonId).onclick=()=>{if(flag==='partsThicknessEnabled'&&state.parts.some(p=>stockKind(p)==='masif')&&state[flag]){toast('Masif parçalarda kalınlık zorunludur.');return}state[flag]=!state[flag];syncThicknessVisibility();changed()};
 function syncSettings(){syncThicknessVisibility();byId('unitSelect').value=state.unit;byId('kerfInput').value=state.kerf;byId('trimInput').value=state.trim;byId('projectName').value=state.project;byId('m3Input').value=state.m3Price;byId('offcutEdgeInput').value=state.offcutMinEdgeMm;byId('offcutAreaInput').value=state.offcutMinAreaCm2;byId('offcutValueInput').value=state.offcutValuePerM2??'';byId('useRemnantStockInput').checked=state.useRemnantStock;for(const b of qsa('#modeSegment button'))b.classList.toggle('active',b.dataset.mode===state.mode);for(const b of qsa('#priceSegment button'))b.classList.toggle('active',b.dataset.price===state.priceMode);byId('m3Field').classList.toggle('hidden',state.priceMode==='panel');byId('priceHelp').textContent=state.priceMode==='m3'?'Toplam maliyet, kullanılan tam stokların hacmine göre hesaplanır.':'Her stok satırının ₺ / Panel fiyatı kullanılır.';byId('modeHelp').textContent=state.mode==='nest'?'Serbest yerleşim: daha sıkı dizilim; CNC ve uygun içten kesim yöntemleri için.':'Düz kesim: her adımda kenardan kenara tam kesim yapılabilecek yerleşim.';byId('resultTitle').textContent=state.project||'Kesim planı'}
-function changed(){autoPlanCache=null;cancelExactSearch(true);cancelEconomySearch(true);dirty=true;lastAudit=null;refreshRemnantUI();refreshProductionSafety();byId('planCard').querySelector('.card-title').textContent=state.mode==='nest'?'Yerleşim taslağı · Üretime uygun değil':'Kesim yerleşimi';byId('optimalityRow').textContent='Girdiler değişti. Optimumluk yeniden hesaplanmalı.';byId('optimalityRow').classList.remove('is-proven');byId('grossWasteProofRow').textContent='Girdiler değişti. Brüt fire yeniden hesaplanmalı.';byId('grossWasteProofRow').classList.remove('is-proven');invalidateCachedPdf();save();if(solution){for(const id of ['zoomBtn','downloadPdfTopBtn','printBtn'])byId(id).disabled=true;byId('status').className='status-line warning';byId('status').innerHTML='<span class="status-dot"></span><span>Girdiler değişti. Yeni plan için tekrar hesaplayın.</span>'}}
+function changed(){clearQuantityResult();autoPlanCache=null;cancelExactSearch(true);cancelEconomySearch(true);dirty=true;lastAudit=null;refreshRemnantUI();refreshProductionSafety();byId('planCard').querySelector('.card-title').textContent=state.mode==='nest'?'Yerleşim taslağı · Üretime uygun değil':'Kesim yerleşimi';byId('optimalityRow').textContent='Girdiler değişti. Optimumluk yeniden hesaplanmalı.';byId('optimalityRow').classList.remove('is-proven');byId('grossWasteProofRow').textContent='Girdiler değişti. Brüt fire yeniden hesaplanmalı.';byId('grossWasteProofRow').classList.remove('is-proven');invalidateCachedPdf();save();if(solution){for(const id of ['zoomBtn','downloadPdfTopBtn','printBtn'])byId(id).disabled=true;byId('status').className='status-line warning';byId('status').innerHTML='<span class="status-dot"></span><span>Girdiler değişti. Yeni plan için tekrar hesaplayın.</span>'}}
 function toast(msg){const el=byId('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove('show'),2800)}
 function bindTable(id,key){
  const root=byId(id);
@@ -1156,7 +1159,7 @@ byId('mobileSettings').onclick=()=>byId('settingsCard').scrollIntoView({behavior
 const dimFactor=()=>state.unit==='cm'?10:1;
 const mkey=material=>String(material).trim().toLocaleLowerCase('tr-TR');
 const area=p=>p.w*p.h;
-function normalize(){
+function normalize(grouped=false){
  const f=dimFactor(),parts=[],stocks=[],errors=[];
  const groups=materialCatalog();
  const single=groups.find(g=>g.key===materialPolicy.materialKey(state.singleCategory||'masif',state.singleMaterial));
@@ -1167,11 +1170,11 @@ function normalize(){
   const t=category==='masif'||state.partsThicknessEnabled?optionalThickness(p.t):null;
   const qty=val(p.qty);
   if(!String(p.l).trim()&&!String(p.w).trim())continue;
-  if(!(l>0&&w>0&&Number.isInteger(qty)&&qty>0&&qty<=2000&&
+  if(!(l>0&&w>0&&Number.isSafeInteger(qty)&&qty>0&&
     (t===null||Number.isFinite(t)&&t>0))||(category==='masif'&&!(t>0))){
    errors.push('Parça '+(i+1)+': ölçüler/adet geçersiz veya masif kalınlığı eksik.');continue
   }
-  sumqty+=qty;if(sumqty>1500){errors.push('Bir seferde en fazla 1500 parça hesaplanabilir.');break}
+  sumqty+=qty;if(!grouped&&sumqty>1500){errors.push('Bir seferde en fazla 1500 parça hesaplanabilir.');break}
   let material=state.materialMode==='auto'?'__AUTO__':
    state.materialMode==='single'?(single?.key||''):materialPolicy.materialKey(category,p.material);
   if(!material){errors.push('Parça '+(i+1)+': malzeme seçilmedi.');continue}
@@ -1179,13 +1182,13 @@ function normalize(){
    errors.push('Parça '+(i+1)+': tanımlı stoklardan bir malzeme seçin.');continue
   }
   const grain=materialPolicy.grain(p.grain);
-  for(let j=0;j<qty;j++)parts.push({id:p.id+'-'+j,origin:p.id,l,w,t,category,grain,material,
+  for(let j=0;j<(grouped?1:qty);j++)parts.push({...(grouped?{qty}:{}),id:p.id+'-'+j,origin:p.id,l,w,t,category,grain,material,
    label:String(p.label||'P'+(i+1)).trim()||'P'+(i+1),rotate:p.rotate!==false,order:i})
  }
  for(let i=0;i<state.stocks.length;i++){
   const s=state.stocks[i],l=val(s.l)*f,w=val(s.w)*f,t=optionalThickness(s.t),qty=val(s.qty),price=val(s.price);
   if(!String(s.l).trim()&&!String(s.w).trim())continue;
-  if(!(l>0&&w>0&&(t===null||Number.isFinite(t)&&t>0)&&Number.isInteger(qty)&&qty>=0&&qty<=99999)){
+  if(!(l>0&&w>0&&(t===null||Number.isFinite(t)&&t>0)&&Number.isSafeInteger(qty)&&qty>=0&&(grouped||qty<=99999))){
    errors.push('Stok '+(i+1)+': ölçü, kalınlık veya adet geçersiz.');continue
   }
   if(stockKind(s)==='masif'&&!(t>0)){errors.push('Stok '+(i+1)+': masif kalınlığı zorunludur.');continue}
@@ -1247,7 +1250,7 @@ function planHtml(bin){
  '<p>Net mesafe, kesilecek alt parçanın sol veya üst kenarından ölçülür; testere kalınlığı ayrıca hesaba katılmıştır. Bağlama ve kesme güvenliği operatör tarafından doğrulanmalıdır.</p></div></details>';
  return base+'<div class="offcut-panels">'+offcutPanel+stepsPanel+'</div>';
 }
-function showEmpty(){cancelExactSearch(true);cancelEconomySearch(true);dirty=true;lastAudit=null;refreshRemnantUI();refreshProductionSafety();byId('planCard').querySelector('.card-title').textContent=state.mode==='nest'?'Yerleşim taslağı · Üretime uygun değil':'Kesim yerleşimi';byId('optimalityRow').textContent='Minimum stok sayısı: hesaplama bekleniyor.';byId('optimalityRow').classList.remove('is-proven');byId('grossWasteProofRow').textContent='Brüt fire optimumluğu: hesaplama bekleniyor.';byId('grossWasteProofRow').classList.remove('is-proven');invalidateCachedPdf();byId('mSheets').textContent='—';byId('mYield').textContent='—';byId('mCost').textContent='—';byId('mParts').textContent='—';byId('summarySub').textContent='Parçalar ve stok hazır.';byId('status').className='status-line';byId('status').innerHTML='<span class="status-dot"></span><span>Hesaplamak için düğmeye basın.</span>';byId('planTabs').innerHTML='';byId('planBody').className='empty-state';byId('planBody').innerHTML='<div class="empty-icon">▤</div><strong>Kesim planı burada görünecek</strong><p>Parça ve stok ölçülerini girip yerleşimi hesaplayın. Masif parçalarında kalınlık zorunludur.</p>';byId('costDetails').innerHTML='<p style="color:#8a968d;font-size:12px">Hesaplama bekleniyor.</p>';byId('cutDetails').innerHTML='<p style="color:#8a968d;font-size:12px">Hesaplama bekleniyor.</p>';for(const id of ['zoomBtn','downloadPdfTopBtn','printBtn'])byId(id).disabled=true}
+function showEmpty(){clearQuantityResult();cancelExactSearch(true);cancelEconomySearch(true);dirty=true;lastAudit=null;refreshRemnantUI();refreshProductionSafety();byId('planCard').querySelector('.card-title').textContent=state.mode==='nest'?'Yerleşim taslağı · Üretime uygun değil':'Kesim yerleşimi';byId('optimalityRow').textContent='Minimum stok sayısı: hesaplama bekleniyor.';byId('optimalityRow').classList.remove('is-proven');byId('grossWasteProofRow').textContent='Brüt fire optimumluğu: hesaplama bekleniyor.';byId('grossWasteProofRow').classList.remove('is-proven');invalidateCachedPdf();byId('mSheets').textContent='—';byId('mYield').textContent='—';byId('mCost').textContent='—';byId('mParts').textContent='—';byId('summarySub').textContent='Parçalar ve stok hazır.';byId('status').className='status-line';byId('status').innerHTML='<span class="status-dot"></span><span>Hesaplamak için düğmeye basın.</span>';byId('planTabs').innerHTML='';byId('planBody').className='empty-state';byId('planBody').innerHTML='<div class="empty-icon">▤</div><strong>Kesim planı burada görünecek</strong><p>Parça ve stok ölçülerini girip yerleşimi hesaplayın. Masif parçalarında kalınlık zorunludur.</p>';byId('costDetails').innerHTML='<p style="color:#8a968d;font-size:12px">Hesaplama bekleniyor.</p>';byId('cutDetails').innerHTML='<p style="color:#8a968d;font-size:12px">Hesaplama bekleniyor.</p>';for(const id of ['zoomBtn','downloadPdfTopBtn','printBtn'])byId(id).disabled=true}
 function kv(k,v){return`<div class="kv"><span>${esc(k)}</span><strong>${v}</strong></div>`}
 let lastAudit=null;
 function refreshProductionSafety(){
@@ -2085,12 +2088,62 @@ byId('autoPlanChoice').onclick=e=>{
  const b=e.target.closest('button[data-choice]');if(b)showAutoPlan(b.dataset.choice)
 };
 let processing=false;
+function clearQuantityResult(){
+ const card=byId('quantityResult');
+ card.textContent='';
+ card.classList.add('hidden');
+}
+function showQuantityResult(data){
+ showEmpty();
+ const p=data.parts[0],stocks=data.stocks.filter(s=>s.qty>0);
+ if(state.mode!=='guillotine'||state.materialMode==='auto'||data.parts.length!==1||stocks.length!==1){
+  toast('Bu adet için seri kesim tek parça satırı, tek stok ve sabit malzeme ile çalışır.');return;
+ }
+ const stock=stocks[0],job={part:p,stock,trim:data.trim,kerf:data.kerf};
+ const plan=window.BeythausQuantityPlan.solve(job);
+ if(!plan){toast('Mevcut stokla tam seri kesim planı bulunamadı. Seri kesim tam milimetre ölçüleri gerektirir.');return}
+ const lines=[
+  state.project||'Kesim projesi',
+  p.qty+' parça · '+plan.sheets+' levha',
+  'Parça '+p.label+' · '+p.l+' × '+p.w+' mm · '+materialPolicy.grainName(p.grain)+' · dönüş '+(plan.turned?'90°':'0°'),
+  'Stok '+stock.displayMaterial+' · '+stock.l+' × '+stock.w+' mm · '+thicknessText(stock.t),
+  'Her kenardan '+data.trim+' mm pay bırakın. Testere payı '+data.kerf+' mm.',
+  'Her şeridi kalan levhanın üstünden, her parçayı ayrılmış şeridin solundan alın. Ölçüler net bitmiş ölçüdür. Kesimi mevcut alt parçanın karşı kenarına kadar yapın. Son kenar zaten ölçüdeyse kesmeyin.'
+ ];
+ const w=plan.turned?p.w:p.l,h=plan.turned?p.l:p.w;
+ let first=1;
+ for(const pattern of plan.patterns){
+  const end=first+(pattern.repeat-1);
+  lines.push('Levha '+first+(first===end?'':'–'+end)+' · '+pattern.repeat+' tekrar');
+  if(pattern.rows)lines.push(pattern.rows+' adet '+h+' mm yüksekliğinde şerit ayırın. Her şeritten '+pattern.columns+' adet '+w+' mm genişliğinde parça alın.');
+  if(pattern.tail)lines.push('Bir '+h+' mm şerit ayırın. Bu şeritten '+pattern.tail+' adet '+w+' mm genişliğinde parça alın.');
+  if(end<plan.sheets)first=end+1;
+ }
+ lines.push(plan.proven?'Minimum levha sayısı alan alt sınırıyla kanıtlandı.':'Levha sayısının optimumluğu kanıtlanmadı.');
+ const card=byId('quantityResult');
+ card.classList.remove('hidden');
+ const title=document.createElement('h2');title.textContent='Doğrulanmış seri kesim planı';card.append(title);
+ for(const line of lines){const row=document.createElement('p');row.textContent=line;card.append(row)}
+ const note=document.createElement('p');note.textContent='Seri kesim için stok düşümü ve artık kaydı henüz desteklenmiyor.';card.append(note);
+ const button=document.createElement('button');button.className='btn';button.textContent='Seri kesim PDF’sini indir';card.append(button);
+ button.onclick=async()=>{
+  try{
+   const pdf=await loadPDFEngine();
+   if(!button.isConnected)return;
+   pdf.createPdf({info:{title:'Beythaus Cut · Seri kesim'},content:[{text:title.textContent,bold:true,fontSize:16},...lines.map(text=>({text,margin:[0,5,0,3]}))]}).getBlob(blob=>{if(button.isConnected)download(blob,'beythaus-seri-kesim.pdf')});
+  }catch(error){toast('PDF oluşturulamadı: '+error.message)}
+ };
+ card.scrollIntoView({behavior:'smooth',block:'start'});
+}
 function run(){
  if(processing)return;
  cancelExactSearch(true);
  cancelEconomySearch(true);
- const data=normalize();
+ const needsQuantity=state.parts.reduce((n,p)=>n+((String(p.l).trim()||String(p.w).trim())?(val(p.qty)||0):0),0)>1500||
+  state.stocks.some(s=>val(s.qty)>99999);
+ const data=normalize(needsQuantity);
  if(data.errors.length){toast(data.errors[0]);return}
+ if(needsQuantity){showQuantityResult(data);return}
  processing=true;
  byId('runBtn').textContent='Hesaplanıyor…';
  byId('mobileRunBtn').textContent='Hesaplanıyor…';

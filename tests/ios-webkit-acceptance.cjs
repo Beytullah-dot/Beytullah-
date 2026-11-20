@@ -184,6 +184,37 @@ async function main() {
   assert.deepEqual(uncaught, [], 'Unexpected uncaught browser errors');
   console.log('PASS 6: Refresh and navigation survive; no uncaught WebKit errors');
 
+  await page.locator('#bhDrawerHandle').click();
+  // Serve the exact CDN assets from the pinned package so PDF export works offline in CI.
+  await page.route('https://cdn.jsdelivr.net/npm/pdfmake@0.2.23/build/*', route=>{
+    const asset=new URL(route.request().url()).pathname.split('/').pop();
+    return route.fulfill({path:require.resolve('pdfmake/build/'+asset),contentType:'application/javascript'})
+  });
+  await page.evaluate(()=>{
+    const app=window.BeythausCut,d=app.defaultData();
+    Object.assign(d,{unit:'mm',mode:'guillotine',materialMode:'single',singleCategory:'panel',singleMaterial:'TEST',kerf:3,trim:2,useRemnantStock:false});
+    d.parts=[{id:'piece',category:'panel',material:'TEST',l:22,w:22,t:18,qty:2001,label:'P01'}];
+    d.stocks=[{id:'board',category:'panel',material:'TEST',l:104,w:104,t:18,qty:126}];
+    app.setState(d);
+  });
+  await page.locator('#mobileRunBtn').click();
+  const card=page.locator('#quantityResult');
+  assert.match(await card.innerText(),/2001 parça · 126 levha/);
+  assert.match(await card.innerText(),/Levha 1–125 · 125 tekrar/);
+  assert.match(await card.innerText(),/Levha 126 · 1 tekrar/);
+  const received=page.waitForEvent('download',{timeout:30000});
+  await card.locator('button').click();
+  const file=await received;
+  assert.equal(file.suggestedFilename(),'beythaus-seri-kesim.pdf');
+  const bytes=require('node:fs').readFileSync(await file.path());
+  assert.equal(bytes.subarray(0,5).toString(),'%PDF-');
+  const parsed=await require('pdf-parse/lib/pdf-parse.js')(bytes);
+  assert.match(parsed.text,/2001 parça · 126 levha/);
+  assert.match(parsed.text,/Levha 1–125 · 125 tekrar/);
+  assert.match(parsed.text,/Levha 126 · 1 tekrar/);
+  assert.equal(await page.evaluate(()=>window.BeythausCut.getState().stocks[0].qty),126);
+  console.log('PASS: 2001-piece mobile job, two audited patterns, actual PDF download, stock preserved');
+
   await context.close();
   console.log('PASS: Isolated WebKit iPhone-emulation smoke complete. Manual iOS/cloud UAT still required.');
 }
