@@ -399,6 +399,8 @@ boy/en izdüşümüyle 4 levha kanıtlandı. BENG04 için şerit aramasıyla 11
 levha bulundu. BENG02 için 6–7 aralığı açık. 75 saniyelik bağımsız
 tamsayılı giyotin modelinde 6 levha hakkında karar alınamadı.
 
+**Yayın doğrulaması (PR #8):** [PR #8](https://github.com/Beytullah-dot/Beytullah-/pull/8) master'a birleşti (`a0487d4f19f7d760a7dbcc022d3f1f5a98ec4d82`). [Pages](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44724964905), geometri (44724965225), optimizasyon (44724965106) ve [mobil WebKit](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44724965139) başarılı. Yayındaki index.html, optimizasyon Worker'ı, desen arama modülü ve sw.js birleştirilen dosyalarla aynı. PR'daki ilk WebKit çalışması eksik unzip yüzünden durdu; ikinci çalışmada altı levha doğrulandıktan sonra yenileme sırasında yükleme hatası alındı. Nihai test tam sertifika sonucunu bekliyor ve yakalanmayan tarayıcı hatalarını denetliyor.
+
 **BENG02 kapandı (20 Kasım):** 40 parçanın alanı 1.420, beş adet 25×10
 levhanın alanı 1.250. Altı levhada bağımsız olarak doğrulanmış kesim ağacı
 var. Hızlı aşama 7 levha, arka plan Worker araması 6 levha üretiyor.
