@@ -143,3 +143,26 @@ have a one-board gap to the lower bound. It is open whether that board
 can be removed. Comparing the project-state kerf to the job kerf during
 benchmarking exposed a fit-filter bug; the search now uses the same job
 kerf as the cut generator. Real-device performance remains unmeasured.
+
+### Stock selection and BENG follow-up
+
+The mixed automatic allocator now evaluates the economic and stock-count
+objectives during candidate construction and refinement. Two 50×100
+pieces cost 50 on two small sheets; the audited single-sheet alternative
+costs 100. The independent count regression explicitly asks for minimum
+count and obtains 42/42 matches on feasible cases, with all 72 returned
+plans checked (including partial results for infeasible inputs).
+
+| Fixed-orientation guillotine instance | Previous LB / plan | Current LB / plan | Evidence |
+|---|---:|---:|---|
+| BENG01 | 3 / 4 | 4 / 4 | At any cross section, a piece taller than half the sheet excludes another half-height or taller piece. Exact halves use half weight. Integrating demand along the width gives 83.5 against 25 per sheet. |
+| BENG02 | 6 / 7 | 6 / 7 | An independent integer plate-flow feasibility experiment on all integer edge-to-edge splits of 25×10 sheets (SciPy/HiGHS, six initial sheets, 75 seconds) timed out without a witness or infeasibility proof. |
+| BENG04 | 11 / 12 | 11 / 11 | A bounded zero-kerf strip knapsack packs 80 pieces on 11 sheets, independently audited. Gross unused area drops from 327 to 77 squared dataset units. |
+
+The ten BENG cases all have complete audited plans, nine now match certified
+lower bounds. The other seven counts in the preceding table are unchanged.
+The half-span bound uses safe integers, takes the least weight over permitted
+orientations per axis, and applies only to equal-sized usable sheets. Strip
+repair searches homogeneous zero-kerf jobs; grid, trial and time budgets
+only limit this extra heuristic. The existing 3 mm repair remains covered
+by all 11 base and 34 seeded complete-plan tests.

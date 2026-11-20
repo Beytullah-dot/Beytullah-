@@ -109,6 +109,20 @@ assert.ok(choice.economic&&choice.minimum&&choice.candidates===2);
 assert.equal(choice.economic.plan.bins[0].stock.id,'pine','User stock pricing picks cheaper stock');
 assert.equal(choice.proven,false,'Bounded allocation must not claim global proof');
 
+// Same material, different physical stock sizes. Each button must retain
+// its own independently auditable winner, including after refinement.
+const tradeoff=allocator.allocate({...autoData,
+ parts:[0,1].map(i=>({...autoData.parts[0],id:'half'+i,l:50,w:100,rotate:false})),
+ stocks:[{...stockPine,l:100,w:100,qty:1,price:100},
+  {...stockPine,id:'small',l:50,w:100,qty:2,price:25}]});
+for(const [key,count,cost] of [['economic',2,50],['minimum',1,100]]){
+ const entry=tradeoff[key];
+ assert.equal(entry.plan.bins.length,count,key);
+ assert.equal(entry.plan.cost,cost,key);
+ assert.equal(entry.plan.unplaced.length,0);
+ assert.ok(engine.auditCutPlan(entry.plan,entry.data).ok)
+}
+
 const archived=win.BeythausProductionArchive.createPdfDefinition({
  id:'B-TEST',projectName:'Test üretim',createdAt:Date.now(),productionCompleted:true,
  grossStockCost:200,offcutBookValue:40,materialCost:160,extraCost:15,totalCost:175,

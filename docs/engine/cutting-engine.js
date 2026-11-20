@@ -49,7 +49,8 @@ function applyFit(bin,it,fit,cfg,splitVariant){
  if(cfg.mode==='nest'){bin.free=splitNest(bin.free,used,cfg.kerf);return}
  const rect=bin.free.splice(fit.freeIndex,1)[0],dw=rect.w-used.w,dh=rect.h-used.h;
  const dir=splitVariant===0?'vertical':splitVariant===1?'horizontal':splitVariant===2?(dw>=dh?'vertical':'horizontal'):(dw<dh?'vertical':'horizontal');
- bin.free.push(...splitGuillotine(rect,used,cfg.kerf,dir));
+ const children=splitGuillotine(rect,used,cfg.kerf,dir);
+ bin.free.push(...children);
  function step(axis,source,at){
   const alongX=axis==='vertical',x1=alongX?at:source.x,y1=alongX?source.y:at,x2=alongX?at:source.x+source.w,y2=alongX?source.y+source.h:at;
   bin.cuts.push({x1,y1,x2,y2,axis,at,source:{x:source.x,y:source.y,w:source.w,h:source.h},label:used.label,number:bin.cuts.length+1});
@@ -61,16 +62,18 @@ function applyFit(bin,it,fit,cfg,splitVariant){
   if(dh>1e-6)step('horizontal',rect,used.y+used.h+cfg.kerf/2);
   if(dw>1e-6)step('vertical',{x:rect.x,y:rect.y,w:rect.w,h:used.h},used.x+used.w+cfg.kerf/2);
  }
+ return children
 }
 function packAttempt(items,stocks,cfg,trial){const ordered=orderParts(items,trial),bins=[],unplaced=[],used={},suffix=new Array(ordered.length+1).fill(0);for(let k=ordered.length-1;k>=0;k--)suffix[k]=suffix[k+1]+ordered[k].l*ordered[k].w;const variant=Math.floor(trial/2)%5,splitVariant=Math.floor(trial/5)%4,stockSelect=Math.floor(trial/7)%4;
 for(let idx=0;idx<ordered.length;idx++){const it=ordered[idx];let match=null;for(let bi=0;bi<bins.length;bi++){const fit=findFit(bins[bi],it,variant,cfg);if(fit&&(!match||fit.score<match.fit.score))match={bin:bins[bi],fit}}if(match){applyFit(match.bin,it,match.fit,cfg,splitVariant);continue}
 let choices=[];for(const s of stocks){if(used[s.id]>=s.qty||s.qty===0)continue;const tmp=mkBin(s,cfg.trim);if(tmp.w<=0||tmp.h<=0)continue;const fit=findFit(tmp,it,variant,cfg);if(!fit)continue;const remainingArea=suffix[idx];const usableArea=tmp.w*tmp.h;const cost=binCost(s,cfg),missingCost=cost===null,rankCost=cost??0;let rank;
-if(stockSelect===0)rank=rankCost+(usableArea-it.l*it.w)*.000001;
+if(cfg.objective==='minimum'&&stockSelect===0)rank=-Math.min(remainingArea,usableArea);
+else if(stockSelect===0)rank=rankCost+(usableArea-it.l*it.w)*.000001;
 else if(stockSelect===1)rank=Math.ceil(remainingArea/usableArea)*Math.max(rankCost,1)+usableArea*.0000001;
 else if(stockSelect===2)rank=usableArea;
 else rank=(Math.ceil(remainingArea/usableArea)*Math.max(rankCost,1))+(Math.abs(remainingArea-usableArea)*.000001);
 choices.push({s,tmp,fit,rank,missingCost})}
-choices.sort((a,b)=>Number(a.missingCost)-Number(b.missingCost)||a.rank-b.rank||a.s.order-b.s.order);if(!choices.length){unplaced.push(it);continue}let c=choices[0];used[c.s.id]=(used[c.s.id]||0)+1;applyFit(c.tmp,it,c.fit,cfg,splitVariant);bins.push(c.tmp)}
+choices.sort((a,b)=>(cfg.objective==='minimum'&&stockSelect===0?0:Number(a.missingCost)-Number(b.missingCost))||a.rank-b.rank||a.s.order-b.s.order);if(!choices.length){unplaced.push(it);continue}let c=choices[0];used[c.s.id]=(used[c.s.id]||0)+1;applyFit(c.tmp,it,c.fit,cfg,splitVariant);bins.push(c.tmp)}
 const unknownCostBins=bins.filter(b=>binCost(b.stock,cfg)===null).length,cost=unknownCostBins?null:bins.reduce((sum,b)=>sum+binCost(b.stock,cfg),0),stockArea=bins.reduce((sum,b)=>sum+b.stock.l*b.stock.w,0),partArea=bins.reduce((sum,b)=>sum+b.placed.reduce((a,p)=>a+p.w*p.h,0),0);return{bins,unplaced,cost,unknownCostBins,stockArea,partArea,placedCount:items.length-unplaced.length}}
 
 function offcutThresholds(){
@@ -93,8 +96,9 @@ function salvageAreaForSolution(result){
  return result.bins.reduce((n,b)=>n+collectOffcuts(b).area,0)
 }
 
-function compare(a,b){if(!b)return-1;
+function compare(a,b,objective){if(!b)return-1;
 if(a.unplaced.length!==b.unplaced.length)return a.unplaced.length-b.unplaced.length;
+if(objective==='minimum'&&a.bins.length!==b.bins.length)return a.bins.length-b.bins.length;
 if(a.unknownCostBins!==b.unknownCostBins)return a.unknownCostBins-b.unknownCostBins;
 if(a.cost!==null&&b.cost!==null&&Math.abs(a.cost-b.cost)>.01)return a.cost-b.cost;
 if(a.bins.length!==b.bins.length)return a.bins.length-b.bins.length;
@@ -125,6 +129,97 @@ function repackFixedBoards(items,boards,cfg,trial){
   cost:unknownCostBins?null:used.reduce((n,b)=>n+binCost(b.stock,cfg),0),
   stockArea:used.reduce((n,b)=>n+b.stock.l*b.stock.w,0),
   partArea:used.reduce((n,b)=>n+b.placed.reduce((a,p)=>a+p.w*p.h,0),0)};
+}
+
+// Build a row or column from equal-depth pieces by 0/1 knapsack.
+function bestStrip(remaining,rect,prices,verticalBias,exponent,step,deadline){
+ let best=null;
+ for(const vertical of [false,true]){
+  const cap=(vertical?rect.h:rect.w)/step,side=vertical?rect.w:rect.h;
+  const groups=new Map();
+  for(const p of remaining){
+   const depth=vertical?p.w:p.h,span=(vertical?p.h:p.w)/step;
+   if(depth>side||span>cap)continue;
+   if(!groups.has(depth))groups.set(depth,[]);
+   groups.get(depth).push(p)
+  }
+  for(const [depth,group] of groups){
+   const dp=new Array(cap+1);dp[0]={value:0};
+   for(const p of group){
+    if(Date.now()>=deadline)return null;
+    const span=(vertical?p.h:p.w)/step;
+    for(let x=cap;x>=span;x--){
+     const prev=dp[x-span];
+     if(!prev)continue;
+     const value=prev.value+prices[p.i];
+     if(!dp[x]||value>dp[x].value)dp[x]={value,prev,p}
+    }
+   }
+   const scale=(vertical?verticalBias:1)/(cap*step*depth)**exponent;
+   for(let x=1;x<=cap;x++)if(dp[x]){
+    const score=dp[x].value*scale;
+    if(!best||score>best.score)best={vertical,node:dp[x],score}
+   }
+  }
+ }
+ return best
+}
+
+// Tighten an already complete homogeneous plan by one sheet. Keep the
+// incumbent on timeout. All emitted cuts pass through the normal packer.
+function reduceByStrips(plan,items,stocks,cfg){
+ if(cfg.kerf!==0||plan.unplaced.length||plan.bins.length<2||stocks.length!==1)return plan;
+ const stock=stocks[0],W=stock.l-2*cfg.trim,H=stock.w-2*cfg.trim;
+ const integer=v=>Number.isSafeInteger(v)&&v>0;
+ if(!integer(W)||!integer(H))return plan;
+ const target=plan.bins.length-1;
+ if(plan.partArea>target*W*H||halfSpanLowerBound(items,stocks,cfg.trim)>target)return plan;
+ const gcd=(a,b)=>{while(b){const rem=a%b;a=b;b=rem}return a};
+ let step=gcd(W,H);
+ const pieces=[];
+ for(const item of items){
+  const o=orientationChoices(item).find(([w,h])=>w<=W&&h<=H);
+  if(!o||!integer(o[0])||!integer(o[1]))return plan;
+  step=gcd(step,gcd(o[0],o[1]));
+  pieces.push({item,i:pieces.length,w:o[0],h:o[1],rotated:o[2]})
+ }
+ // Bound knapsack memory in normalized coordinates, never reject the job.
+ if(Math.max(W,H)/step>256)return plan;
+ const deadline=Date.now()+180,random=rand(177);
+ let prices;
+ for(let trial=0;trial<192&&Date.now()<deadline;trial++){
+  if(trial%60===0)prices=pieces.map(p=>p.w*p.h*(.6+random()*.8));
+  const verticalBias=.97+random()*.06,exponent=.4+random()*.6;
+  const remaining=new Set(pieces),bins=[];
+  while(bins.length<target&&remaining.size&&Date.now()<deadline){
+   const bin=mkBin(stock,cfg.trim),pending=[bin.free[0]];
+   bins.push(bin);
+   while(pending.length&&remaining.size&&Date.now()<deadline){
+    let rect=pending.pop();
+    const strip=bestStrip(remaining,rect,prices,verticalBias,exponent,step,deadline);
+    if(!strip)continue;
+    for(let node=strip.node;node.p;node=node.prev){
+     const p=node.p,freeIndex=bin.free.indexOf(rect);
+     const children=applyFit(bin,p.item,{x:rect.x,y:rect.y,w:p.w,h:p.h,
+      rotated:p.rotated,freeIndex},cfg,strip.vertical?0:1);
+     remaining.delete(p);
+     const right=children.find(r=>r.x>rect.x),below=children.find(r=>r.y>rect.y);
+     const outer=strip.vertical?right:below;
+     if(node===strip.node&&outer)pending.push(outer);
+     rect=strip.vertical?below:right
+    }
+    if(rect)pending.push(rect)
+   }
+  }
+  if(!remaining.size){
+   const cost=binCost(stock,cfg);
+   const candidate={...plan,bins,stockArea:bins.length*stock.l*stock.w,
+    cost:cost===null?null:bins.length*cost,unknownCostBins:cost===null?bins.length:0};
+   if(auditCutPlan(candidate,{parts:items,stocks,kerf:cfg.kerf,trim:cfg.trim}).ok)return candidate
+  }
+  for(const p of remaining)prices[p.i]*=1.1+random()*.5
+ }
+ return plan
 }
 
 // Usable offcut optimization: bounded local search within EXACTLY the same
@@ -197,7 +292,7 @@ function improveGroupPacking(initial,items,cfg){
    for(let trial=0;trial<30;trial++){
     attempts++;
     const repacked=repackFixedBoards(items,boards,cfg,trial);
-    if(repacked&&compare(repacked,best)<0){best=repacked;changed=true;improvements++;break}
+    if(repacked&&compare(repacked,best,cfg.objective)<0){best=repacked;changed=true;improvements++;break}
    }
    if(changed)break;
   }
@@ -495,8 +590,8 @@ function exactRefinePlan(initial,data,cfg){
  return done(result)
 }
 
-const blockRepair=blockRepairModule?.createRepair({packAttempt,auditCutPlan,compare,binCost});
-function optimize(data,enhanced=true,exact=true){const groups=new Map(),stockgroups=new Map();for(const p of data.parts){const key=mkey(p.material,p.t);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(p)}for(const s of data.stocks){const key=mkey(s.material,s.t);if(!stockgroups.has(key))stockgroups.set(key,[]);stockgroups.get(key).push(s)}let result={bins:[],unplaced:[],partArea:0,stockArea:0,cost:0,unknownCostBins:0,placedCount:0},search={baselineStockCount:0,savedStockCount:0,refinementAttempts:0,refinementSteps:0,offcutAttempts:0,offcutImprovements:0,offcutAreaGain:0,offcutTimeLimited:false},cfg={kerf:data.kerf,trim:data.trim,m3:data.m3,mode:state.mode,priceMode:state.priceMode};for(const [key,group]of groups){const stock=stockgroups.get(key)||[];let best=null;const trials=group.length<=35?144:group.length<=120?90:group.length<=400?40:14;for(let tr=0;tr<trials;tr++){const r=packAttempt(group,stock,cfg,tr);if(compare(r,best)<0)best=r;if(best?.unplaced.length===0&&best?.bins.length===1&&best.stockArea<=group.reduce((a,p)=>a+p.l*p.w,0)*1.005)break}search.baselineStockCount+=best.bins.length;
+const blockRepair=blockRepairModule?.createRepair({packAttempt,auditCutPlan,binCost,compare});
+function optimize(data,enhanced=true,exact=true,objective='economic'){const groups=new Map(),stockgroups=new Map();for(const p of data.parts){const key=mkey(p.material,p.t);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(p)}for(const s of data.stocks){const key=mkey(s.material,s.t);if(!stockgroups.has(key))stockgroups.set(key,[]);stockgroups.get(key).push(s)}let result={bins:[],unplaced:[],partArea:0,stockArea:0,cost:0,unknownCostBins:0,placedCount:0},search={baselineStockCount:0,savedStockCount:0,refinementAttempts:0,refinementSteps:0,offcutAttempts:0,offcutImprovements:0,offcutAreaGain:0,offcutTimeLimited:false},cfg={objective,kerf:data.kerf,trim:data.trim,m3:data.m3,mode:state.mode,priceMode:state.priceMode};for(const [key,group]of groups){const stock=stockgroups.get(key)||[];let best=null;const trials=group.length<=35?144:group.length<=120?90:group.length<=400?40:14;for(let tr=0;tr<trials;tr++){const r=packAttempt(group,stock,cfg,tr);if(compare(r,best,objective)<0)best=r;if(best?.unplaced.length===0&&best?.bins.length===1&&best.stockArea<=group.reduce((a,p)=>a+p.l*p.w,0)*1.005)break}search.baselineStockCount+=best.bins.length;
 const refined=enhanced?improveGroupPacking(best,group,cfg):{solution:best,attempts:0,improvements:0};
 search.refinementAttempts+=refined.attempts;search.refinementSteps+=refined.improvements;
 search.savedStockCount+=best.bins.length-refined.solution.bins.length;
@@ -506,9 +601,10 @@ if(enhanced&&state.mode==='guillotine'&&best.unplaced.length&&blockRepair){
  search.blockRepairAttempts=(search.blockRepairAttempts||0)+rescue.info.trials;
  search.blockRepairCandidates=(search.blockRepairCandidates||0)+rescue.info.candidates;
  search.blockRescuedPieces=(search.blockRescuedPieces||0)+rescue.info.rescued;
- if(compare(rescue.solution,best)<0)best=rescue.solution;
+ if(compare(rescue.solution,best,objective)<0)best=rescue.solution;
 }
 if(enhanced&&state.mode==='guillotine'){
+ best=reduceByStrips(best,group,stock,cfg);
  const offcutPass=refineUsableOffcuts(best,group,stock,cfg);
  best=offcutPass.solution;
  search.offcutAttempts+=offcutPass.info.attempts;
@@ -674,13 +770,36 @@ function incompatibleCliqueLowerBound(parts,stocks,trim,kerf){
  }
  return {count,examined:n,total:parts.length}
 }
+// Integrate along the stock axis. On any slice, one rectangle taller
+// than half the height excludes all other half-height or taller rectangles.
+// Otherwise at most two exact halves fit. Count in doubled integer units.
+function halfSpanLowerBound(parts,stocks,trim){
+ const usable=stocks.filter(s=>s.qty>0);
+ if(!usable.length)return 0;
+ const W=usable[0].l-2*trim,H=usable[0].w-2*trim;
+ const safe=v=>Number.isSafeInteger(v)&&v>0&&Number.isSafeInteger(2*v);
+ if(!safe(W)||!safe(H)||usable.some(s=>s.l-2*trim!==W||s.w-2*trim!==H))return 0;
+ let across=0,along=0;
+ const weight=(size,side)=>2*size>side?2:2*size===side?1:0;
+ for(const p of parts){
+  if(!safe(p.l)||!safe(p.w))return 0;
+  const options=orientationChoices(p);
+  if(!options.length)return 0;
+  across+=Math.min(...options.map(([w,h])=>w*weight(h,H)));
+  along+=Math.min(...options.map(([w,h])=>h*weight(w,W)));
+  if(!Number.isSafeInteger(across)||!Number.isSafeInteger(along))return 0
+ }
+ // Integer ceiling division avoids rounding a nearly integral ratio.
+ const ceil=(a,b)=>Number((BigInt(a)+BigInt(b)-1n)/BigInt(b));
+ return Math.max(ceil(across,2*W),ceil(along,2*H))
+}
 function minStockCountLowerBound(data){
  const partGroups=new Map(),stockGroups=new Map(),details=[];
  for(const p of data.parts){const k=mkey(p.material),g=partGroups.get(k)||[];
   g.push(p);partGroups.set(k,g)}
  for(const s of data.stocks){const k=mkey(s.material),g=stockGroups.get(k)||[];
   g.push(s);stockGroups.set(k,g)}
- let total=0,geometricUsed=false,itemCapacityUsed=false;
+ let total=0,geometricUsed=false,itemCapacityUsed=false,halfSpanUsed=false;
  for(const [material,parts]of partGroups){
   const required=parts.reduce((sum,p)=>sum+p.l*p.w,0);
   if(!Number.isFinite(required)||required<0)
@@ -704,22 +823,24 @@ function minStockCountLowerBound(data){
   const cardinality=root.BeythausOptimalityCertificate?.countBoundForGroup(
    parts,stocks,data.trim,kerf);
   const itemBound=cardinality?.status==='optimal-relaxation'?cardinality.lowerBound:0;
-  const lowerBound=Math.max(areaLB,geometry.count,itemBound);
+  const halfSpan=halfSpanLowerBound(parts,stocks,data.trim);
+  if(halfSpan>Math.max(areaLB,geometry.count,itemBound))halfSpanUsed=true;
+  const lowerBound=Math.max(areaLB,geometry.count,itemBound,halfSpan);
   if(geometry.count>areaLB)geometricUsed=true;
   if(itemBound>Math.max(areaLB,geometry.count))itemCapacityUsed=true;
   total+=lowerBound;
   details.push({material,requiredArea:required,lowerBound,areaLowerBound:areaLB,
-   incompatibilityLowerBound:geometry.count,itemCapacityLowerBound:itemBound,
+   halfSpanLowerBound:halfSpan,incompatibilityLowerBound:geometry.count,itemCapacityLowerBound:itemBound,
    inspectedPieces:geometry.examined,totalPieces:geometry.total});
  }
- return {lowerBound:total,method:itemCapacityUsed?'kerf-cardinality':geometricUsed?'pairwise-incompatibility':'area',reason:null,details};
+ return {lowerBound:total,method:halfSpanUsed?'half-span':itemCapacityUsed?'kerf-cardinality':geometricUsed?'pairwise-incompatibility':'area',reason:null,details};
 }
 function certifyStockCount(plan,data,audit){
  const bound=minStockCountLowerBound(data),complete=!!audit?.ok&&plan.unplaced.length===0&&plan.placedCount===data.parts.length;
  const count=plan.bins.length,byArea=complete&&bound.lowerBound!==null&&count===bound.lowerBound;
  const byExact=complete&&plan.exact?.proof===true&&plan.exact?.optimumCount===count;
  const proven=byArea||byExact,method=byExact&&!byArea?'exhaustive-geometry':
-  bound.method==='pairwise-incompatibility'?'geometric-incompatibility':bound.method==='kerf-cardinality'?'kerf-cardinality':'area';
+  bound.method==='half-span'?'half-span':bound.method==='pairwise-incompatibility'?'geometric-incompatibility':bound.method==='kerf-cardinality'?'kerf-cardinality':'area';
  return {goal:'minimum-stock-count',proven,complete,
   usedStockCount:count,lowerBound:bound.lowerBound,method,searchStatus:plan.exact?.status||'skipped',
   gap:complete&&bound.lowerBound!==null?Math.max(0,count-bound.lowerBound):null,
@@ -732,7 +853,7 @@ function stockProofDescription(proof){
  if(proof.proven)return 'Minimum stok sayısı kanıtlandı: '+proof.usedStockCount+
   ' stok. '+(proof.method==='exhaustive-geometry'?
     (state.mode==='guillotine'?'Kesin giyotin kesim ağacı araması daha az stoklu tüm kesim seçeneklerini eledi.':
-     'Kesin geometrik arama daha az stoklu tüm seçenekleri eledi.'):(proof.method==='geometric-incompatibility'?'Parçaların birlikte sığma zorunlulukları ve alan alt sınırları karşılandı.':proof.method==='kerf-cardinality'?'Parça boyutları, stok kapasitesi ve testere payından hesaplanan kesin alt sınıra ulaşıldı.':proof.method==='global-integer-cover'?'Karma otomatikte tüm uygun stok türlerini kapsayan tamsayılı kesin alt sınıra ulaşıldı.':'Geçerli yerleşim alan alt sınırına ulaştı.'))+' Bu kanıt fire veya maliyet optimumluğu değildir.'+
+     'Kesin geometrik arama daha az stoklu tüm seçenekleri eledi.'):(proof.method==='half-span'?'Levhanın yarısını kaplayan veya aşan parçaların izdüşümleriyle hesaplanan alt sınıra ulaşıldı.':proof.method==='geometric-incompatibility'?'Parçaların birlikte sığma zorunlulukları ve alan alt sınırları karşılandı.':proof.method==='kerf-cardinality'?'Parça boyutları, stok kapasitesi ve testere payından hesaplanan kesin alt sınıra ulaşıldı.':proof.method==='global-integer-cover'?'Karma otomatikte tüm uygun stok türlerini kapsayan tamsayılı kesin alt sınıra ulaşıldı.':'Geçerli yerleşim alan alt sınırına ulaştı.'))+' Bu kanıt fire veya maliyet optimumluğu değildir.'+
   (state.mode==='nest'?' Serbest yerleşim sonucu, panel testeresi için uygulanabilir kesim planı veya üretim uygunluğu kanıtı DEĞİLDİR.':'');
  if(proof.lowerBound===null)return 'Minimum stok sayısı kanıtlanamadı: '+proof.reason;
  return (proof.searchStatus==='limit'?'Kesin çözüm araması zaman veya işlem sınırına ulaştı. ':'')+'Minimum stok sayısı henüz kanıtlanmadı: kullanılan '+proof.usedStockCount+

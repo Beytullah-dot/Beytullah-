@@ -388,6 +388,15 @@ alınıp bu sürümle bayt düzeyinde karşılaştırıldı. PR araştırma CI: 
 Genel regresyonda 72/72 geçerli plan; `alternate stock types` örneğinde
 minimum 1 levha iken sezgisel plan 2 levha kullanıyor.
 
+**Takip geliştirmesi (20 Kasım):** Karma otomatikte “En ekonomik” ve
+“En az stok” ayrı adaylarla aranıyor. Aynı malzeme örneğinde 2 levha/50 ₺
+ve 1 levha/100 ₺ birlikte doğrulandı. Stok adedi hedefli regresyonda 72/72
+geçerli, uygulanabilir 42/42 işte bağımsız optimum ile eşleşme var. Resmî
+BENG sonuçları 10/10 tam ve 9/10 minimum stok kanıtlı. BENG01 için yarım
+boy/en izdüşümüyle 4 levha kanıtlandı. BENG04 için şerit aramasıyla 11
+levha bulundu. BENG02 için 6–7 aralığı açık. 75 saniyelik bağımsız
+tamsayılı giyotin modelinde 6 levha hakkında karar alınamadı.
+
 **Son açık kullanıcı hedefi:** Önce matematiksel
 kesim motorunu tamamlama/mühürleme; kullanıcıya
 **keyfî bir maksimum parça veya levha sayısı
@@ -398,9 +407,8 @@ kullanılabilir kalmalı.
 
 **Sıradaki teknik adım:**
 
-1. BENG01 (3–4), BENG02 (6–7), BENG04 (11–12) için alt sınır ile
-   bulunan plan arasında birer levha var. Mevcut planı koruyarak daha az
-   levhayı dene veya daha kuvvetli alt sınırla araştır.
+1. BENG02 için 6 levhalık plan veya 6 levhayı dışlayan doğrulanabilir
+   sertifika ara. Güncel denetlenmiş plan 7 levha.
 2. Daha derin, orta doluluklu ve çok malzemeli saha benzeri işlerle,
    bağımsız benchmark aileleriyle ve gerçek telefonda ölçüme devam et.
 3. Kullanıcının **hesaplama öncesi seçtiği**

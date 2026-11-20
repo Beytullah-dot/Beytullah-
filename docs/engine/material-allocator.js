@@ -52,24 +52,37 @@
     if(a.plan.bins.length!==b.plan.bins.length)return a.plan.bins.length-b.plan.bins.length;
     return compareCost(a,b)
    }
+   const stockSizes=new Set(base.stocks.filter(s=>s.qty>0).map(s=>s.l+'x'+s.w));
    for(const map of assignments){
     const data={...base,parts:base.parts.map(p=>({...p,material:map.get(p.order)}))};
     const plan=optimize(data,false,false);
     if(!audit(plan,data).ok)continue;
     const entry={data,plan};
     if(compareCost(entry,economic)<0)economic=entry;
-    if(compareCount(entry,minimum)<0)minimum=entry
+    if(compareCount(entry,minimum)<0)minimum=entry;
+    if(stockSizes.size>1){
+     const countPlan=optimize(data,false,false,'minimum');
+     const countEntry={data,plan:countPlan};
+     if(audit(countPlan,data).ok){
+      if(compareCount(countEntry,minimum)<0)minimum=countEntry;
+      if(compareCost(countEntry,economic)<0)economic=countEntry
+     }
+    }
    }
    if(!economic&&!minimum)throw Error('Doğrulanabilir bir otomatik yerleşim bulunamadı.');
-   const improve=entry=>{
+   const improve=(entry,objective,compare)=>{
     if(!entry)return null;
-    const plan=optimize(entry.data,true,false);
+    const plan=optimize(entry.data,true,false,objective);
     if(!audit(plan,entry.data).ok)return entry;
     const candidate={data:entry.data,plan};
-    // Replacing an economic candidate must not silently increase cost.
-    return compareCost(candidate,entry)<=0?candidate:entry
+    // Preserve each incumbent according to the objective that selected it.
+    return compare(candidate,entry)<=0?candidate:entry
    };
-   return {economic:improve(economic),minimum:improve(minimum),
+   economic=improve(economic,'economic',compareCost);
+   minimum=improve(minimum,'minimum',compareCount);
+   if(compareCost(minimum,economic)<0)economic=minimum;
+   if(compareCount(economic,minimum)<0)minimum=economic;
+   return {economic,minimum,
     candidates:assignments.length,estimatedSpace,proven:false}
   }
   return {allocate}
