@@ -117,6 +117,8 @@ if(require.main===module){
   const r=benchmark(spec);
   console.log(JSON.stringify(r));return r
  });
+ assert.ok(results.every(r=>r.feasible),
+  'All 11 guaranteed guillotine-feasible regression jobs must now have a complete physical cut plan');
  const summary={total:results.length,feasible:results.filter(r=>r.feasible).length,
   proven:results.filter(r=>r.exactCountProven).length,
   largestTestedParts:Math.max(...results.map(r=>r.parts)),
