@@ -1260,6 +1260,22 @@ function refreshProductionSafety(){
  if(line)line.classList.toggle('hidden',state.mode==='guillotine');
 }
 let boundProofWorker=null,boundProofRequest=0,boundProofTimer=null;
+function syncSelectedObjectiveProof(plan){
+ const p=plan?.economyProof,objective=state.objective==='area'?'area':'cost';
+ if(!p?.proven||p.objective!==objective||state.mode!=='guillotine'||dirty||solution!==plan)return;
+ if(objective==='area'&&Number.isFinite(p.minimumArea)&&Math.abs(p.minimumArea-plan.stockArea)<0.01){
+  const line=byId('grossWasteProofRow');
+  line.textContent='Minimum brüt fire KANITLANDI (kesin giyotin araması): '+
+   fmt((plan.stockArea-plan.partArea)/1e6,4)+' m². Minimum maliyet veya stok sayısı anlamına gelmez.';
+  line.classList.add('is-proven')
+ }else if(objective==='cost'&&Number.isFinite(p.minimumCost)&&plan.cost!==null&&
+   Math.abs(p.minimumCost-plan.cost)<0.01){
+  const line=byId('globalCostProofRow');
+  line.textContent='Minimum kayıtlı stok maliyeti KANITLANDI (kesin giyotin araması): '+
+   money(plan.cost)+'. Minimum brüt fire veya stok sayısı anlamına gelmez.';
+  line.classList.add('is-proven')
+ }
+}
 function certifyLargePlan(data,plan){
  if(boundProofWorker){boundProofWorker.terminate();boundProofWorker=null}
  if(boundProofTimer!==null){clearTimeout(boundProofTimer);boundProofTimer=null}
@@ -1400,7 +1416,7 @@ const validPrice=priceKnown;byId('costDetails').innerHTML=kv('Maliyet yöntemi',
  '<div style="font-size:11px;color:#9a7c54;padding-top:8px">Artık değerlemesi varsayımsaldır; stok edinme maliyetinden düşülen gerçekleşmiş bir tasarruf değildir ve matematiksel optimumluk kanıtına dahil edilmez.</div>':
  kv('Artık için ekonomik değer',state.mode==='guillotine'?'Fiyat varsayımı girilmedi':'Serbest yerleşimde kesin artık ölçüsü yok'))+
  '<div style="font-size:11px;color:#98a69a;padding-top:12px">Bu plan kayıtlı stok değeri üzerinden hesaplanır; kullanıcı ek maliyetleri ayrıca girebilir. Alan optimumluğu en ucuz stok seçimi değildir.</div>';
-window._unresolved=unresolved;drawActive();for(const id of ['zoomBtn','printBtn'])byId(id).disabled=!sol.bins.length;prepareCachedPdf();certifyLargePlan(data,sol)}
+window._unresolved=unresolved;drawActive();for(const id of ['zoomBtn','printBtn'])byId(id).disabled=!sol.bins.length;prepareCachedPdf();certifyLargePlan(data,sol);syncSelectedObjectiveProof(sol)}
 function drawActive(){const s=solution;if(!s||!s.bins.length){byId('planTabs').innerHTML='';byId('planBody').className='empty-state';byId('planBody').innerHTML='<div class="empty-icon">▤</div><strong>Yerleşim oluşturulamadı</strong><p>Bu ölçü, malzeme veya belirtilmiş kalınlığa uygun stok bulunamadı.</p>';return}
 byId('planTabs').innerHTML=s.bins.map((b,i)=>`<button class="sheet-tab ${i===activeSheet?'active':''}" data-i="${i}">Stok ${i+1} <span style="opacity:.65">· ${thicknessText(b.stock.t)}</span></button>`).join('');byId('planBody').className='';byId('planBody').innerHTML=planHtml(s.bins[activeSheet])+(window._unresolved||'')}
 byId('planTabs').onclick=e=>{const b=e.target.closest('button[data-i]');if(!b)return;activeSheet=Number(b.dataset.i);drawActive()};
@@ -2034,37 +2050,26 @@ function startEconomyWorker(data,initial){
    const result=acceptEconomyWorkerResult(data,initial,response),candidate=result.proposal;
    const proven=candidate.economyProof.proven;
    if(result.improved){
-    economyPending={source:initial,data,proposal:candidate,savings:result.savings};
-    const extra=result.boardDelta>0?' · '+result.boardDelta+' panel daha fazla':
-     result.boardDelta<0?' · '+(-result.boardDelta)+' panel daha az':' · aynı panel sayısı';
-    let scrap='';
-    if(result.salvageBefore!==null){
-     scrap=' · Kullanılabilir artık alanı '+fmt(result.salvageBefore/1e6,3)+
-      ' → '+fmt(result.salvageAfter/1e6,3)+' m²';
-     const valueInput=String(state.offcutValuePerM2??'').trim();
-     const unitValue=valueInput!==''?val(valueInput):null;
-     if(Number.isFinite(unitValue)&&unitValue>=0){
-      const estimatedBefore=initial.cost-result.salvageBefore/1e6*unitValue;
-      const estimatedAfter=candidate.cost-result.salvageAfter/1e6*unitValue;
-      scrap+=' · Varsayımsal net değer '+money(estimatedBefore)+
-       ' → '+money(estimatedAfter)+
-       ' (yeniden kullanım değerine ilişkin senaryo, optimumluk kanıtı değildir)';
-     }else scrap+=' (parasal değer girilmedi)';
-    }
-    economySearchStatus('Daha düşük ek stok maliyeti bulundu: '+
-     money(initial.cost)+' → '+money(candidate.cost)+' (tasarruf '+money(result.savings)+')'+
-     extra+'. '+(proven?'Minimum maliyet kanıtlandı.':'Daha iyisi olmadı henüz kanıtlanamadı.')+
-     scrap+'. Mevcut kesim planı değişmedi.','done');
-    byId('economySearchApply').classList.remove('hidden')
+    // Primary objective was selected before calculation. Re-audit occurs
+    // in acceptance; applying a plan never consumes physical inventory.
+    showResult(data,candidate);
+    if(state.materialMode==='auto'&&autoPlanCache)
+     autoPlanCache[autoPlanCache.selected]={data,plan:candidate};
+    syncSelectedObjectiveProof(candidate);
    }else{
     initial.economyProof=candidate.economyProof;
-    economySearchStatus(proven?
-     'Minimum ek stok maliyeti matematiksel olarak kanıtlandı: '+money(initial.cost)+
-     '. Artıkların satış/yeniden kullanım değeri bu kanıta dahil değil.':
-     response.groups.some(g=>g.status==='unknown-price')?
-     'Bazı stok fiyatları bilinmiyor. Minimum maliyet kanıtlanamadı.':
-     'Ekonomik arama tamamlandı fakat minimum maliyet kanıtlanamadı.','done')
+    syncSelectedObjectiveProof(initial);
    }
+   const change=objective==='area'?
+    'Brüt stok alanı '+fmt(initial.stockArea/1e6,4)+' → '+fmt(candidate.stockArea/1e6,4)+' m².':
+    'Kayıtlı stok maliyeti '+money(initial.cost)+' → '+money(candidate.cost)+'.';
+   economySearchStatus((result.improved?'Bağımsız denetlenen daha iyi plan uygulandı. '+change:
+    'Mevcut denetlenmiş plan korundu. ')+
+    (proven?'Seçilen hedefin küresel optimumluğu kanıtlandı.':
+     candidate.economyProof.conditionalProven?
+     'Yalnız seçili malzeme dağılımının optimumu kanıtlandı; tüm karma atamalar için kanıt yok.':
+     'Minimum kanıtlanmadı: kapsam, zaman veya UNKNOWN sonucu olabilir.'),
+    proven?'done':'warning')
   }catch(error){
    console.error('Ekonomik sonuç doğrulama hatası',error);
    economySearchStatus('Ekonomik alternatif doğrulanamadı. Mevcut plan korundu.','warning')
