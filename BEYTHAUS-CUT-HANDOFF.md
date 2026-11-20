@@ -664,3 +664,11 @@ tüm regresyonlar, Pages ve yayın baytları doğrulansın.
 - CI: https://github.com/Beytullah-dot/Beytullah-/actions/runs/44785879435
   (başarılı). Üretim motoru değiştirilmedi; gerçek stok ve
   Supabase etkilenmedi.
+
+**PR #14 entegrasyonu:** [PR #14](https://github.com/Beytullah-dot/Beytullah-/pull/14)
+`1ac996c4b28df787594705fa6b64a8dc729c8ef3` SHA ile
+`master` dalına birleştirildi. PR dalındaki Optimizer Verification
+`44785879435` SUCCESS; Geometry Tests `44785879629` SUCCESS.
+Master SHA'sında Optimizer, Geometry ve Pages workflow sonuçları
+ayrıca kontrol edilecek. Bu PR yalnızca teşhis testi, CI raporu ve
+handoff belgesidir; üretim JS motoru değiştirilmedi.
