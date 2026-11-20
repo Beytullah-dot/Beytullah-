@@ -518,3 +518,54 @@ Gerçek fiziksel stokları kontrolsüz değiştirme.
   son başarılı test, açık risk ve sıradaki eylem güncel olsun.
 - Bu dosya bir parola deposu değildir. API gizli anahtarı, kişisel
   parola veya üretim verisi kopyalanamaz.
+
+
+## G. 20 Kasım 2026 — 67 numaralı kesirli küçük vakası ve kesin arama devamı
+
+**Değişiklik (önce geliştirme dalı; birleştirme/CI/yayın ayrı doğrulanacaktır):**
+- Bağımsız 20 Kasım motor denetimindeki `fresh.cjs` üretecinden, tohum
+  `13793677`, indeks `67` ve `1/10` ölçek ile altı parçalı vaka yeniden
+  oluşturuldu. Referans giyotin çözücü minimum **2 levha** buluyor, hızlı
+  motor **3 levha** kullanıyordu. Sonradan uydurulan özel yerleşim kuralı yok.
+- Kök neden 1: `kerfAreaBound` yalnızca tam sayı milimetre kabul ederek
+  pozitif testere paylı güçlü alt sınırı kesirli ölçülerde atlıyordu.
+  Onun yerine en fazla altı ondalık basamaklı sonlu ölçüleri ortak
+  `BigInt` tam sayı ızgarasında **yuvarlamadan** işleyen sınır eklendi.
+  Kapsam dışı hassasiyette sayı sınırı uydurulmaz; bu sertifika UNKNOWN/
+  zayıf alt sınır olarak kalır. Bu bir parça veya levha sayısı limiti değil.
+- Kök neden 2: Kesin Worker daha küçük levha hedefinde `UNKNOWN` gördüğünde
+  bütün iyileştirme aramasını durduruyordu. Artık kaynak bütçesi elverirse
+  sonraki hedefi dener, fiziksel plan bulursa sunar; fakat önceki
+  `UNKNOWN` asla `infeasible` veya optimumluk kanıtı yapılmaz.
+- Vaka 67 için alt sınır **2**, kesin Worker sonucu **2** ve optimumluk
+  sertifikası **başarılı**; üretim denetimi + bağımsız giyotin denetimi
+  yön, kesim payı ve stok miktarını kabul etti. Kasten zayıflatılan
+  sınırla 1 levha `UNKNOWN`, 2 levha `feasible`: yalnız
+  **kısmi/kanıtsız** Worker durumu doğru kalıyor.
+- Regresyon: `tests/motor-fractional-oracle.cjs` 67 numaralı işi tohumdan
+  üretir ve daha önce kullanılmamış 36 ayrı küçük tohumu bağımsız
+  tamsayı giyotin oracle ile karşılaştırır. **25/36 mümkün**, **11/36
+  imkânsız**, **0 oracle UNKNOWN**; 25 mümkün işin **24'ünde** minimum
+  levha sayısı motor tarafından kanıtlandı; yanlış kanıt yok.
+- Yerel Node 22 denetimi: 19 ayrı test komutu **PASS**, bunlara yeni test,
+  BENG, atölye, motor asimetrisi, optimizasyon, fiziksel doğrulama ve
+  bulut stok regresyonları dahildir. Asimetri `--holdout` ayrıca
+  **36/36 tam, 23/36 kanıtlı**. Test günlüğü çalışma oturumundadır.
+  GitHub CI bu kayıt yazıldığı anda ayrıca doğrulanmalıdır.
+- `docs/sw.js` cache sürümü değiştirildi; üretim envanteri, Supabase
+  şeması ve gerçek stok verisi **değiştirilmedi**.
+
+**Açık riskler ve sonraki iş:**
+1. GitHub CI ve Pages yayını sonrası gerçek `master` commit'ini
+   doğrula; `docs/engine/cutting-engine.js`, `docs/optimization-worker.js`,
+   `docs/sw.js` kaynaklarının yayınlanan baytlarla eşleşmesini denetle.
+2. 36 yeni mümkün küçük örneğin **1'inde** minimum levha kanıtı açık.
+   Önceki 36 tanıklı yeni tohumda **13 kanıt açığı** da sürüyor.
+3. Kesirli ölçülerde 6 ondalıktan daha ince hassasiyet yeni alan
+   sertifikasına dahil değil; bu, kesim girdisinin reddi anlamına gelmez.
+4. Yüksek adetli seri planın fiziksel tamamlanma/arşiv/artık entegrasyonu,
+   minimum kayıtlı maliyet ile minimum brüt fire arama ayrımı,
+   sunucuda güvenilmez ağaç denetimi ve gerçek iPhone/Safari kabulü açık.
+5. **MOTOR HENÜZ MÜHÜRLENMEDİ.** Sayım sertifikası fire veya maliyet
+   optimumluğu belgesi değildir. Supabase production_v2'nin işlem başına
+   100 levhası genel motor/parça kapasite sınırı olarak sunulmayacak.

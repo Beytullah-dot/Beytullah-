@@ -188,10 +188,15 @@ function run(job){
    g.nodes+=checked.nodes;nodes+=checked.nodes;
    if(checked.status==='infeasible')continue;
    if(checked.status==='feasible'){
-    g.status='improved';g.proven=true;g.bestCount=checked.layout.length;
+    // Earlier UNKNOWN targets are not excluded. A later feasible target is
+    // still a valid improvement, but is NOT an optimality certificate.
+    g.status='improved';g.proven=groupProven;g.bestCount=checked.layout.length;
     g.layout=checked.layout;break;
    }
-   g.status='limit';groupProven=false;break
+   // A construction ambiguity or exhausted search cannot prove infeasibility.
+   // Continue toward the incumbent if budget remains: an improved physical
+   // plan may exist at a larger target even when the smaller target is UNKNOWN.
+   g.status='limit';groupProven=false
   }
   if(g.status==='skipped'){g.status='proved';g.proven=true}
   if(!groupProven)allProven=false;

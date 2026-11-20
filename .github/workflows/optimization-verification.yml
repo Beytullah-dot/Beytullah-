@@ -39,6 +39,8 @@ jobs:
         run: node tests/engine-contract.cjs
       - name: Verify analytical geometric lower bounds
         run: node tests/geometric-bounds.cjs
+      - name: Verify fractional kerf bounds and unused independent cases
+        run: node tests/motor-fractional-oracle.cjs
       - name: Verify background exact Worker against reference oracle
         run: node tests/optimization-worker.cjs
       - name: Verify exact guillotine cut trees and proofs
