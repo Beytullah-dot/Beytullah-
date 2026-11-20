@@ -797,18 +797,46 @@ function halfSpanLowerBound(parts,stocks,trim){
 // both children and the parent by one kerf makes the two child widths
 // (or heights) add exactly. Thus inflated piece area cannot exceed the
 // sum of inflated usable sheet areas, independently of orientation.
+// Convert finite decimal input dimensions to a *shared exact integer grid*.
+// Do not round dimensions, kerfs or trims: rounding a blade width upward
+// could turn a feasible plan into a false infeasibility/optimality proof.
+// If the precision is outside this bounded certificate scope, return 0
+// instead of making any claim. This is NOT a part/board input limit.
+function decimalGrid(values){
+ const components=[];
+ let places=0;
+ for(const value of values){
+  if(!Number.isFinite(value)||value<0)return null;
+  const m=/^(\d+)(?:\.(\d+))?(?:e([+-]?\d+))?$/.exec(String(value));
+  if(!m)return null;
+  const exponent=Number(m[3]||0),fraction=m[2]||'';
+  const decimals=Math.max(0,fraction.length-exponent);
+  if(decimals>6)return null;
+  places=Math.max(places,decimals);
+  components.push({digits:BigInt(m[1]+fraction),power:exponent-fraction.length});
+ }
+ return components.map(({digits,power})=>digits*10n**BigInt(power+places));
+}
+// A full-edge guillotine split obeys (W+k)(H+k) >= the sum of
+// inflated leaf areas (w+k)(h+k). Integer arithmetic remains exact for
+// decimal millimetres (including tenths); no EPS-dependent certificate.
 function kerfAreaBound(parts,stocks,trim,kerf){
- if(!Number.isSafeInteger(kerf)||kerf<=0||!Number.isSafeInteger(trim)||trim<0)return 0;
- const k=BigInt(kerf),edge=2n*BigInt(trim);
+ if(!Number.isFinite(kerf)||kerf<=0||!Number.isFinite(trim)||trim<0)return 0;
+ if(stocks.some(s=>!Number.isSafeInteger(s.qty)||s.qty<0))return 0;
+ if(parts.some(p=>!Number.isFinite(p.l)||!Number.isFinite(p.w)||p.l<=0||p.w<=0))return 0;
+ const flat=[kerf,trim,...parts.flatMap(p=>[p.l,p.w]),...stocks.flatMap(s=>[s.l,s.w])];
+ const units=decimalGrid(flat);
+ if(!units)return 0;
+ let at=0;
+ const k=units[at++],edge=2n*units[at++];
  let demand=0n;
  for(const p of parts){
-  if(!Number.isSafeInteger(p.l)||!Number.isSafeInteger(p.w)||p.l<=0||p.w<=0)return 0;
-  demand+=(BigInt(p.l)+k)*(BigInt(p.w)+k)
+  const w=units[at++],h=units[at++];
+  demand+=(w+k)*(h+k)
  }
  const types=[];
  for(const s of stocks){
-  if(!Number.isSafeInteger(s.qty)||!Number.isSafeInteger(s.l)||!Number.isSafeInteger(s.w))return 0;
-  const w=BigInt(s.l)-edge,h=BigInt(s.w)-edge;
+  const w=units[at++]-edge,h=units[at++]-edge;
   if(w>0n&&h>0n&&s.qty>0)types.push({capacity:(w+k)*(h+k),qty:BigInt(s.qty)})
  }
  types.sort((a,b)=>a.capacity>b.capacity?-1:a.capacity<b.capacity?1:0);
@@ -821,8 +849,9 @@ function kerfAreaBound(parts,stocks,trim,kerf){
   }
   demand-=qty*capacity;used+=qty
  }
- return 0 // No finite cover in this relaxation; leave infeasibility reporting to its own path.
+ return 0 // Insufficient relaxed cover; feasibility is examined separately.
 }
+
 function minStockCountLowerBound(data){
  const partGroups=new Map(),stockGroups=new Map(),details=[];
  for(const p of data.parts){const k=mkey(p.material),g=partGroups.get(k)||[];
