@@ -34,7 +34,7 @@
     }
    }
    enumerate(0);
-   let economic=null,minimum=null;
+   let economic=null,minimum=null,area=null;
    const feasible=r=>!!r&&r.plan.unplaced.length===0;
    function compareCost(a,b){
     if(!b)return -1;
@@ -44,6 +44,14 @@
     if(a.plan.cost!==null&&b.plan.cost!==null&&Math.abs(a.plan.cost-b.plan.cost)>.01)return a.plan.cost-b.plan.cost;
     if(a.plan.bins.length!==b.plan.bins.length)return a.plan.bins.length-b.plan.bins.length;
     return offcutMetrics(b.plan).usableArea-offcutMetrics(a.plan).usableArea
+   }
+   function compareArea(a,b){
+    if(!b)return -1;
+    if(feasible(a)!==feasible(b))return feasible(a)?-1:1;
+    if(a.plan.unplaced.length!==b.plan.unplaced.length)return a.plan.unplaced.length-b.plan.unplaced.length;
+    if(Math.abs(a.plan.stockArea-b.plan.stockArea)>1e-5)return a.plan.stockArea-b.plan.stockArea;
+    if(a.plan.bins.length!==b.plan.bins.length)return a.plan.bins.length-b.plan.bins.length;
+    return compareCost(a,b)
    }
    function compareCount(a,b){
     if(!b)return -1;
@@ -60,12 +68,14 @@
     const entry={data,plan};
     if(compareCost(entry,economic)<0)economic=entry;
     if(compareCount(entry,minimum)<0)minimum=entry;
+    if(compareArea(entry,area)<0)area=entry;
     if(stockSizes.size>1){
      const countPlan=optimize(data,false,false,'minimum');
      const countEntry={data,plan:countPlan};
      if(audit(countPlan,data).ok){
       if(compareCount(countEntry,minimum)<0)minimum=countEntry;
-      if(compareCost(countEntry,economic)<0)economic=countEntry
+      if(compareCost(countEntry,economic)<0)economic=countEntry;
+      if(compareArea(countEntry,area)<0)area=countEntry
      }
     }
    }
@@ -80,9 +90,12 @@
    };
    economic=improve(economic,'economic',compareCost);
    minimum=improve(minimum,'minimum',compareCount);
+   area=improve(area,'area',compareArea);
    if(compareCost(minimum,economic)<0)economic=minimum;
    if(compareCount(economic,minimum)<0)minimum=economic;
-   return {economic,minimum,
+   if(compareArea(economic,area)<0)area=economic;
+   if(compareArea(minimum,area)<0)area=minimum;
+   return {economic,minimum,area,
     candidates:assignments.length,estimatedSpace,proven:false}
   }
   return {allocate}
