@@ -1,0 +1,28 @@
+name: Beythaus Cut — Uncapped motor scale research
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'docs/engine/**'
+      - 'tests/motor-scalability-profile.cjs'
+      - '.github/workflows/motor-scale-research.yml'
+permissions:
+  contents: read
+jobs:
+  profile:
+    name: Feasibility / proof / time by instance class
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Profile shipped engine against planted physical guillotine projects
+        run: node tests/motor-scalability-profile.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: motor-scalability-profile
+          path: tests/motor-scalability-profile-results.json
+          if-no-files-found: warn
