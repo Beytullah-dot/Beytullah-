@@ -280,47 +280,91 @@
   }
   return chosen
  }
+ // Find a complete disjoint cover of the input by whole-sheet cut
+ // patterns. MRV branching limits search to patterns that cover the most
+ // constrained remaining piece; budget exhaustion is UNKNOWN, not failure.
+ function exactPatternCover(patterns,stocks,items,deadline){
+  if(!patterns.length)return null;
+  const sorted=patterns.slice().sort((a,b)=>
+   Number(b.exact)-Number(a.exact)||b.count-a.count||
+   a.slackRatio-b.slackRatio);
+  const byPart=Array.from({length:items.length},()=>[]);
+  for(const p of sorted)for(const i of p.indices)byPart[i].push(p);
+  if(byPart.some(options=>!options.length))return null;
+  const usedStock=new Map(),allMask=(1n<<BigInt(items.length))-1n;
+  let nodes=0;
+  function search(mask,chosen){
+   if(mask===allMask)return chosen.slice();
+   if(++nodes>80000||nodes%64===0&&Date.now()>=deadline)return null;
+   let choices=null;
+   for(let i=0;i<items.length;i++){
+    if((mask&(1n<<BigInt(i)))!==0n)continue;
+    const allowed=byPart[i].filter(p=>
+     (p.mask&mask)===0n&&(usedStock.get(p.stock.id)||0)<p.stock.qty);
+    if(!allowed.length)return null;
+    if(!choices||allowed.length<choices.length)choices=allowed;
+    if(choices.length===1)break
+   }
+   for(const p of choices){
+    usedStock.set(p.stock.id,(usedStock.get(p.stock.id)||0)+1);
+    chosen.push(p);
+    const result=search(mask|p.mask,chosen);
+    if(result)return result;
+    chosen.pop();
+    usedStock.set(p.stock.id,usedStock.get(p.stock.id)-1);
+    if(Date.now()>=deadline)break
+   }
+   return null
+  }
+  return search(0n,[])
+ }
  function tryWholePatterns(items,stocks,cfg,trial,deadline,packAttempt,binCost,auditCutPlan,baseline,compare){
   let best=baseline,bestFound=0,patternCount=0;
-  function evaluate(patterns){
+  function consider(chosen,variant){
+   if(!chosen?.length)return;
+   const used=new Set(),counts=new Map(),premade=[];
+   for(const c of chosen){
+    for(const index of c.indices)used.add(index);
+    counts.set(c.stock.id,(counts.get(c.stock.id)||0)+1);
+    const bin=makeRootBlock(c.stock,c.node,cfg);
+    if(!bin)return;
+    premade.push(bin)
+   }
+   const rest=items.filter((_,i)=>!used.has(i));
+   const left=stocks.map(s=>({...s,qty:s.qty-(counts.get(s.id)||0)}))
+    .filter(s=>s.qty>0);
+   const remaining=rest.length?packAttempt(rest,left,cfg,variant*3+trial):
+    {bins:[],unplaced:[]};
+   const raw={bins:[...premade,...remaining.bins],
+    unplaced:remaining.unplaced};
+   const candidate=expand(raw,items,cfg);
+   if(!candidate)return;
+   candidate.stockArea=candidate.bins.reduce((sum,b)=>sum+b.stock.l*b.stock.w,0);
+   candidate.unknownCostBins=candidate.bins.filter(b=>binCost(b.stock,cfg)===null).length;
+   candidate.cost=candidate.unknownCostBins?null:
+    candidate.bins.reduce((sum,b)=>sum+binCost(b.stock,cfg),0);
+   if(compare(candidate,best)>=0)return;
+   const audit=auditCutPlan(candidate,{parts:items,stocks,
+    kerf:cfg.kerf,trim:cfg.trim});
+   if(!audit.ok)return;
+   best=candidate;bestFound=chosen.length
+  }
+  function evaluate(patterns,attemptCover=false){
    patternCount+=patterns.length;
    if(!patterns.length)return;
    for(let variant=0;variant<5&&Date.now()<deadline;variant++){
-    const chosen=selectPatterns(patterns,stocks,items,variant+trial);
-    if(!chosen.length)continue;
-    const used=new Set(),counts=new Map(),premade=[];
-    for(const c of chosen){
-     for(const index of c.indices)used.add(index);
-     counts.set(c.stock.id,(counts.get(c.stock.id)||0)+1);
-     const bin=makeRootBlock(c.stock,c.node,cfg);
-     if(!bin)return;
-     premade.push(bin)
-    }
-    const rest=items.filter((_,i)=>!used.has(i));
-    const left=stocks.map(s=>({...s,qty:s.qty-(counts.get(s.id)||0)}))
-     .filter(s=>s.qty>0);
-    const remaining=rest.length?packAttempt(rest,left,cfg,variant*3+trial):
-     {bins:[],unplaced:[]};
-    const raw={bins:[...premade,...remaining.bins],
-     unplaced:remaining.unplaced};
-    const candidate=expand(raw,items,cfg);
-    if(!candidate)continue;
-    candidate.stockArea=candidate.bins.reduce((sum,b)=>sum+b.stock.l*b.stock.w,0);
-    candidate.unknownCostBins=candidate.bins.filter(b=>binCost(b.stock,cfg)===null).length;
-    candidate.cost=candidate.unknownCostBins?null:
-     candidate.bins.reduce((sum,b)=>sum+binCost(b.stock,cfg),0);
-    if(compare(candidate,best)>=0)continue;
-    const audit=auditCutPlan(candidate,{parts:items,stocks,
-     kerf:cfg.kerf,trim:cfg.trim});
-    if(!audit.ok)continue;
-    best=candidate;bestFound=chosen.length;
-    if(!candidate.unplaced.length)break
+    consider(selectPatterns(patterns,stocks,items,variant+trial),variant);
+    if(!best.unplaced.length)break
+   }
+   if(attemptCover&&best.unplaced.length&&Date.now()<deadline){
+    const cover=exactPatternCover(patterns,stocks,items,deadline);
+    if(cover)consider(cover,0)
    }
   }
   evaluate(exactSheetPatterns(items,stocks,cfg,deadline));
   // Deep trees or damaged edge stock need 16-part and near-full sheets.
   if(best.unplaced.length&&Date.now()<deadline)
-   evaluate(deeperSheetPatterns(items,stocks,cfg,deadline));
+   evaluate(deeperSheetPatterns(items,stocks,cfg,deadline),true);
   return {candidate:best===baseline?null:best,
    found:bestFound,patterns:patternCount}
  }
