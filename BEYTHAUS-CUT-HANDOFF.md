@@ -450,6 +450,8 @@ indirilen PDF'deki YAN, TABAN, yönler ve 751 levhalık tekrarı denetledi.
 [Motor ve ölçek testleri](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44729430911)
 başarılı. Karma atölye senaryoları 26/26 eksiksiz, 16/26 kanıtlı.
 
+**PR #12 yayın doğrulaması:** [PR #12](https://github.com/Beytullah-dot/Beytullah-/pull/12) `278612fc3d56ad222e64550f21ce83331302c078` ile master dalına birleşti. [Pages](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44763022716), geometri, optimizasyon ve [WebKit](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44763025588) başarılı. Canlı blok kurtarma modülü ve sw.js birleştirilen dosyalarla bayt düzeyinde eşleşti. [Ölçek testi](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44732639321) ve 10/10 BENG başarılı. Yeni sürümle tekrar ölçülen 133 mümkün küçük işin tamamı eksiksiz, 132'si bağımsız minimuma eşit, 111'i motor tarafından kanıtlı. Sonraki motor adımı 67 numaralı iki levhalık referans vakası.
+
 **Asimetrik giyotin ağaçları (20 Kasım):** Önceki bağımsız motor denetiminde
 bulunan 8, 16, 20, 28, 29 ve 32 numaralı vakalar birlikte 12 eksik parça
 bırakıyordu. Yeni kurtarma araması farklı derinlikteki iki alt ağacı,
