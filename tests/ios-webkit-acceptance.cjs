@@ -20,7 +20,8 @@ async function main() {
   });
   const page = await context.newPage();
   const uncaught = [];
-  page.on('pageerror', err => uncaught.push(String(err.message || err)));
+  page.on('pageerror', err => { uncaught.push(String(err.message || err)); console.error('WebKit page error',err.stack); });
+  page.on('requestfailed', req => console.warn('Request failed',req.url(),req.failure()?.errorText));
   await page.goto(baseUrl, { waitUntil: 'load', timeout: 30000 });
   await page.waitForFunction(() => Boolean(window.BeythausCut &&
     window.BeythausCutWorkspace && document.querySelector('#bhDrawerHandle')),
@@ -149,7 +150,9 @@ async function main() {
   await page.locator('#mobileRunBtn').click();
   await page.waitForFunction(()=>{
     const audit=window.BeythausCut.getLastAudit();
-    return audit?.ok&&audit.checkedStocks===6&&audit.checkedParts===40;
+    return audit?.ok&&audit.checkedStocks===6&&audit.checkedParts===40&&
+      document.querySelector('#optimalityRow').classList.contains('is-proven')&&
+      document.querySelector('#globalCostProofRow').classList.contains('is-proven');
   },null,{timeout}).catch(async error=>{
     console.error(await page.evaluate(()=>({audit:window.BeythausCut.getLastAudit(),
       status:document.querySelector('#exactSearchLine')?.textContent,
