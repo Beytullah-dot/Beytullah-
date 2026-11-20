@@ -443,12 +443,17 @@ Seri yol fiziksel stok veya artık kaydı üretmez; gerçek cihaz kabulü açık
 
 **Sıradaki teknik adım:**
 
-1. Tek parça satırı ve tek stok için yüksek adetli, tam milimetreli seri
-   giyotin planı miktarla hesaplanıyor. İki şerit tarifi 2.001 parçayı
-   126 levhada karşılıyor. Doğrulama ve PDF tekrarlı levhaları çoğaltmaz.
-   Yerel sayım, yön ve kesim deneyi: `node tests/motor-quantity.cjs`.
-   Sonraki adım karma satırlara ve onaylı üretim arşivine bu temsili taşımak.
-   Karma yüksek adet, otomatik atama, artık stok ve kesirli mm seri yolda açık.
+1. Tek tam stoktan farklı etiket/ölçü/yöndeki yüksek adetli parça satırları,
+   aynı levhada birbirini izleyen şeritler kullanabilir. Tam mm, sabit malzeme;
+   satır adetleri ve fiziksel şeritler bağımsız denetlenir. Test: 751 çift,
+   1.502 parça, 751 levha; bir şablon, iki parça yönü, minimum levha kanıtı.
+   Küçük karma testlerde 780 plan fiziksel olarak tekrar kesildi, 696'sında
+   alan alt sınırı optimumluğu kanıtlamadı. Şerit sıralaması sezgiseldir.
+   Sırada açık üretim onayından sonra seri planı arşivleme var. Mevcut
+   production_v2 her levhayı açıyor, kesim kaydıyla stok tüketimini eşliyor
+   ve işlem başına en fazla 100 levhayı kabul ediyor. Tekrarlı şablon,
+   artık sayıları, maliyet ve stok sürümü sunucuda denetlenmeden seri
+   onay açılmadı. Çok stok, otomatik atama, artık stok ve kesirli mm açık.
 2. Karma işlerde en geniş açık `planted-6`: 100 parça, 19 levha alt sınırı,
    23 levha denetlenmiş plan. Daha sıkı alt sınır veya daha iyi plan ara.
 3. Kullanıcının **hesaplama öncesi seçtiği**
