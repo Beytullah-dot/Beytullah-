@@ -323,50 +323,105 @@ masaüstü uyumlu bir web/PWA; yalın, işlev odaklı arayüz.
 - **MOTOR HENÜZ MÜHÜRLENMEDİ.** Bu araştırma, sonucu iyi
   göstermek yerine gerçek eksik yerleşim sorununu ölçtü.
 
+### 20 Kasım 2026 — PR #5, giyotin blok sentezi ve eksik plan kurtarma
+
+- **Yeni motor PR #5 `master` dalına birleştirildi**:
+  https://github.com/Beytullah-dot/Beytullah-/pull/5
+  Merge: `b9e266b084859a0c47dd3a0436e799b6f8978026`.
+- Yeni modül: `docs/engine/guillotine-block-repair.js`.
+  Eski açgözlü motor eksik parça bıraktığında **fiziksel
+  giyotin blok desenleri** oluşturuluyor. 2, 4, 8
+  ve bazı işlerde 16 parçalık bloklar, eş kenar/kerf
+  koşullarına göre birleştiriliyor. Tam ve yakın-tam
+  levha blokları, dış kenar kesimi ve ölçülü artıklarıyla
+  beraber yeniden oluşturuluyor.
+- Yeni geometrik yerleşimler **yalnız**
+  `production-audit.js` kesim ağacı denetiminden
+  geçerse kullanılabiliyor. Kesim parçaları orijinal
+  kimlik/ölçü/yöne ayrılıyor. Başarısız/yetersiz yeni
+  aday eski planı bozmuyor. Envanter tüketilmiyor.
+- **Başlangıç benchmark sonucu:** 11 garantili
+  fiziksel olarak üretilebilir örnekte eski motor 4/11
+  tam plan üretirken yeni motor **11/11 tam plan** üretti;
+  bunlarda minimum stok sayısı da alt sınıra ulaşıldığından
+  kanıtlandı. En büyük örnek 400 parça / 50 levha /
+  3 farklı stok boyutu, 3 mm kerf; önce 54 eksik, şimdi 0.
+- **Bağımsız 34 ek sabit-seed stres testi:**
+  24/24 adet 25 levhalık, 200 parçalık farklı ölçü/
+  farklı stok girişinde tam plan; 5/5 kullanılabilir
+  dış artık bırakan işte tam plan; 4/5 daha derin
+  kesim ağacında tam plan. **Toplam 33/34 tam,
+  bir zor senaryoda 3 parça henüz yerleşmiyor.**
+  Bu 34 senaryonun tamamı öncekinden kötü değil,
+  34/34'ü en az bir parçayı kurtardı.
+  Kaynak ve rapor:
+  `tests/motor-repair-stress.cjs`,
+  `tests/MOTOR-BLOCK-REPAIR-RESULTS.md`.
+- Yukarıdaki sayıların hepsi kontrollü, gerçek
+  fiziksel giyotin kesimlerden oluşturulmuş test
+  verilerine aittir. **Tüm 25 levhalık saha
+  projelerinde başarı/optimumluk garantisi değildir.**
+  Bitmask exact solver sınırı kaldırılmadı;
+  yalnız ölçeklenebilir ayrı bir arama sınıfı eklendi.
+- Gerçek iPhone, 2DPackLib dış örnekleri, karma
+  otomatik maliyet/fire araması ve sunucuda bağımsız
+  kesim ağacı tekrar denetimi hâlâ eksik.
+  **MOTOR HENÜZ MÜHÜRLENMEDİ.**
+- PR üzerinde geometri/optimizasyon, araştırma
+  benchmark ve iPhone WebKit emülasyonu CI **SUCCESS**
+  alındı; master merge commit iş akışları ayrıca
+  yeniden doğrulanmalıdır.
+
 ## E. Son tamamlanan adım / sıradaki adım
 
-**Son tamamlanan (20 Kasım 2026):** PR #4 ile ölçümlü motor
-araştırma altyapısı `master` dalına alındı (merge:
-`c38bb567b5f6b2d0251ab4b4c9872e5946a286d2`).
-Motor algoritması değiştirilmedi. 11 kesin fiziksel
-olarak üretilebilir heterojen benchmark'ın **4'ü tam ve kanıtlı,
-7'si eksik** çıktı. Ölçülen örnekler en az 5–50 stok,
-20–400 parça; evrensel parça sınırı belirlenmez.
+**Son tamamlanan (20 Kasım):** Giyotin blok sentezi ve
+yerleşmeyen parçaları kurtaran motor PR #5 üzerinden
+mevcut canlı uygulamaya birleştirildi
+(`b9e266b084859a0c47dd3a0436e799b6f8978026`).
+11/11 temel heterojen planted-fixture tam ve
+min. stok sayısı kanıtlı; 34 ek stres testinden
+33'ü tam. 25 levha/200 parça/3 stok boyutu
+örneğinde 36 eksik parça artık 0. Kısmi veya
+başarısız adayın üretim denetimini geçmeden kabul
+edilmesi engellendi.
 
-**Kullanıcının onaylı yeni önceliği:** Mevcut matematiksel
-araştırmalardan yararlanarak, **sabit maksimum parça veya
-levha sınırı kurmadan** motoru ilerlet. Önce ağır
-heterojen işlerde tam geçerli kesim planı üret,
-sonra optimumluk iyileştirme/kanıt katmanını güçlendir.
-20–25 levha yalnız saha ölçeği örneğidir, ürün
-maksimumu değildir.
+**Son açık kullanıcı hedefi:** Önce matematiksel
+kesim motorunu tamamlama/mühürleme; kullanıcıya
+**keyfî bir maksimum parça veya levha sayısı
+koyma**. 25 levha sadece gerçek atölye proje
+ölçeğinin örneği. Gerekirse kaynakla sınırlı
+arama UNKNOWN kalabilir ama fiziksel plan varsa
+kullanılabilir kalmalı.
 
 **Sıradaki teknik adım:**
 
-1. **Eksik parçalı plan kurtarma** fazı yaz:
-   giyotin blok/strip deseni üretme, çoklu başlangıç,
-   birbirine bağlı birkaç levhayı yeniden yerleştirme
-   (large-neighborhood repair). Mevcut 25 levhalık
-   8 parça/levha fixture'larının altkümesinde çalışan
-   gerçek üretim planları oluştur.
-2. Her adayı `production-audit.js` ile tekrar denetle;
-   bağımsız fiziksel kesim ağacı yoksa üretim olarak kabul
-   etme. Üretim her zaman mevcut envanter sınırında kalsın.
-3. Benchmark'ta **tam yerleşim**, **stok sayısı/maliyet/fire**,
-   **optimumluk ispatı**, **süre/bellek** metriklerini ayrı ölç.
-   2DPackLib gerçek benchmark'larını da dahil et.
-4. Hedef seçimini önceden al (maliyet veya brüt fire) ve
-   bu amaca özel *anytime* arama/kanıt yaklaşımını kur.
-   `OPTIMAL`, `FEASIBLE`, `UNKNOWN`,
-   `INFEASIBLE` semantiği korunsun.
-5. Subset DP'nin doğal üstel sınırı olduğu için bitmask
-   sınırını körlemesine silme; yerine çoklu parça tiplerini
-   ve büyük ölçekli desenleri yöneten yeni algoritma gerekir.
-   **Motoru henüz mühürleme**.
+1. **Kalan zor örnek**: `deeper-pattern-0`, 10
+   levhadan türetilmiş çok seviyeli giyotin işte
+   halen 3 parça eksik. Bunun ve yeni 4–6 seviyeli,
+   orta doluluklu, çok malzemeli gerçekçi örneklerin
+   tamamlanması için daha güçlü genel amaçlı
+   block/pattern tree search + local reoptimization.
+2. **2DPackLib ve benzer resmî akademik testler**:
+   kısıtları tam eşleşen sınıfları ölç; ayrı
+   raporla: tam plan oranı, stok/maliyet/fire,
+   kanıt başarısı, süre, hafıza. Zorluğu
+   yalnız parça sayısına bağlama.
+3. Kullanıcının **hesaplama öncesi seçtiği**
+   ana hedef: minimum **kayıtlı stok maliyeti**
+   veya minimum **brüt fire**. Tek bir hedefin
+   optimizasyon aramasını yürütmesini sağla.
+4. Bu amaca uygun kapsamlı exact / branch-and-
+   price / pattern generation + bütün sayısal
+   lower-bound kanıtlarını güçlendir.
+5. Tüm adaylar için **bağımsız giyotin kesim
+   ağacı denetimi** zorunlu; tarayıcı performansı
+   ve gerçek saha/UAT ayrıca doğrulanmalı.
+   **Motor henüz mühürlenmedi.**
 
-**Ertelenen ikinci katman:** gerçek iPhone/Safari ve iki
-hesaplı TEST Supabase stok UAT'si. Gerçek kullanıcı stokunu
-bilinçsizce değiştirme.
+**İkinci plandaki güvenlik/kabul:** Gerçek iPhone/
+Safari, iki kullanıcıyla yalnız TEST Supabase
+stoğu, sunucuda bağımsız cut-tree denetimi.
+Gerçek fiziksel stokları kontrolsüz değiştirme.
 
 ## F. Her yeni sohbet için çalışma kuralı
 
