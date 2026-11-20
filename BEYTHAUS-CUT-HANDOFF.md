@@ -755,3 +755,13 @@ sertifikalarını doğrula; sonra UI'daki kullanıcının seçtiği
 tek ana hedefi aramaya bağla. Çok parçalı karma işlerde
 kesin çözüm kapsamını ayrıca büyüt; kapsam dışı işi
 kanıtlanmış diye gösterme.
+
+**PR #16 merge:** `70d88f8b1fe350b916558ce59aed78443ad55e2a`.
+PR'daki Optimizer Verification `44793597229` SUCCESS;
+Geometry Tests `44793597361` SUCCESS. Yeni objective separation
+regresyonu, eski maliyet regresyonları, proof census ve
+optimizasyon testleri başarılı. Büyük ölçek araştırması ve WebKit
+PR kontrolü son sorguda sürüyordu; merge SHA'sı Pages/CI
+sonuçları ayrıca doğrulanmalı. Canlı kullanıcı arayüzü hâlâ
+`objective=area` seçimini göndermiyor: yeni API kodda var,
+kullanıcıya sunulan bir özellik olduğu iddia edilmemeli.
