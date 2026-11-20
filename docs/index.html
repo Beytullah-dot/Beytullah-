@@ -2096,27 +2096,36 @@ function clearQuantityResult(){
 function showQuantityResult(data){
  showEmpty();
  const p=data.parts[0],stocks=data.stocks.filter(s=>s.qty>0);
- if(state.mode!=='guillotine'||state.materialMode==='auto'||data.parts.length!==1||stocks.length!==1){
-  toast('Bu adet için seri kesim tek parça satırı, tek stok ve sabit malzeme ile çalışır.');return;
+ if(state.mode!=='guillotine'||state.materialMode==='auto'||stocks.length!==1){
+  toast('Bu adet için seri kesim tek stok ve sabit malzeme ile çalışır.');return;
  }
- const stock=stocks[0],job={part:p,stock,trim:data.trim,kerf:data.kerf};
- const plan=window.BeythausQuantityPlan.solve(job);
+ const stock=stocks[0],job={parts:data.parts,stock,trim:data.trim,kerf:data.kerf};
+ const engine=window.BeythausQuantityPlan;
+ const mixed=data.parts.length>1;
+ const plan=mixed?engine.solveMixed(job):engine.solve({...job,part:p});
  if(!plan){toast('Mevcut stokla tam seri kesim planı bulunamadı. Seri kesim tam milimetre ölçüleri gerektirir.');return}
  const lines=[
   state.project||'Kesim projesi',
-  p.qty+' parça · '+plan.sheets+' levha',
-  'Parça '+p.label+' · '+p.l+' × '+p.w+' mm · '+materialPolicy.grainName(p.grain)+' · dönüş '+(plan.turned?'90°':'0°'),
+  data.parts.reduce((sum,part)=>sum+BigInt(part.qty),0n)+' parça · '+plan.sheets+' levha',
+  ...data.parts.map((part,i)=>'Parça '+(i+1)+' · '+part.label+' · '+part.qty+' adet · '+part.l+' × '+part.w+' mm · '+materialPolicy.grainName(part.grain)),
   'Stok '+stock.displayMaterial+' · '+stock.l+' × '+stock.w+' mm · '+thicknessText(stock.t),
   'Her kenardan '+data.trim+' mm pay bırakın. Testere payı '+data.kerf+' mm.',
   'Her şeridi kalan levhanın üstünden, her parçayı ayrılmış şeridin solundan alın. Ölçüler net bitmiş ölçüdür. Kesimi mevcut alt parçanın karşı kenarına kadar yapın. Son kenar zaten ölçüdeyse kesmeyin.'
  ];
- const w=plan.turned?p.w:p.l,h=plan.turned?p.l:p.w;
  let first=1;
  for(const pattern of plan.patterns){
   const end=first+(pattern.repeat-1);
   lines.push('Levha '+first+(first===end?'':'–'+end)+' · '+pattern.repeat+' tekrar');
-  if(pattern.rows)lines.push(pattern.rows+' adet '+h+' mm yüksekliğinde şerit ayırın. Her şeritten '+pattern.columns+' adet '+w+' mm genişliğinde parça alın.');
-  if(pattern.tail)lines.push('Bir '+h+' mm şerit ayırın. Bu şeritten '+pattern.tail+' adet '+w+' mm genişliğinde parça alın.');
+  const blocks=mixed?pattern.blocks:[
+   {index:0,turned:plan.turned,rows:pattern.rows,columns:pattern.columns},
+   {index:0,turned:plan.turned,rows:1,columns:pattern.tail}
+  ];
+  for(const block of blocks){
+   if(!block.rows||!block.columns)continue;
+   const part=data.parts[block.index],h=block.turned?part.l:part.w,w=block.turned?part.w:part.l;
+   lines.push('Parça '+(block.index+1)+' · '+part.label+' · dönüş '+(block.turned?'90°':'0°')+
+    ' · '+block.rows+' adet '+h+' mm yüksekliğinde şerit ayırın. Her şeritten '+block.columns+' adet '+w+' mm genişliğinde parça alın.');
+  }
   if(end<plan.sheets)first=end+1;
  }
  lines.push(plan.proven?'Minimum levha sayısı alan alt sınırıyla kanıtlandı.':'Levha sayısının optimumluğu kanıtlanmadı.');

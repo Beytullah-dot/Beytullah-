@@ -215,6 +215,26 @@ async function main() {
   assert.equal(await page.evaluate(()=>window.BeythausCut.getState().stocks[0].qty),126);
   console.log('PASS: 2001-piece mobile job, two audited patterns, actual PDF download, stock preserved');
 
+  await page.evaluate(()=>{
+    const app=window.BeythausCut,d=app.getState(),part=d.parts[0];
+    d.parts=[{...part,id:'side',label:'YAN',qty:751,l:100,w:53,grain:'length'},
+     {...part,id:'base',label:'TABAN',qty:751,l:44,w:100,grain:'width'}];
+    d.stocks[0].qty=751;app.setState(d);
+  });
+  await page.locator('#mobileRunBtn').click();
+  assert.match(await card.innerText(),/1502 parça · 751 levha/);
+  const mixedDownload=page.waitForEvent('download',{timeout:30000});
+  await card.locator('button').click();
+  const mixedFile=await mixedDownload;
+  const mixedPdf=await require('pdf-parse/lib/pdf-parse.js')(
+    require('node:fs').readFileSync(await mixedFile.path()));
+  assert.match(mixedPdf.text,/Levha 1–751 · 751 tekrar/);
+  assert.match(mixedPdf.text,/YAN · dönüş 0°/);
+  assert.match(mixedPdf.text,/TABAN · dönüş 90°/);
+  assert.equal(await page.evaluate(()=>window.BeythausCut.getState().stocks[0].qty),751);
+  assert.deepEqual(uncaught,[]);
+  console.log('PASS: mixed repeated board, two directed labels and physical quantities preserved in PDF');
+
   await context.close();
   console.log('PASS: Isolated WebKit iPhone-emulation smoke complete. Manual iOS/cloud UAT still required.');
 }

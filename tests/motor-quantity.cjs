@@ -39,3 +39,44 @@ for(let w=3;w<=21;w++)for(let h=4;h<=16;h++)for(let k=0;k<=3;k++)for(let qty=1;q
  assert.equal(pieces,qty);checked++;
 }
 console.log('PASS: 2001 pieces/126 sheets, safe integer quantities, direction, thickness, corrupted plans and '+checked+' replayed geometries');
+const {solveMixed,auditMixed}=require('../docs/engine/quantity-plan.js');
+const mixed={...job,stock:{...job.stock,qty:751},parts:[53,44].map((height,i)=>({
+ ...job.part,l:i?height:100,w:i?100:height,grain:i?'width':'length',qty:751
+}))};
+const shared=solveMixed(mixed);
+assert.ok(shared.proven&&auditMixed(mixed,shared));
+assert.equal(shared.sheets,751);
+assert.deepEqual(shared.patterns,[{repeat:751,blocks:[
+ {index:0,turned:false,rows:1,columns:1},{index:1,turned:true,rows:1,columns:1}
+]}]);
+for(const mutate of [p=>p.patterns[0].blocks[1].index=0,p=>p.patterns[0].blocks[1].turned=false,
+ p=>p.patterns[0].blocks[0].rows++,p=>p.patterns[0].repeat--]){
+ const corrupt=structuredClone(shared);mutate(corrupt);assert.equal(auditMixed(mixed,corrupt),false);
+}
+assert.equal(solveMixed({...mixed,stock:{...mixed.stock,qty:750}}),null);
+const hugeMixed={...mixed,stock:{...mixed.stock,qty:max},parts:mixed.parts.map(p=>({...p,qty:max}))};
+assert.equal(solveMixed(hugeMixed).patterns[0].repeat,max);
+// Replay raw individual cuts and count demand by row without using the symbolic auditor.
+let mixedChecked=0,unproved=0;
+for(let height=7;height<20;height++)for(let width=10;width<25;width++)for(let k=0;k<4;k++){
+ const sample={...mixed,trim:0,kerf:k,stock:{...mixed.stock,l:width,w:height},parts:[
+  {...mixed.parts[0],l:5,w:4,qty:35},{...mixed.parts[1],l:3,w:4,qty:16}
+ ]};
+ const plan=solveMixed(sample);if(!plan)continue;
+ const totals=[0,0];
+ for(const pat of plan.patterns){
+  let left=height;
+  for(const block of pat.blocks){
+   const part=sample.parts[block.index],h=block.turned?part.l:part.w,w=block.turned?part.w:part.l;
+   for(let r=0;r<block.rows;r++){
+    left=left===h?0:left-h-k;assert.ok(left>=0);
+    replay(width,w,block.columns,k);
+    totals[block.index]+=block.columns*pat.repeat;
+   }
+  }
+ }
+ assert.deepEqual(totals,[35,16]);
+ mixedChecked++;if(!plan.proven)unproved++;
+}
+assert.ok(mixedChecked&&unproved);
+console.log('PASS: 1502 mixed pieces on 751 certified boards; '+mixedChecked+' physical replays; '+unproved+' feasible without proof');
