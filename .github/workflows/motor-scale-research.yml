@@ -27,6 +27,8 @@ jobs:
         run: node tests/motor-beng.cjs
       - name: Audit mixed workshop jobs and compare small cases with exhaustive search
         run: node tests/motor-workshop.cjs
+      - name: Independently replay repeated strip plans
+        run: node tests/motor-quantity.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

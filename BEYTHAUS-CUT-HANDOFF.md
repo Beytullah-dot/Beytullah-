@@ -431,10 +431,12 @@ kullanılabilir kalmalı.
 
 **Sıradaki teknik adım:**
 
-1. Adetleri toplu taşıyan temsil: formda halen 1.500 toplam parça,
-   parça satırında 2.000 ve stok satırında 99.999 adet doğrulaması var.
-   Yüksek tekrarlı işleri tek tek belleğe açmadan normalleştir,
-   yerleştir ve fiziksel kesim ağacını denetle; mobil ve PDF yolunu ölç.
+1. Tek parça satırı ve tek stok için yüksek adetli, tam milimetreli seri
+   giyotin planı miktarla hesaplanıyor. İki şerit tarifi 2.001 parçayı
+   126 levhada karşılıyor. Doğrulama ve PDF tekrarlı levhaları çoğaltmaz.
+   Yerel sayım, yön ve kesim deneyi: `node tests/motor-quantity.cjs`.
+   Sonraki adım karma satırlara ve onaylı üretim arşivine bu temsili taşımak.
+   Karma yüksek adet, otomatik atama, artık stok ve kesirli mm seri yolda açık.
 2. Karma işlerde en geniş açık `planted-6`: 100 parça, 19 levha alt sınırı,
    23 levha denetlenmiş plan. Daha sıkı alt sınır veya daha iyi plan ara.
 3. Kullanıcının **hesaplama öncesi seçtiği**
