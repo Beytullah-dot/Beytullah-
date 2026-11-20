@@ -1878,73 +1878,97 @@ byId('economySearchCancel').onclick=()=>cancelEconomySearch(false);
 window.addEventListener('pagehide',()=>cancelEconomySearch(true));
 function acceptEconomyWorkerResult(data,initial,response){
  if(response?.type!=='economy-finished'||!Array.isArray(response.groups))
-  throw Error('Ekonomik çözümleme yanıtı geçersiz.');
+  throw Error('Kesin hedef yanıtı geçersiz.');
+ const objective=state.objective==='area'?'area':'cost';
+ if(response.objective!==objective)throw Error('Yanlış optimizasyon hedefinin yanıtı reddedildi.');
  const groupKeys=new Set(data.parts.map(p=>mkey(p.material)));
- if(response.groups.length!==groupKeys.size)throw Error('Ekonomik malzeme grupları uyuşmuyor.');
+ if(response.groups.length!==groupKeys.size)throw Error('Hedefin malzeme grupları uyuşmuyor.');
  const stocks=new Map(data.stocks.map(s=>[s.id,s]));
  const pieces=new Map(data.parts.map(p=>[p.id,p]));
  const cfg={priceMode:state.priceMode,m3:data.m3},used=new Set(),bins=[];
  for(const group of response.groups){
   if(!groupKeys.has(group.material)||used.has(group.material))
-   throw Error('Ekonomik malzeme grubu geçersiz.');
+   throw Error('Hedefte tanımsız veya yinelenen malzeme.');
   used.add(group.material);
   if(group.status!=='improved'){
    bins.push(...initial.bins.filter(b=>mkey(b.stock.material)===group.material));
    continue
   }
   if(!Array.isArray(group.layout)||!group.layout.length)
-   throw Error('Ekonomik adayda yerleşim bulunamadı.');
+   throw Error('Kesin hedef adayında yerleşim yok.');
   for(const b of group.layout){
    const stock=stocks.get(b?.stock?.id);
    if(!stock||mkey(stock.material)!==group.material||!Array.isArray(b.pieces))
-    throw Error('Ekonomik adayda tanımsız stok/parça.');
+    throw Error('Kesin hedef adayında tanımsız stok/parça.');
    const bin=mkBin(stock,data.trim);
    if(state.mode==='guillotine'){
     if(!Array.isArray(b.cuts)||!Array.isArray(b.free))
-     throw Error('Ekonomik düz kesim ağacı eksik.');
+     throw Error('Kesin hedef adayında fiziksel giyotin kesim ağacı eksik.');
     bin.cuts=b.cuts;bin.free=b.free;
    }else bin.free=[];
    bin.placed=b.pieces.map(p=>{
     const original=pieces.get(p.id);
-    if(!original)throw Error('Ekonomik aday bilinmeyen parça içeriyor.');
+    if(!original)throw Error('Kesin hedef adayında bilinmeyen parça.');
     return {...original,x:p.x,y:p.y,w:p.w,h:p.h,rotated:p.rotated}
    });
    bins.push(bin)
   }
  }
- const total=bs=>bs.reduce((sum,b)=>sum+b.stock.l*b.stock.w,0);
- const purchased=bs=>{
-  const costs=bs.map(b=>binCost(b.stock,cfg));
-  return costs.some(c=>c===null)?null:costs.reduce((sum,c)=>sum+c,0)
+ const grossArea=bs=>bs.reduce((sum,b)=>sum+b.stock.l*b.stock.w,0);
+ const recordedCost=bs=>{
+  const prices=bs.map(b=>binCost(b.stock,cfg));
+  return prices.some(p=>p===null)?null:prices.reduce((sum,p)=>sum+p,0)
  };
- const cost=purchased(bins);
- if(cost===null)throw Error('Ekonomik sonuç maliyeti eksik.');
- const n=initial.bins.length,changes=response.groups.some(g=>g.status==='improved');
- const proof=response.status==='optimal'&&response.groups.every(g=>g.proven===true);
- if(response.status==='optimal'&&!proof)throw Error('Geçersiz ekonomik optimumluk sertifikası.');
+ const cost=recordedCost(bins),stockArea=grossArea(bins);
+ if(objective==='cost'&&cost===null)throw Error('Maliyet hedefinin fiyatı bilinmiyor.');
  for(const g of response.groups){
-  const localCost=purchased(bins.filter(b=>mkey(b.stock.material)===g.material));
-  if(g.bestCost!==null&&Math.abs(localCost-g.bestCost)>0.01)
-   throw Error('Ekonomik grup fiyatları tutarsız.');
+  const selected=bins.filter(b=>mkey(b.stock.material)===g.material);
+  const observed=objective==='area'?grossArea(selected):recordedCost(selected);
+  const claimed=objective==='area'?g.bestArea:g.bestCost;
+  if(claimed!==null&&(!Number.isFinite(claimed)||observed===null||
+     Math.abs(observed-claimed)>Math.max(0.01,Math.abs(claimed)*1e-9)))
+   throw Error('Hedefe özgü optimumluk değeri doğrulanamadı.');
+  if(g.proven===true&&claimed===null)
+   throw Error('Kanıt için doğrulanabilir hedef değeri gerekli.');
+  if(objective==='area'&&g.bestCost!==null||objective==='cost'&&g.bestArea!==null)
+   throw Error('Bir hedefin sertifikası başka hedefe taşınamaz.');
  }
+ const changes=response.groups.some(g=>g.status==='improved');
+ const complete=response.status==='optimal'&&response.groups.every(g=>g.proven===true);
+ if(response.status==='optimal'&&!complete)throw Error('Eksik kesin hedef sertifikası.');
+ // Material assignment is a separate combinatorial dimension. An exact
+ // search conditional on one auto-assignment cannot certify global optimality.
+ const proof=complete&&state.materialMode!=='auto';
+ const oldValue=objective==='area'?initial.stockArea:initial.cost;
+ const newValue=objective==='area'?stockArea:cost;
+ if(changes&&!(Number.isFinite(oldValue)&&Number.isFinite(newValue)&&
+   newValue<oldValue-1e-6))throw Error('Kesin aday seçilen hedefi iyileştirmiyor.');
+ if(proof&&Number.isFinite(oldValue)&&newValue>oldValue+0.01)
+  throw Error('Sertifika önceki plandan daha kötü hedef değeri gösteriyor.');
  const proposal={...initial,bins,placedCount:data.parts.length,unplaced:[],
-  partArea:bins.reduce((sum,b)=>sum+b.placed.reduce((s,p)=>s+p.w*p.h,0),0),
-  stockArea:total(bins),cost,unknownCostBins:0,
-  economyProof:{goal:'minimum-incremental-stock-cost',proven:proof,
-   status:response.status,minimumCost:proof?cost:null,nodes:response.nodes},
-  exact:changes?{status:'economic-replacement',proof:false,optimumCount:null}:initial.exact,
-  areaProof:changes?{status:'economic-replacement',proven:false,countProven:false,areaSaved:0}:initial.areaProof,
+  partArea:bins.reduce((sum,b)=>sum+b.placed.reduce((n,p)=>n+p.w*p.h,0),0),
+  stockArea,cost,unknownCostBins:bins.filter(b=>binCost(b.stock,cfg)===null).length,
+  economyProof:{goal:objective==='area'?'minimum-gross-stock-area':'minimum-recorded-stock-cost',
+   objective,proven:proof,conditionalProven:complete&&!proof,
+   status:proof?'optimal':response.status,minimumArea:proof&&objective==='area'?stockArea:null,
+   minimumCost:proof&&objective==='cost'?cost:null,nodes:response.nodes},
+  exact:changes?{status:'objective-replacement',proof:false,optimumCount:null}:initial.exact,
+  areaProof:changes?{status:'objective-replacement',proven:false,countProven:false,areaSaved:0}:initial.areaProof,
+  globalAreaProof:changes?null:initial.globalAreaProof,
+  globalCostProof:changes?null:initial.globalCostProof,
   search:changes?{...initial.search,savedStockCount:0}:initial.search
  };
- if(!auditCutPlan(proposal,data).ok)throw Error('Ekonomik kesim planı doğrulanamadı.');
- if(changes&&!(cost<initial.cost-0.000001))
-  throw Error('Ekonomik alternatif maliyeti düşürmüyor.');
- if(proof&&initial.cost!==null&&cost>initial.cost+0.01)
-  throw Error('Ekonomik kanıt pahalı sonucu optimum gösteriyor.');
- const recoverable=plan=>state.mode==='guillotine'?
-  plan.bins.reduce((sum,b)=>sum+collectOffcuts(b).area,0):null;
- return {proposal,improved:changes,savings:initial.cost===null?null:initial.cost-cost,
-  boardDelta:bins.length-n,salvageBefore:recoverable(initial),salvageAfter:recoverable(proposal)}
+ // Every target-specific result, including UNKNOWN/partial improvements,
+ // must pass the independent full cut-tree audit before reaching the UI.
+ if(!auditCutPlan(proposal,data).ok)throw Error('Kesin hedefin fiziksel kesim planı doğrulanamadı.');
+ const before=state.mode==='guillotine'?
+  initial.bins.reduce((n,b)=>n+collectOffcuts(b).area,0):null;
+ const after=state.mode==='guillotine'?
+  bins.reduce((n,b)=>n+collectOffcuts(b).area,0):null;
+ return {proposal,improved:changes,objective,
+  savings:initial.cost===null||cost===null?null:initial.cost-cost,
+  areaSaved:initial.stockArea-stockArea,boardDelta:bins.length-initial.bins.length,
+  salvageBefore:before,salvageAfter:after}
 }
 function launchEconomyAfterCount(data,plan){
  if(plan.economyProof?.proven&&plan.economyProof.minimumCost!==null&&
