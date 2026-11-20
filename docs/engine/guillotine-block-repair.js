@@ -169,7 +169,7 @@
  // Four-level pattern reconstruction supports nested 16-piece blocks.
  // Partial patterns are NEVER treated as an impossibility certificate.
  // Grouping by shared width/height avoids enumerating all shape pairings.
- function deeperSheetPatterns(items,stocks,cfg,deadline){
+ function deeperSheetPatterns(items,stocks,cfg,deadline,includeShortBranches=false){
   const usable=stocks.filter(s=>s.qty>0).map(s=>({
    stock:s,w:s.l-2*cfg.trim,h:s.w-2*cfg.trim}));
   if(!usable.length)return [];
@@ -195,10 +195,13 @@
      slackRatio:Math.max(0,1-node.w*node.h/(s.w*s.h))})
    }
   }
+  const previous=[];
   for(let layer=1;layer<=maxLevel&&Date.now()<deadline;layer++){
    const next=[],seen=new Set(),maxLevelCandidates=12000;
    const byW=new Map(),byH=new Map();
-   for(const node of nodes){
+   const frontier=includeShortBranches?new Set(nodes):null;
+   const pool=includeShortBranches?previous.concat(nodes):nodes;
+   for(const node of pool){
     const w=key(node.w),h=key(node.h);
     if(!byW.has(w))byW.set(w,[]);
     if(!byH.has(h))byH.set(h,[]);
@@ -208,9 +211,11 @@
     for(const group of groups.values()){
      if(Date.now()>=deadline||next.length>=maxLevelCandidates)break;
      for(let i=0;i<group.length;i++){
-      if(i%30===0&&Date.now()>=deadline)break;
+      if(Date.now()>=deadline)break;
       for(let j=i+1;j<group.length;j++){
        const a=group[i],b=group[j];
+       if(frontier&&!frontier.has(a)&&!frontier.has(b))continue;
+       if(axis==='x'?!eq(a.h,b.h):!eq(a.w,b.w))continue;
        if((a.mask&b.mask)!==0n)continue;
        const node=joinBlocks(a,b,axis,cfg.kerf);
        if(!canFit(node.w,node.h))continue;
@@ -231,6 +236,7 @@
    addGroups(byH,'x');
    if(next.length<maxLevelCandidates)addGroups(byW,'y');
    if(!next.length)break;
+   if(includeShortBranches)previous.push(...nodes);
    nodes=next
   }
   return results
@@ -363,8 +369,27 @@
   }
   evaluate(exactSheetPatterns(items,stocks,cfg,deadline));
   // Deep trees or damaged edge stock need 16-part and near-full sheets.
-  if(best.unplaced.length&&Date.now()<deadline)
-   evaluate(deeperSheetPatterns(items,stocks,cfg,deadline),true);
+  const deep=best.unplaced.length&&Date.now()<deadline?
+   deeperSheetPatterns(items,stocks,cfg,deadline):[];
+  evaluate(deep,true);
+  // Retain disjoint whole sheets and reconstruct only the unresolved
+  // neighborhood. A short branch can meet a deeper sibling on a full edge.
+  if(best.unplaced.length&&Date.now()<deadline){
+   const chosen=selectPatterns(deep,stocks,items,0);
+   const covered=new Set(chosen.flatMap(p=>p.indices));
+   const indices=items.map((_,i)=>i).filter(i=>!covered.has(i));
+   const remaining=indices.map(i=>items[i]);
+   const available=stocks.map(s=>({...s,qty:s.qty-
+    chosen.filter(p=>p.stock.id===s.id).length})).filter(s=>s.qty>0);
+   const local=deeperSheetPatterns(remaining,available,cfg,deadline,true);
+   patternCount+=local.length;
+   const cover=exactPatternCover(local,available,remaining,deadline);
+   if(cover){
+    const restored=cover.map(p=>({...p,stock:stocks.find(s=>s.id===p.stock.id),
+     indices:p.indices.map(i=>indices[i])}));
+    consider(chosen.concat(restored),0)
+   }
+  }
   return {candidate:best===baseline?null:best,
    found:bestFound,patterns:patternCount}
  }

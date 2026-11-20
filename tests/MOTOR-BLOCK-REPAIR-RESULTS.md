@@ -98,3 +98,48 @@ piece's original board and cutting order from the optimizer.
 
 **Sealing status: NOT SEALED.** No promise that arbitrary huge NP-hard
 instances can always be optimally solved in bounded time.
+
+## Follow-up on 20 November — unequal-depth cuts and independent BENG data
+
+Reproduced `deeper-pattern-0` on master 78afc8e with 3 unplaced.
+Its 158 leaves cannot consist solely of ten balanced 16-leaf trees.
+After whole-sheet selection, the repair searches the remaining stock and
+parts with joins between different subtree depths. It maps local identities
+back to the original job and replays the combined plan before acceptance.
+The original search budget still applies. The 158 parts now fit in ten
+boards with 148 cuts and a certified stock-count lower bound of ten.
+All 34 stress cases now require an audited full plan in CI.
+
+### 2DPackLib BENG01–10
+
+Source: [University of Bologna, official BENG archive](https://site.unibo.it/operations-research/en/research/2dpacklib/beng.zip/@@download/file/BENG.zip).
+The unmodified archive and SHA-256 check are included. Run
+`node tests/motor-beng.cjs` with Node.js and unzip. This experiment
+requires every original item once, fixed orientation, full-edge cuts,
+identical bins, zero kerf and trim. One available bin per item suffices
+as a finite supply. No price is supplied. These results assess the
+fixed-orientation guillotine variant. No external optimum for another
+cutting model is treated as a guillotine reference.
+
+Local Node 24 run. LB is the engine's certified lower bound on bin count.
+Waste is gross unused area in squared dataset units. Time includes packing,
+audit and certification. RSS is the cumulative process high-water mark in KiB.
+
+| Instance | Pieces | Boards | LB | Count proven | Gross waste | ms | RSS KiB |
+|---|---:|---:|---:|---|---:|---:|---:|
+| BENG01 | 20 | 4 | 3 | open | 259 | 63 | 54340 |
+| BENG02 | 40 | 7 | 6 | open | 330 | 57 | 55364 |
+| BENG03 | 60 | 9 | 9 | yes | 160 | 49 | 58984 |
+| BENG04 | 80 | 12 | 11 | open | 327 | 86 | 69444 |
+| BENG05 | 100 | 14 | 14 | yes | 170 | 206 | 69572 |
+| BENG06 | 40 | 2 | 2 | yes | 580 | 38 | 69572 |
+| BENG07 | 80 | 3 | 3 | yes | 327 | 54 | 69572 |
+| BENG08 | 120 | 5 | 5 | yes | 973 | 96 | 69572 |
+| BENG09 | 160 | 6 | 6 | yes | 992 | 77 | 71096 |
+| BENG10 | 200 | 7 | 7 | yes | 783 | 122 | 84924 |
+
+All ten plans passed cut-tree replay. BENG01, BENG02 and BENG04 each
+have a one-board gap to the lower bound. It is open whether that board
+can be removed. Comparing the project-state kerf to the job kerf during
+benchmarking exposed a fit-filter bug; the search now uses the same job
+kerf as the cut generator. Real-device performance remains unmeasured.

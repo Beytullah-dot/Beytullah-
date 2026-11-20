@@ -4,7 +4,8 @@ on:
   pull_request:
     paths:
       - 'docs/engine/**'
-      - 'tests/motor-scalability-profile.cjs'
+      - 'tests/motor-*.cjs'
+      - 'tests/fixtures/2dpacklib-beng.zip'
       - '.github/workflows/motor-scale-research.yml'
 permissions:
   contents: read
@@ -22,6 +23,8 @@ jobs:
         run: node tests/motor-scalability-profile.cjs
       - name: Test randomized shapes, variable sizes and real leftover strips
         run: node tests/motor-repair-stress.cjs
+      - name: Audit fixed-orientation guillotine plans for all ten BENG instances
+        run: node tests/motor-beng.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

@@ -374,16 +374,13 @@ masaüstü uyumlu bir web/PWA; yalın, işlev odaklı arayüz.
 
 ## E. Son tamamlanan adım / sıradaki adım
 
-**Son tamamlanan (20 Kasım):** Giyotin blok sentezi ve
-yerleşmeyen parçaları kurtaran motor PR #5 üzerinden
-mevcut canlı uygulamaya birleştirildi
-(`b9e266b084859a0c47dd3a0436e799b6f8978026`).
-11/11 temel heterojen planted-fixture tam ve
-min. stok sayısı kanıtlı; 34 ek stres testinden
-33'ü tam. 25 levha/200 parça/3 stok boyutu
-örneğinde 36 eksik parça artık 0. Kısmi veya
-başarısız adayın üretim denetimini geçmeden kabul
-edilmesi engellendi.
+**Son tamamlanan (20 Kasım):** PR #5 sonrasındaki `78afc8e` temelinden
+dengesiz blok onarımı ve işe ait testere payının kullanılması geliştirildi.
+`deeper-pattern-0` 158/158 parça, 148 kesim, minimum 10 levha kanıtlı.
+11/11 temel ve 34/34 stres işi tam. Resmî 2DPackLib BENG ailesinde sabit yön,
+sıfır kerf ve giyotin kısıtıyla 10/10 tam plan, 7/10 minimum levha kanıtı.
+Ölçüm, kaynak ve yeniden çalıştırma: `tests/MOTOR-BLOCK-REPAIR-RESULTS.md`.
+Yayın durumunu bu değişikliği taşıyan master commit ve Pages run ile doğrula.
 
 **Son açık kullanıcı hedefi:** Önce matematiksel
 kesim motorunu tamamlama/mühürleme; kullanıcıya
@@ -395,17 +392,11 @@ kullanılabilir kalmalı.
 
 **Sıradaki teknik adım:**
 
-1. **Kalan zor örnek**: `deeper-pattern-0`, 10
-   levhadan türetilmiş çok seviyeli giyotin işte
-   halen 3 parça eksik. Bunun ve yeni 4–6 seviyeli,
-   orta doluluklu, çok malzemeli gerçekçi örneklerin
-   tamamlanması için daha güçlü genel amaçlı
-   block/pattern tree search + local reoptimization.
-2. **2DPackLib ve benzer resmî akademik testler**:
-   kısıtları tam eşleşen sınıfları ölç; ayrı
-   raporla: tam plan oranı, stok/maliyet/fire,
-   kanıt başarısı, süre, hafıza. Zorluğu
-   yalnız parça sayısına bağlama.
+1. BENG01 (3–4), BENG02 (6–7), BENG04 (11–12) için alt sınır ile
+   bulunan plan arasında birer levha var. Mevcut planı koruyarak daha az
+   levhayı dene veya daha kuvvetli alt sınırla araştır.
+2. Daha derin, orta doluluklu ve çok malzemeli saha benzeri işlerle,
+   bağımsız benchmark aileleriyle ve gerçek telefonda ölçüme devam et.
 3. Kullanıcının **hesaplama öncesi seçtiği**
    ana hedef: minimum **kayıtlı stok maliyeti**
    veya minimum **brüt fire**. Tek bir hedefin
