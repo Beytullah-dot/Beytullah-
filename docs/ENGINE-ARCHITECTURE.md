@@ -146,6 +146,32 @@ ayrı takip edilmelidir.
 Her adımın şartı: **ana davranışın referans sonuçlarla aynı kalması, denetimin
 çalışması, CI'ın yeşil olması ve geri alma yolunun hazır bulunması.**
 
+## Büyük çoklu-levha planlarda blok kurtarma (2026-11-20, PR #5)
+
+`docs/engine/guillotine-block-repair.js` fiziksel yerleşimde
+eksik parça varsa, ana açgözlü yerleştirme ve kesin çözüm
+sertifikasından **ayrı** olarak devreye girer. Aynı stok
+envanterinde parçaların tam kenardan kenara kesim
+kurallarıyla birleştirilmiş 2, 4, 8 ve gerektiğinde 16
+parçalı bloklarını sentezler. Tam levha veya dış kenarda
+kalan ölçülü artıkla üretilebilecek blokları seçer; farklı
+levhalara ait taslak kesim desenlerini yeniden birleştirir.
+Süre / aday bütçesi dolunca eksik sonucu **imkânsız**
+diye sunmaz.
+
+İyileştirilmiş aday, `production-audit.js` tarafından
+**bağımsız** doğrulanmadan kullanıcının planıyla
+değiştirilmez. Kesim blokları asıl parça kimliklerine,
+koordinatlarına, testere payına ve kesim sırasına
+yeniden açılır. Hesaplama stok tüketmez.
+
+Testler: `tests/motor-scalability-profile.cjs`,
+`tests/motor-repair-stress.cjs` ve
+`tests/MOTOR-BLOCK-REPAIR-RESULTS.md`. Heterojen
+stok/ölçüde ve dış artıklı 29 zor örnek sabit regresyon
+kapısıdır. Başka daha derin bir senaryo hâlâ
+kısmi kaldığından motor **mühürlü değildir**.
+
 ## Yeni matematiksel garanti sınırı (2026-11-20)
 
 - **Parça yönü:** yalnız parçaya ait `serbest`, `boyuna`, `enine`.

@@ -10,6 +10,9 @@ const source=fs.readFileSync(filename,'utf8');
 const auditSource=fs.readFileSync(path.join(__dirname,'../docs/engine/production-audit.js'),'utf8');
 const windowLike={};
 new Function('window',auditSource)(windowLike);
+const blockRepairSource=fs.readFileSync(path.join(__dirname,
+ '../docs/engine/guillotine-block-repair.js'),'utf8');
+new Function('window',blockRepairSource)(windowLike);
 new Function('window',source)(windowLike);
 const facade=windowLike.BeythausCutEngine;
 if(!facade||facade.contractVersion!==1||windowLike.BeythausCutProductionAudit?.contractVersion!==1)

@@ -12,7 +12,7 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm');
 const docs=path.join(__dirname,'../docs'),root={};
 for(const name of ['material-policy.js','optimality-certificate.js',
- 'production-audit.js','cutting-engine.js']){
+ 'production-audit.js','guillotine-block-repair.js','cutting-engine.js']){
  vm.runInNewContext(fs.readFileSync(path.join(docs,'engine',name),'utf8'),
   {window:root},{filename:name});
 }
@@ -23,7 +23,7 @@ const engine=root.BeythausCutEngine.createEngine({
  fmt:(v,n=0)=>Number(v).toFixed(n)
 });
 function rng(seed){let x=seed>>>0;return()=>{x^=x<<13;x^=x>>>17;x^=x<<5;return (x>>>0)/4294967296}}
-function makeCase({name,boards,depth,variable=false,rotate=false,seed=1}){
+function makeCase({name,boards,depth,variable=false,rotate=false,seed=1,margin=0}){
  const random=rng(seed),material='panel|benchmark',kerf=3;
  const definitions=variable?[
   {l:1200,w:800,price:1080},{l:1400,w:900,price:1540},
@@ -56,7 +56,8 @@ function makeCase({name,boards,depth,variable=false,rotate=false,seed=1}){
  for(let board=0;board<boards;board++){
   const choice=variable?board%definitions.length:0;
   quantities[choice]++;
-  partition({...definitions[choice]},depth,board,0)
+  partition({...definitions[choice],l:definitions[choice].l-margin,
+   w:definitions[choice].w-margin},depth,board,0)
  }
  // Deterministic Fisher-Yates shuffle. Input order must NOT reveal
  // which pieces were extracted from the same stock.
@@ -89,14 +90,20 @@ function benchmark(spec){
  // The generator's split tree is a mathematical feasibility witness,
  // but is intentionally hidden from the production engine.
  const begin=performance.now();
- const plan=engine.optimize(data,false,false);
- const elapsedMs=Math.round(performance.now()-begin);
+ const baseline=engine.optimize(data,false,false);
+ const baselineMs=Math.round(performance.now()-begin);
+ const refinedAt=performance.now();
+ const plan=engine.optimize(data,true,false);
+ const elapsedMs=Math.round(performance.now()-refinedAt);
  const complete=plan.unplaced.length===0&&plan.placedCount===data.parts.length;
  const audit=engine.auditCutPlan(plan,data);
  if(complete)assert.equal(audit.ok,true,'Audited full cutting tree: '+spec.name);
  const certified=complete?engine.certifyStockCount(plan,data,audit):null;
  return {name:data.name,parts:data.parts.length,stockTypes:data.stocks.length,
   plantedBoards:spec.boards,usedBoards:plan.bins.length,
+  baselineUnplaced:baseline.unplaced.length,baselineMs,
+  blockRepairAttempts:plan.search?.blockRepairAttempts||0,
+  blockRescuedPieces:plan.search?.blockRescuedPieces||0,
   unplaced:plan.unplaced.length,feasible:complete&&audit.ok,
   exactCountProven:!!certified?.proven,
   countLowerBound:certified?.lowerBound??null,
@@ -105,19 +112,23 @@ function benchmark(spec){
     certified?.proven?'Global minimum stock count PROVEN':
       'Physically complete; global minimum stock count not proven'};
 }
-const results=specs.map(spec=>{
- const r=benchmark(spec);
- console.log(JSON.stringify(r));return r
-});
-const summary={total:results.length,feasible:results.filter(r=>r.feasible).length,
- proven:results.filter(r=>r.exactCountProven).length,
- largestTestedParts:Math.max(...results.map(r=>r.parts)),
- largestTestedBoards:Math.max(...results.map(r=>r.plantedBoards)),
- results};
-const out=path.join(__dirname,'motor-scalability-profile-results.json');
-fs.writeFileSync(out,JSON.stringify(summary,null,2)+'\n');
-console.log('SUMMARY '+JSON.stringify({
- tested:summary.total,feasible:summary.feasible,
- proven:summary.proven,largestTestedParts:summary.largestTestedParts,
- largestTestedBoards:summary.largestTestedBoards
-}));
+if(require.main===module){
+ const results=specs.map(spec=>{
+  const r=benchmark(spec);
+  console.log(JSON.stringify(r));return r
+ });
+ assert.ok(results.every(r=>r.feasible),
+  'All 11 guaranteed guillotine-feasible regression jobs must now have a complete physical cut plan');
+ const summary={total:results.length,feasible:results.filter(r=>r.feasible).length,
+  proven:results.filter(r=>r.exactCountProven).length,
+  largestTestedParts:Math.max(...results.map(r=>r.parts)),
+  largestTestedBoards:Math.max(...results.map(r=>r.plantedBoards)),results};
+ const out=path.join(__dirname,'motor-scalability-profile-results.json');
+ fs.writeFileSync(out,JSON.stringify(summary,null,2)+'\n');
+ console.log('SUMMARY '+JSON.stringify({
+  tested:summary.total,feasible:summary.feasible,
+  proven:summary.proven,largestTestedParts:summary.largestTestedParts,
+  largestTestedBoards:summary.largestTestedBoards
+ }));
+}
+module.exports={makeCase,benchmark,specs};

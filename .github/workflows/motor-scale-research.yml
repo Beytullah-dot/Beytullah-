@@ -20,9 +20,13 @@ jobs:
           node-version: '22'
       - name: Profile shipped engine against planted physical guillotine projects
         run: node tests/motor-scalability-profile.cjs
+      - name: Test randomized shapes, variable sizes and real leftover strips
+        run: node tests/motor-repair-stress.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: motor-scalability-profile
-          path: tests/motor-scalability-profile-results.json
+          path: |
+            tests/motor-scalability-profile-results.json
+            tests/motor-repair-stress-results.json
           if-no-files-found: warn
