@@ -241,6 +241,62 @@
   }
   return results
  }
+ // Explore joins in increasing creation order. A leaf may join a deep subtree.
+ // Stop at the search budget; an incomplete pattern list proves nothing.
+ function asymmetricCover(items,stocks,cfg,deadline){
+  const usable=stocks.filter(s=>s.qty>0).map(stock=>({stock,
+   w:stock.l-2*cfg.trim,h:stock.w-2*cfg.trim}));
+  const queue=[],seen=new Set(),widths=new Map(),heights=new Map(),patterns=[];
+  const sideKey=v=>Math.round(v*1e5);
+  const covers=new Set(),maxStates=30000;
+  for(let i=0;i<items.length;i++){
+   if(queue.length>=maxStates||Date.now()>=deadline)return null;
+   const piece=items[i],node=orientations(piece,0,()=>.5);
+   if(!root.BeythausMaterialPolicy||root.BeythausMaterialPolicy.grainAllows(piece,null,node.rotated)){
+    queue.push({...node,mask:1n<<BigInt(i),indices:[i]});
+   }
+   if(piece.rotate&&!eq(piece.l,piece.w)&&!piece.grain)
+    queue.push({...node,rotated:true,w:piece.w,h:piece.l,mask:1n<<BigInt(i),indices:[i]});
+  }
+  const close=(gap,size)=>gap>=-EPS&&gap<=Math.max(24,size*.025)&&
+   (gap<=EPS||gap>=cfg.kerf-EPS);
+  function remember(node){
+   for(const ref of usable){
+    const dw=ref.w-node.w,dh=ref.h-node.h;
+    if(!close(dw,ref.w)||!close(dh,ref.h))continue;
+    patterns.push({node,stock:ref.stock,mask:node.mask,indices:node.indices,
+     count:node.count,exact:dw<=EPS&&dh<=EPS,slackRatio:1-node.w*node.h/(ref.w*ref.h)});
+    for(const i of node.indices)covers.add(i);
+   }
+  }
+  for(const leaf of queue)remember(leaf);
+  let lastTried=0;
+  for(let i=0;i<queue.length&&queue.length<maxStates&&Date.now()<deadline;i++){
+   const a=queue[i];
+   for(const [axis,buckets,span] of [['x',heights,a.h],['y',widths,a.w]]){
+    const key=sideKey(span),siblings=buckets.get(key)||[];
+    for(let j=0;j<siblings.length;j++){
+     if((j%64===0&&Date.now()>=deadline)||queue.length>=maxStates)break;
+     const b=siblings[j];
+     if((a.mask&b.mask)!==0n||!eq(span,axis==='x'?b.h:b.w))continue;
+     const node=joinBlocks(a,b,axis,cfg.kerf);
+     if(!usable.some(s=>node.w<=s.w+EPS&&node.h<=s.h+EPS))continue;
+     node.mask=a.mask|b.mask;
+     const id=node.mask.toString(36)+'/'+sideKey(node.w)+'/'+sideKey(node.h);
+     if(seen.has(id))continue;
+     seen.add(id);node.indices=a.indices.concat(b.indices);queue.push(node);remember(node);
+    }
+    siblings.push(a);buckets.set(key,siblings);
+   }
+   if(covers.size===items.length&&patterns.length>=lastTried+8&&Date.now()<deadline){
+    const cover=exactPatternCover(patterns,stocks,items,deadline);
+    if(cover)return cover;
+    lastTried=patterns.length;
+   }
+  }
+  return covers.size===items.length&&Date.now()<deadline?
+   exactPatternCover(patterns,stocks,items,deadline):null;
+ }
  function makeRootBlock(stock,node,cfg){
   const bin={stock,free:[],cuts:[],placed:[]};
   let rect={x:cfg.trim,y:cfg.trim,
@@ -389,6 +445,10 @@
      indices:p.indices.map(i=>indices[i])}));
     consider(chosen.concat(restored),0)
    }
+  }
+  if(best.unplaced.length&&Date.now()<deadline){
+   const cover=asymmetricCover(items,stocks,cfg,deadline);
+   if(cover)consider(cover,0);
   }
   return {candidate:best===baseline?null:best,
    found:bestFound,patterns:patternCount}
