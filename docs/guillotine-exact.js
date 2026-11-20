@@ -72,6 +72,115 @@ const GuillotineExact=(()=>{
   return {stock,pieces:placed,free,cuts}
  }
 
+
+ // Exhaustive physical-grid fallback for ambiguous relaxed patterns.
+ // INFEASIBLE is emitted only after all full cuts and scrap trims are
+ // exhausted. Unrepresentable precision or budget exhaustion => UNKNOWN.
+ function physicalDecision(parts,stocks,limit,cfg,deadline,maxNodes){
+  let nodes=0,interrupted=false;
+  const done=status=>({status,nodes});
+  const values=[cfg.kerf,cfg.trim,...parts.flatMap(p=>[p.l,p.w]),
+   ...stocks.flatMap(s=>[s.l,s.w])];
+  let scale=1;
+  for(const v of values){
+   if(!Number.isFinite(v)||v<0)return done('unknown');
+   let d=1;
+   while(d<=1000000&&Math.round(v*d)!==v*d)d*=10;
+   if(d>1000000)return done('unknown');
+   scale=Math.max(scale,d);
+  }
+  const grid=values.map(v=>Math.round(v*scale));
+  if(grid.some((v,i)=>!Number.isSafeInteger(v)||v/scale!==values[i]))
+   return done('unknown');
+  let at=0;const k=grid[at++],trim=grid[at++];
+  const pieces=parts.map(p=>({p,l:grid[at++],w:grid[at++]}));
+  const types=stocks.map((s,i)=>({s,W:grid[at+i*2]-2*trim,
+   H:grid[at+i*2+1]-2*trim})).filter(t=>t.s.qty>0&&t.W>0&&t.H>0);
+  const n=pieces.length;
+  if(!n||n>12||limit<1)return done('unknown');
+  const full=(1<<n)-1,area=new Array(full+1).fill(0);
+  for(let m=1;m<=full;m++){
+   const bit=m&-m,i=31-Math.clz32(bit);
+   area[m]=area[m^bit]+pieces[i].l*pieces[i].w;
+  }
+  function tick(){
+   nodes++;
+   if(nodes>maxNodes||(nodes%128===0&&Date.now()>=deadline)){
+    interrupted=true;return false
+   }
+   return true
+  }
+  const cutMemo=types.map(()=>new Map()),coverMemo=new Map();
+  function fits(mask,t){
+   const type=types[t],memo=cutMemo[t];
+   if(area[mask]>type.W*type.H)return false;
+   for(let i=0;i<n;i++)if(mask&(1<<i)&&!compatible(pieces[i].p,type.s))
+    return false;
+   function cut(sub,W,H){
+    const key=sub+':'+W+':'+H;
+    if(memo.has(key))return memo.get(key);
+    if(!tick())return null;
+    if(W<=0||H<=0||area[sub]>W*H){memo.set(key,false);return false}
+    if((sub&(sub-1))===0){
+     const i=31-Math.clz32(sub),p=pieces[i];
+     const yes=orientations(p.p).some(o=>{
+      const w=o.rotated?p.w:p.l,h=o.rotated?p.l:p.w;
+      return w<=W&&h<=H&&(w===W||W-w>=k)&&(h===H||H-h>=k)
+     });
+     memo.set(key,yes);return yes
+    }
+    for(let axis=0;axis<2;axis++){
+     const side=axis===0?W:H;
+     for(let x=1;x+k<side;x++)
+      for(let a=(sub-1)&sub;a;a=(a-1)&sub){
+       const b=sub^a;
+       if(!b)continue;
+       const left=axis===0?cut(a,x,H):cut(a,W,x);
+       if(left===null)return null;
+       if(!left)continue;
+       const right=axis===0?cut(b,W-x-k,H):cut(b,W,H-x-k);
+       if(right===null)return null;
+       if(right){memo.set(key,true);return true}
+      }
+    }
+    // Leading scrap strips are necessary for exhaustive physical search.
+    for(let axis=0;axis<2;axis++){
+     const side=axis===0?W:H;
+     for(let kept=side-k-1;kept>0;kept--){
+      const found=axis===0?cut(sub,kept,H):cut(sub,W,kept);
+      if(found===null)return null;
+      if(found){memo.set(key,true);return true}
+     }
+    }
+    memo.set(key,false);return false
+   }
+   return cut(mask,type.W,type.H)
+  }
+  function cover(mask,qty,left){
+   if(!tick())return null;
+   if(!mask)return true;
+   if(!left)return false;
+   const key=mask+':'+left+':'+qty.join(',');
+   if(coverMemo.has(key))return coverMemo.get(key);
+   const first=mask&-mask;
+   for(let t=0;t<types.length;t++)if(qty[t]>0)
+    for(let sub=mask;sub;sub=(sub-1)&mask){
+     if(!(sub&first))continue;
+     const fit=fits(sub,t);
+     if(fit===null)return null;
+     if(!fit)continue;
+     qty[t]--;
+     const rest=cover(mask^sub,qty,left-1);
+     qty[t]++;
+     if(rest===null)return null;
+     if(rest){coverMemo.set(key,true);return true}
+    }
+   coverMemo.set(key,false);return false
+  }
+  const answer=cover(full,types.map(t=>Math.min(t.s.qty,limit)),limit);
+  return done(interrupted||answer===null?'unknown':answer?'feasible':'infeasible')
+ }
+
  // Finite exhaustive subset dynamic programming, using a sound Pareto skyline
  // of (width,height). Dominated patterns can be deleted for *feasibility*
  // proofs, but construction failure cannot be used as infeasibility evidence.
@@ -197,8 +306,13 @@ const GuillotineExact=(()=>{
   }
   const quantities=usable.map(s=>Math.min(s.qty,boardLimit));
   const answer=cover(full,quantities,boardLimit);
-  if(limited||answer===null||answer==='unknown')
-   return {status:'unknown',nodes,elapsedMs:Date.now()-started,layout:null};
+  if(limited||answer===null)return end('unknown');
+  if(answer==='unknown'){
+   if(Date.now()>=deadline||nodes>=maxNodes)return end('unknown');
+   const physical=physicalDecision(parts,stocks,boardLimit,cfg,deadline,maxNodes-nodes);
+   return {status:physical.status==='infeasible'?'infeasible':'unknown',
+    nodes:nodes+physical.nodes,elapsedMs:Date.now()-started,layout:null};
+  }
   if(answer===false)return {status:'infeasible',nodes,elapsedMs:Date.now()-started,layout:null};
   return {status:'feasible',nodes,elapsedMs:Date.now()-started,layout:answer}
  }

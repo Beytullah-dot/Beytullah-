@@ -672,3 +672,40 @@ tüm regresyonlar, Pages ve yayın baytları doğrulansın.
 Master SHA'sında Optimizer, Geometry ve Pages workflow sonuçları
 ayrıca kontrol edilecek. Bu PR yalnızca teşhis testi, CI raporu ve
 handoff belgesidir; üretim JS motoru değiştirilmedi.
+
+### 20 Kasım 2026 — Fiziksel tam-ızgara imkânsızlık kanıtı, PR #15
+
+- `docs/guillotine-exact.js`: Pareto/relaksasyon bir kesim
+  ağacına dönüştürülemeyip `unknown` olduğunda, kalan işlem
+  ve zaman bütçesinde tam sayı ızgaralı ikinci karar araması çalışır.
+  Bütün olası tam giyotin kesimlerini ve önce atık şerit çıkarma
+  adımlarını kapsar. Tam tükenmiş arama `infeasible` sertifikası
+  verebilir; bulunan uygunluk için fiziksel kesim planı üretmediğinden
+  yalnız `unknown` döndürür. Bütçe ve güvenilir ölçü temsili yoksa
+  `unknown` korunur. Parça/levha sayısına yeni genel sınır eklenmedi;
+  mevcut exact Worker kapsamı değişmedi.
+- Bağımsız küçük iş census, PR #15 GitHub Optimizer Verification
+  artifact `proof-gaps.json`: **133/133** mümkün küçük işte
+  bağımsız minimum levha yerleşimi ve **133/133** motor minimum
+  levha kanıtı; önce 120/133, açık vaka **0**. Oracle UNKNOWN 0.
+  Bu istatistik yalnız bu 133 mümkün küçük iş kümesinindir.
+- Daha önce ayrılmış kesirli 36 holdout: 25 mümkün, 11 imkânsız;
+  mümkünlerde kanıt **25/25** (önce 24/25). Giyotin ve Worker
+  regresyonları yerel PASS. GitHub PR CI optimizer testinde
+  bütün test aşamaları başarılı olarak raporlandı.
+- Eski `sliver` testi artık tam fiziksel karar aramasının
+  sertifikalandırdığı `infeasible` sonucunu bekler.
+  `UNKNOWN` asla otomatik `infeasible` yapılmaz.
+- Bu değişiklik minimum **levha sayısı** kanıtını geliştirir;
+  minimum brüt fire veya minimum kayıtlı stok maliyetini
+  kanıtlamaz. Üretim stokları, Supabase ve veri şeması değişmedi.
+- **Açık:** PR #15 merge/master CI/Pages doğrulaması; farklı
+  geometrilerde yeni bağımsız holdout; büyük karma işlerde
+  13 açık kanıt; fire/maliyet hedeflerinin ayrılması; gerçek
+  iPhone/Safari, canlı JS baytları, çok kullanıcı stok kabulü.
+  **Motor mühürlenmedi.**
+
+**Sohbet devri:** Kullanıcı uzun sohbetlerde uyarılmak, güncel
+handoff hazırlanmasını ve yeni sohbet için tek kopyalanabilir
+devam promptu verilmesini istiyor. Devamda önce bu dosya,
+AGENTS.md, GitHub master HEAD ve CI kontrol edilmeli.

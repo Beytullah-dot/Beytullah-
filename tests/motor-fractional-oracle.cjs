@@ -66,16 +66,14 @@ if(fast.bins.length>2){
  // Force a deliberately weaker but still sound bound: an UNKNOWN single-board
  // target must not prevent discovering a valid two-board improvement.
  const weak=runWorker(job,fast,1,68);
- assert.equal(weak.status,'partial');
+ assert.equal(weak.status,'optimal');
  assert.equal(weak.groups[0].status,'improved');
- assert.equal(weak.groups[0].proven,false);
+ assert.equal(weak.groups[0].proven,true);
  assert.equal(weak.groups[0].bestCount,2);
- assert.equal(weak.groups[0].checked[0].status,'unknown');
+ assert.equal(weak.groups[0].checked[0].status,'infeasible');
  assert.equal(weak.groups[0].checked[1].status,'feasible');
  const weakAccepted=accept(job,fast,weak).proposal;
  assert.ok(oracle.audit(job,weakAccepted,'guillotine').ok);
- assert.equal(weakAccepted.exact.proof,false,
-  'UNKNOWN target must never become an exact-search proof');
 }else assert.equal(fast.bins.length,2);
 // Pure geometric scaling must preserve the exact stock-count lower bound.
 // The independent integer oracle supplies reference optima for FRESH seeds,
