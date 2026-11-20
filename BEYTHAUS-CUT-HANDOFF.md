@@ -1,7 +1,7 @@
 # Beythaus Cut — Proje devamlılık kaydı
 
 > **Bu belge yeni sohbetler için tek başlangıç noktasıdır.**
-> Son güncelleme: **20 Kasım 2026 (Türkiye)**.
+> Son güncelleme: **21 Kasım 2026 (Türkiye)**.
 > Kaynak depo: https://github.com/Beytullah-dot/Beytullah-
 > Canlı uygulama: https://beytullah-dot.github.io/Beytullah-/
 > Yayın dalı: `master`; GitHub Pages kaynak dizini: `/docs`.
@@ -156,9 +156,25 @@ masaüstü uyumlu bir web/PWA; yalın, işlev odaklı arayüz.
   `authenticated` için açık, `anon` için kapalıdır. RLS korumalı
   tablolara doğrudan istemci yazma yetkisi verilmez.
 
-## D. Güncel teknik durum — 20 Kasım 2026
+## D. Güncel teknik durum — 21 Kasım 2026
 
-**Doğrulanmış:**
+**Güncel master (PR #17 sonrası):** `f06bb23d8aefc52796f0a19910978d8efcba4a8e`.
+Seçilen **minimum brüt fire** / **minimum kayıtlı stok maliyeti** hedefi
+kullanıcının hesaplama öncesi tercihi olarak UI/heuristic/Worker akışında
+çalışıyor. Brüt alan, kayıtlı fiyat ve minimum stok adet kanıtları birbirinden
+ayrı tutuluyor; fiziksel giyotin ağacı bağımsız denetleniyor. `UNKNOWN`
+hiçbir zaman optimumluk sertifikası değil. PR #17:
+https://github.com/Beytullah-dot/Beytullah-/pull/17
+
+**Master teslim kapıları (21 Kasım):** Pages run `44839331617` SUCCESS;
+Optimizer Verification `44839332426` SUCCESS;
+iPhone WebKit emülasyonu `44839332340` SUCCESS;
+Geometry `44839332354` ilk denemede Docker Postgres geçici-açılış
+bağlantı yarışında başarısız, **attempt 2 SUCCESS**. Bu hata motor regresyonu
+değil test altyapısının hazırlık yarışıydı; düzeltme PR #18 kapsamındadır.
+Gerçek iPhone/Safari ve canlı JS içerik baytları ayrıca doğrulanmadı.
+
+**Doğrulanmış (tarihsel sürüm):**
 - Mevcut uygulama GitHub Pages'te `master/docs` yoluyla yayında.
 - Önceki geliştirme PR'ı **#1 birleştirildi**:
   https://github.com/Beytullah-dot/Beytullah-/pull/1
@@ -374,7 +390,34 @@ masaüstü uyumlu bir web/PWA; yalın, işlev odaklı arayüz.
 
 ## E. Son tamamlanan adım / sıradaki adım
 
-**Son tamamlanan (20 Kasım):** PR #5 sonrasındaki `78afc8e` temelinden
+**Son tamamlanan (21 Kasım):** PR #17, `master` birleştirme
+SHA `f06bb23d8aefc52796f0a19910978d8efcba4a8e`.
+Ana kesim hesaplama hedefi artık `area` veya `cost` olarak seçiliyor;
+hızlı plan ve karma otomatik dağıtım hedefi izliyor, kesin Worker
+seçili hedefe göre çalışıyor ve maliyet/alan sertifikaları birbirine
+çevrilmiyor. İyileşen fiziksel yerleşim yalnız bağımsız giyotin
+denetiminden sonra uygulanıyor, stok düşülmüyor.
+BENG02 WebKit: 40 parça, denetlenmiş **6 levha**;
+2.001 parçalı mobil seri PDF doğrulandı.
+PR CI dörtte dört SUCCESS. Master Pages/WebKit/Optimizer SUCCESS;
+master Geometry ilk Docker başlangıç yarışından sonra tekrar çalışmada
+SUCCESS. Güvenlik sınırı: tüm karma otomatik malzeme atamaları
+kanıtlanmadan yalnız bir dağılımın kesin sonucu küresel
+optimum diye gösterilmez.
+
+**Sıradaki adım (21 Kasım):** Büyük heterojen stok/pozitif kerf/
+yüksek adet işlerinde seçili `area` veya `cost` hedefi için
+kanıtlı alt sınırı güçlendir, kapanmayan optimality gap'i raporla;
+önce yerleştirilebilir tam giyotin çözümü bul, sonra pattern/
+dominance/branch-and-price veya doğrulanabilir MILP/CP-SAT yöntemiyle
+kapsamı büyüt. Sabit maksimum parça/levha sayısı koyma;
+`UNKNOWN` imkânsızlık veya optimumluk değildir.
+Gerçek Safari, üretim verisinden bağımsız TEST stokla 2 kullanıcı
+UAT, server-side kesim ağacı tekrar denetimi ayrıca açık.
+PR #18: https://github.com/Beytullah-dot/Beytullah-/pull/18
+yalnız CI PostgreSQL final-server readiness ve handoff düzeltmesi.
+
+**Önceki tamamlanan (20 Kasım):** PR #5 sonrasındaki `78afc8e` temelinden
 dengesiz blok onarımı ve işe ait testere payının kullanılması geliştirildi.
 `deeper-pattern-0` 158/158 parça, 148 kesim, minimum 10 levha kanıtlı.
 11/11 temel ve 34/34 stres işi tam. Resmî 2DPackLib BENG ailesinde sabit yön,
@@ -765,3 +808,63 @@ PR kontrolü son sorguda sürüyordu; merge SHA'sı Pages/CI
 sonuçları ayrıca doğrulanmalı. Canlı kullanıcı arayüzü hâlâ
 `objective=area` seçimini göndermiyor: yeni API kodda var,
 kullanıcıya sunulan bir özellik olduğu iddia edilmemeli.
+
+### 21 Kasım 2026 — UI hedefi → gerçek kesin arama, PR #17 birleştirme ve PR #18 CI dayanıklılığı
+
+- **Kod birleştirme:** [PR #17](https://github.com/Beytullah-dot/Beytullah-/pull/17);
+  `master` SHA `f06bb23d8aefc52796f0a19910978d8efcba4a8e`.
+  Önceki sürüm geri dönüş dalı:
+  `release-backup/pre-objective-ui-2026-11-21` →
+  `ebf519d248a0cd6fa34ab7118d6cdbb6a2b7d260`.
+- **Kullanıcı ana hedefi:** `state.objective='area'|'cost'` hesaplamadan önce
+  kalıcı seçiliyor; `sanitize`, `syncSettings`, yerleştirme motorunun
+  `compare` ve `packAttempt` sıralamaları, otomatik malzeme
+  dağıtımındaki `area` adayı, kesin Worker çağrısı ve sonuç kabulü
+  aynı seçime bağlı. `area` tam levha brüt alanını minimize eder;
+  sabit parça net alanı ile brüt fireye denktir. `cost` gerçek kayıtlı
+  stok bedelini minimize eder. Varsayımsal artık değeri ikisine dahil değil.
+- **Sertifika ve üretim:** `acceptEconomyWorkerResult` hedef kimliğini,
+  hedefe özel `bestArea/bestCost` hesabını, tüm parçaları, stok
+  adedini ve fiziksel giyotin kesim ağacını bağımsız yeniden denetler.
+  Worker `UNKNOWN`, zaman veya düğüm bütçesinde durursa **optimum
+  iddiası yok**; geçerli aday/alt sınır ayrı korunur. Bilinmeyen fiyat
+  `area` kanıtını tek başına engellemez, `cost` optimumu kanıtlanmaz.
+  Minimum levha sayısı araması ikincil olarak korunur; seçili alan/maliyeti
+  artıran sayı alternatifi sessizce uygulanmaz. Küresel `count` sertifikası
+  ile yalnız mevcut otomatik dağılıma koşullu sertifika ayrıdır.
+  Plan değişirse eski global sertifikalar sıfırlanır.
+- **Bağımsız test:** `tests/selected-objective-flow.cjs` ayrı oracle ile
+  2×50×100 mm parçada 100×100 mm/100 TL ile 2×60×100 mm/25 TL
+  ayrışan optimumları; sahte hedef değeri/kesim ağacı reddini,
+  bilinmeyen fiyatı ve karma malzeme koşullu kanıtı sınar.
+  `tests/ios-webkit-acceptance.cjs` hesaplama öncesi `area`
+  seçimini, alternatif hedefi, 6 levhalık BENG02 kesimini ve mobil
+  2.001 parçalı seri PDF'yi doğrular.
+- **Yayın testleri:** PR #17 son commit'i `a4b47b84a7f4cfa5dac85fb368826ee7d5925f57`
+  üzerinde dört CI SUCCESS:
+  Optimizer `44839162381`, Geometry `44839162424`,
+  Uncapped research `44839162345`, WebKit `44839162343`.
+  Merge/master üzerinde Pages `44839331617`, Optimizer
+  `44839332426`, WebKit `44839332340` SUCCESS.
+  Geometry `44839332354` attempt 1 Postgres geçici açılış
+  bağlantı yarışı yüzünden FAIL, **attempt 2 SUCCESS**.
+  [PR #18](https://github.com/Beytullah-dot/Beytullah-/pull/18)
+  test konteynerinin **final** PostgreSQL açılışını bekleyen korumayı
+  ve bu handoff'u taşır; PR #18'in merge/CI durumu ayrıca doğrulanmalı.
+- **Mevcut matematiksel sınır:** Etkin alan/maliyet kesin giyotin
+  Worker aramasında küçük malzeme grupları için mevcut hesap bütçesi
+  (yaklaşık 10 tekil parça, 3 stok türü, 7 başlangıç stoğu ve
+  süre/düğüm bütçeleri) vardır. Bunlar **kullanıcının parça veya levha
+  giriş tavanı değildir**; kapsamı aşan iş için `UNKNOWN` kalabilir.
+  Çok büyük tekrarlı işler ayrıca tamsayılı alan, stok-adedi,
+  testere paylı eş-parça kapasitesi ve giyotin blok/seri desen
+  sertifikalarıyla kanıtlanabilir. Önceki 133/133 küçük levha
+  minimumu **yalnız minimum levha sayısı** içindir; bu sayı
+  genel maliyet/fire optimum oranı değildir.
+- **Açık araştırma:** 20–25+ farklı stoklu, pozitif kerf ve farklı
+  fiyatlı yeni bağımsız holdout; yüksek adetli giyotin pattern
+  generation/dominance/MILP veya branch-and-price;
+  karma otomatik tüm malzeme atamaları için ortak alt sınır ve
+  açık optimality gap; zaman/bellek/iPhone ölçümü.
+  Motor henüz mühürlenmedi. Supabase şeması/üretim kayıtları,
+  fiziksel stoklar ve gerçek müşteri verileri **değiştirilmedi**.
