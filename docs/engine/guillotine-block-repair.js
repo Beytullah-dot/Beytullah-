@@ -83,6 +83,137 @@
   }
   return {nodes,merges,rounds};
  }
+ // Candidate search: rebuild full-sheet binary slicing patterns from
+ // complementary exact rectangles. This enumerates local 2, 4 and 8
+ // piece patterns irrespective of the TOTAL project piece count.
+ // The resource limit interrupts pattern discovery, never user input.
+ function exactSheetPatterns(items,stocks,cfg,deadline){
+  const leaves=items.map((p,i)=>({
+   ...orientations(p,0,()=>.5),mask:1n<<BigInt(i),indices:[i]
+  }));
+  const usable=stocks.map(s=>({
+   stock:s,w:s.l-2*cfg.trim,h:s.w-2*cfg.trim
+  })).filter(s=>s.stock.qty>0&&s.w>0&&s.h>0);
+  if(!usable.length)return [];
+  const fit=(w,h)=>usable.some(s=>w<=s.w+EPS&&h<=s.h+EPS);
+  const atEdge=(w,h)=>usable.some(s=>eq(w,s.w)||eq(h,s.h));
+  const all=[],seen=new Set(),maxCandidates=24000;
+  function candidate(a,b,axis){
+   if((a.mask&b.mask)!==0n)return;
+   if(axis==='x'?!eq(a.h,b.h):!eq(a.w,b.w))return;
+   const node=joinBlocks(a,b,axis,cfg.kerf);
+   if(!fit(node.w,node.h))return;
+   node.mask=a.mask|b.mask;
+   node.indices=a.indices.concat(b.indices);
+   const key=node.mask.toString(36)+':'+Math.round(node.w*1e5)+
+    ':'+Math.round(node.h*1e5);
+   if(seen.has(key))return;
+   seen.add(key);
+   return node
+  }
+  function completed(node){
+   for(let stockIndex=0;stockIndex<usable.length;stockIndex++){
+    const ref=usable[stockIndex];
+    if(eq(node.w,ref.w)&&eq(node.h,ref.h))
+     all.push({node,stock:ref.stock,stockIndex,mask:node.mask,
+      indices:node.indices,count:node.indices.length})
+   }
+  }
+  const pairs=[];
+  for(let i=0;i<leaves.length&&Date.now()<deadline;i++){
+   for(let j=i+1;j<leaves.length;j++){
+    for(const axis of ['x','y']){
+     const p=candidate(leaves[i],leaves[j],axis);
+     if(p){pairs.push(p);completed(p)}
+    }
+   }
+  }
+  if(Date.now()>=deadline)return all;
+  const quads=[];
+  // Neighboring sibling blocks share a full side. Only keep quartets
+  // that already span a stock width OR stock height. This is a strong,
+  // physically meaningful pruning rule, not a false feasibility proof.
+  for(let i=0;i<pairs.length&&Date.now()<deadline&&quads.length<maxCandidates;i++){
+   for(let j=i+1;j<pairs.length;j++){
+    for(const axis of ['x','y']){
+     const p=candidate(pairs[i],pairs[j],axis);
+     if(!p||!atEdge(p.w,p.h))continue;
+     quads.push(p);completed(p);
+     if(quads.length>=maxCandidates)break
+    }
+    if(quads.length>=maxCandidates)break
+   }
+  }
+  if(Date.now()>=deadline)return all;
+  for(let i=0;i<quads.length&&Date.now()<deadline&&all.length<maxCandidates;i++){
+   for(let j=i+1;j<quads.length;j++){
+    for(const axis of ['x','y']){
+     const p=candidate(quads[i],quads[j],axis);
+     if(p)completed(p);
+     if(all.length>=maxCandidates)break
+    }
+    if(all.length>=maxCandidates)break
+   }
+  }
+  return all
+ }
+ function selectPatterns(patterns,stocks,items,trial){
+  if(!patterns.length)return [];
+  const rand=randomSeed(9027+trial*317);
+  const frequency=new Uint32Array(items.length);
+  for(const p of patterns)for(const i of p.indices)frequency[i]++;
+  const ranked=patterns.map(p=>({
+   ...p,priority:p.count*1000+
+    p.indices.reduce((sum,i)=>sum+1/Math.max(1,frequency[i]),0)*250+
+    rand()*(trial===0?1:240)
+  })).sort((a,b)=>b.priority-a.priority);
+  const quantities=new Map(),used=new Set(),chosen=[];
+  for(const p of ranked){
+   if((quantities.get(p.stock.id)||0)>=p.stock.qty)continue;
+   if(p.indices.some(i=>used.has(i)))continue;
+   chosen.push(p);quantities.set(p.stock.id,(quantities.get(p.stock.id)||0)+1);
+   for(const i of p.indices)used.add(i)
+  }
+  return chosen
+ }
+ function tryWholePatterns(items,stocks,cfg,trial,deadline,packAttempt,binCost,auditCutPlan,baseline,compare){
+  const patterns=exactSheetPatterns(items,stocks,cfg,deadline);
+  if(!patterns.length)return {candidate:null,found:0,patterns:0};
+  let best=baseline,bestFound=0;
+  for(let variant=0;variant<5&&Date.now()<deadline;variant++){
+   const chosen=selectPatterns(patterns,stocks,items,variant+trial);
+   if(!chosen.length)continue;
+   const used=new Set(),counts=new Map(),premade=[];
+   for(const c of chosen){
+    for(const index of c.indices)used.add(index);
+    counts.set(c.stock.id,(counts.get(c.stock.id)||0)+1);
+    premade.push({stock:c.stock,free:[],cuts:[],
+     placed:[{_block:c.node,x:cfg.trim,y:cfg.trim,
+      w:c.node.w,h:c.node.h}]})
+   }
+   const rest=items.filter((_,i)=>!used.has(i));
+   const left=stocks.map(s=>({...s,qty:s.qty-(counts.get(s.id)||0)}))
+    .filter(s=>s.qty>0);
+   const remaining=rest.length?packAttempt(rest,left,cfg,variant*3+trial):
+    {bins:[],unplaced:[]};
+   const raw={bins:[...premade,...remaining.bins],
+    unplaced:remaining.unplaced};
+   const candidate=expand(raw,items,cfg);
+   if(!candidate)continue;
+   candidate.stockArea=candidate.bins.reduce((sum,b)=>sum+b.stock.l*b.stock.w,0);
+   candidate.unknownCostBins=candidate.bins.filter(b=>binCost(b.stock,cfg)===null).length;
+   candidate.cost=candidate.unknownCostBins?null:
+    candidate.bins.reduce((sum,b)=>sum+binCost(b.stock,cfg),0);
+   if(compare(candidate,best)>=0)continue;
+   const audit=auditCutPlan(candidate,{parts:items,stocks,
+    kerf:cfg.kerf,trim:cfg.trim});
+   if(!audit.ok)continue;
+   best=candidate;bestFound=chosen.length
+   if(!candidate.unplaced.length)break
+  }
+  return {candidate:best===baseline?null:best,found:bestFound,
+   patterns:patterns.length}
+ }
  function flatten(tree,output){
   if(tree.leaf){output.push(tree.piece);return}
   flatten(tree.a,output);flatten(tree.b,output)
@@ -116,13 +247,13 @@
   for(const original of raw.bins){
    const bin={...original,placed:[],cuts:original.cuts.slice()};
    for(const p of original.placed){
-    if(!p._block)return null;
+    if(!p._block){bin.placed.push(p);continue}
     emit(bin,p._block,{x:p.x,y:p.y,w:p.w,h:p.h})
    }
    bins.push(bin)
   }
   for(const p of raw.unplaced){
-   if(!p._block)return null;
+   if(!p._block){unplaced.push(p);continue}
    flatten(p._block,unplaced)
   }
   const actualParts=items.length-unplaced.length;
@@ -130,9 +261,10 @@
    partArea:bins.reduce((sum,b)=>sum+
     b.placed.reduce((s,p)=>s+p.w*p.h,0),0)}
  }
- function createRepair({packAttempt,auditCutPlan,compare}={}){
+ function createRepair({packAttempt,auditCutPlan,compare,binCost}={}){
   if(typeof packAttempt!=='function'||typeof auditCutPlan!=='function'||
-    typeof compare!=='function')throw Error('Block repair dependencies missing.');
+    typeof compare!=='function'||typeof binCost!=='function')
+   throw Error('Block repair dependencies missing.');
   function repair(items,stocks,cfg,baseline,{timeBudgetMs=650,maxAttempts=18}={}){
    const started=Date.now(),deadline=started+timeBudgetMs;
    const info={status:'no-improvement',trials:0,candidates:0,
@@ -140,6 +272,17 @@
    let best=baseline;
    if(!items.length||!stocks.length||!baseline.unplaced.length||
       cfg.mode!=='guillotine')return {solution:baseline,info};
+   const patternDeadline=Math.min(deadline,started+Math.round(timeBudgetMs*.75));
+   const reconstructed=tryWholePatterns(items,stocks,cfg,0,patternDeadline,
+    packAttempt,binCost,auditCutPlan,baseline,compare);
+   info.patternCandidates=reconstructed.patterns;
+   info.fullBlocks=reconstructed.found;
+   if(reconstructed.candidate)best=reconstructed.candidate;
+   if(!best.unplaced.length){
+    info.status='improved';info.rescued=baseline.unplaced.length;
+    info.elapsedMs=Date.now()-started;
+    return {solution:best,info}
+   }
    for(let tr=0;tr<maxAttempts&&Date.now()<deadline;tr++){
     const constructed=build(items,stocks,cfg,tr,deadline);
     info.trials++;
@@ -172,7 +315,8 @@
    }
    info.rescued=Math.max(0,baseline.unplaced.length-best.unplaced.length);
    info.elapsedMs=Date.now()-started;
-   if(info.trials===maxAttempts)info.status=info.rescued?'improved':'completed';
+   if(info.rescued)info.status='improved';
+   else if(info.trials===maxAttempts)info.status='completed';
    else if(Date.now()>=deadline&&!info.rescued)info.status='time-limit';
    return {solution:best,info}
   }
