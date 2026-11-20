@@ -123,7 +123,9 @@
     if(near(node.w,ref.w)&&near(node.h,ref.h)&&
        cuttable(dw)&&cuttable(dh))
      all.push({node,stock:ref.stock,stockIndex,mask:node.mask,
-      indices:node.indices,count:node.indices.length})
+      indices:node.indices,count:node.indices.length,
+      exact:dw<=EPS&&dh<=EPS,
+      slackRatio:Math.max(0,1-(node.w*node.h)/(ref.w*ref.h))})
    }
   }
   const pairs=[];
@@ -195,7 +197,8 @@
   const frequency=new Uint32Array(items.length);
   for(const p of patterns)for(const i of p.indices)frequency[i]++;
   const ranked=patterns.map(p=>({
-   ...p,priority:p.count*1000+
+   ...p,priority:(p.exact?1000000:0)-p.slackRatio*50000+
+    p.count*1000+
     p.indices.reduce((sum,i)=>sum+1/Math.max(1,frequency[i]),0)*250+
     rand()*(trial===0?1:240)
   })).sort((a,b)=>b.priority-a.priority);
