@@ -399,6 +399,14 @@ boy/en izdüşümüyle 4 levha kanıtlandı. BENG04 için şerit aramasıyla 11
 levha bulundu. BENG02 için 6–7 aralığı açık. 75 saniyelik bağımsız
 tamsayılı giyotin modelinde 6 levha hakkında karar alınamadı.
 
+**BENG02 kapandı (20 Kasım):** 40 parçanın alanı 1.420, beş adet 25×10
+levhanın alanı 1.250. Altı levhada bağımsız olarak doğrulanmış kesim ağacı
+var. Hızlı aşama 7 levha, arka plan Worker araması 6 levha üretiyor.
+Kayıtlı CP-SAT tanığı `tests/fixtures/beng02-cut-witness.json` yalnız testte
+kullanılıyor. Üretim kodu planı parça ölçülerinden yeniden buluyor.
+BENG ailesinde 10/10 tam ve minimum levha adedi kanıtlı; sıfır kerf,
+sabit yön ve tek stok ölçüsü. `node tests/motor-beng.cjs` ile tekrarlanır.
+
 **Son açık kullanıcı hedefi:** Önce matematiksel
 kesim motorunu tamamlama/mühürleme; kullanıcıya
 **keyfî bir maksimum parça veya levha sayısı
@@ -409,10 +417,11 @@ kullanılabilir kalmalı.
 
 **Sıradaki teknik adım:**
 
-1. BENG02 için 6 levhalık plan veya 6 levhayı dışlayan doğrulanabilir
-   sertifika ara. Güncel denetlenmiş plan 7 levha.
-2. Daha derin, orta doluluklu ve çok malzemeli saha benzeri işlerle,
-   bağımsız benchmark aileleriyle ve gerçek telefonda ölçüme devam et.
+1. Pozitif testere payı, kenar payı, farklı levha ölçüleri ve parça yönleri
+   birlikte kullanılan işlerde geçerli plan ve optimumluk açığını ölç.
+2. Eski formda normalize() toplam 1.500 parça sınırı içeriyor. Keyfî
+   sınır koymama ürün kararıyla uyuşmayan bu giriş yolunu, toplu adetleri
+   güvenle işleyebilen temsil ve gerçek telefon performansıyla ele al.
 3. Kullanıcının **hesaplama öncesi seçtiği**
    ana hedef: minimum **kayıtlı stok maliyeti**
    veya minimum **brüt fire**. Tek bir hedefin

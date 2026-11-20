@@ -166,3 +166,34 @@ orientations per axis, and applies only to equal-sized usable sheets. Strip
 repair searches homogeneous zero-kerf jobs; grid, trial and time budgets
 only limit this extra heuristic. The existing 3 mm repair remains covered
 by all 11 base and 34 seeded complete-plan tests.
+
+### BENG02 closed — independent six-sheet witness and browser search
+
+At fixed orientation, zero kerf and zero trim, the 40 pieces occupy 1,420
+square units. Each 25 × 10 sheet holds 250. Five sheets hold only 1,250;
+a complete six-sheet slicing tree therefore proves a minimum of six.
+
+An independent OR-Tools CP-SAT integer model counted full-edge horizontal
+and vertical splits of each integer-sized subrectangle. It started with
+six sheets and required one leaf of each requested item per source ID.
+The resulting witness is in `tests/fixtures/beng02-cut-witness.json`.
+Each tree node is [H or V, cut distance from the current rectangle's
+origin, first child, second child]. Integers denote original item IDs and
+null denotes waste. A separate replay checks all 40 leaves against the
+original BENG archive without running either search algorithm.
+
+The fast engine still supplies seven sheets. The shipped background worker
+constructs another six-sheet witness from dimensions and quantities alone.
+It scores tight bands, builds guillotine subpatterns, selects sheet patterns
+covering the core demand, and places remaining pieces into the residual
+rectangles. The UI checks every cut, rotation, quantity and residual before
+offering or applying the improvement. The search is bounded and applies to
+single-stock, zero-kerf jobs on suitable normalized integer grids. A search
+limit gives UNKNOWN. It never proves infeasibility. The existing budget,
+cancellation, and cost-increase/unknown-price confirmation paths still apply.
+
+Reproduce with `node tests/motor-beng.cjs`. On all ten original BENG jobs,
+the fast engine plus background improvement reaches the certified minimum
+count. The BENG02 gross unused area is 80 squared dataset units. This
+benchmark has no price data or positive saw kerf. Browser runtime depends
+on the device; CI WebKit coverage is separate from physical iPhone testing.

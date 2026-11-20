@@ -4,7 +4,7 @@
    Time/node exhaustion => 'unknown', NEVER a proof. */
 'use strict';
 const context=typeof self!=='undefined'?self:null;
-if(typeof importScripts==='function')importScripts('./engine/material-policy.js','./guillotine-exact.js','./economic-exact.js');
+if(typeof importScripts==='function')importScripts('./engine/material-policy.js','./engine/guillotine-pattern-cover.js','./guillotine-exact.js','./economic-exact.js');
 const canon=s=>String(s||'').trim().toLocaleLowerCase('tr-TR');
 const EPS=1e-7;
 const orientations=p=>(p.rotate&&(Math.abs(p.l-p.w)>EPS||!!p.grain)?
@@ -164,7 +164,18 @@ function run(job){
   const maxParts=job.mode==='guillotine'?11:14;
   const maxBoards=job.mode==='guillotine'?5:7;
   if(parts.length>maxParts||stocks.length>4||incumbent>maxBoards||incumbent<2){
-   g.status='scope-limited';allProven=false;continue
+   const cover=context?.BeythausPatternCover;
+   if(job.mode==='guillotine'&&cover&&stocks.length===1&&data.kerf===0){
+    const attempt=cover.feasible(parts,stocks,lower,data,deadline,maxNodes-nodes);
+    g.checked.push({boards:lower,status:attempt.status,nodes:attempt.nodes,method:'pattern-cover'});
+    nodes+=attempt.nodes;g.nodes+=attempt.nodes;
+    if(attempt.status==='feasible'&&attempt.layout.length===lower){
+     g.status='improved';g.bestCount=lower;g.layout=attempt.layout;g.proven=true;
+     continue
+    }
+    g.status='limit'
+   }else g.status='scope-limited';
+   allProven=false;continue
   }
   if(Date.now()>=deadline||nodes>=maxNodes){
    g.status='limit';allProven=false;continue
