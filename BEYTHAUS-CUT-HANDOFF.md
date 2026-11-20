@@ -616,3 +616,30 @@ brüt fire ile minimum kayıtlı maliyet için birbirinden ayır. Çok parçalı
 karma işlerde kalan 13 sertifika açığı ve seri plan üretim arşivi de açık.
 Canlı URL bayt kontrolü ve gerçek cihaz/saha kabulü yapılmadan bu iki
 konunun doğrulandığı iddia edilmez. **Motor mühürlenmedi.**
+
+### 20 Kasım 2026 — Optimumluk kanıtı açık küçük işlerin teşhisi (PR aşaması)
+
+- Önceki PR #13 sonunda bağımsız mümkün 133 küçük işte 133/133
+  minimum levha yerleşimi, 120/133 motor kanıtı vardı. Kanıt açığı
+  13 iş; bu sayı tek başına algoritmik kök neden teşhisi değildir.
+- Yeni `tests/motor-proof-gap-census.cjs`, 180 eski küçük tohumun
+  tamamını aynı bağımsız oracle ile tekrar üretir. 133 mümkün işte
+  kesim denetimi ve yanlış optimumluk iddiası kontrol edilir.
+  Her kanıtsız iş için indeks, tohum, ölçü ölçeği, parça sayısı,
+  testere/kenar payı, bağımsız minimum, motor levha sayısı,
+  matematiksel alt sınır, Worker hedeflerinin `infeasible` /
+  `unknown` / `feasible` durumları ve işlem sayısı raporlanır.
+- Yeni rapor, önceki sonuçların doğruluğunu varsaymak yerine
+  `133/133` yerleşim ve en az `120/133` kanıt regresyon eşiğini
+  bağımsız olarak kontrol eder. Test raporu CI artifact olarak
+  `proof-gaps.json` dosyasına eklenir.
+- Bu adım **teşhis altyapısıdır**; yeni alt sınır veya arama algoritması
+  henüz uygulanmadı. CI çalıştırılmadan yeni sonuç iddia edilmez.
+  Minimum brüt fire ve minimum kayıtlı stok maliyeti hâlâ ayrı hedeflerdir.
+  Motor mühürlenmedi. Supabase ve gerçek stok verisi değişmedi.
+
+**Sonraki işlem:** CI'dan gelen `proof-gaps.json` içinde özellikle
+`exact-unknown` ve `bound-or-search` ayrımını değerlendir.
+Kanıt açığının kök nedenine göre genel amaçlı, sound bir alt sınır
+veya kesim ağacı arama iyileştirmesi geliştir. Sonra yeni holdout,
+tüm regresyonlar, Pages ve yayın baytları doğrulansın.
