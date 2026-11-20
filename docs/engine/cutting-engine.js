@@ -495,7 +495,7 @@ function exactRefinePlan(initial,data,cfg){
  return done(result)
 }
 
-const blockRepair=blockRepairModule?.createRepair({packAttempt,auditCutPlan,compare});
+const blockRepair=blockRepairModule?.createRepair({packAttempt,auditCutPlan,compare,binCost});
 function optimize(data,enhanced=true,exact=true){const groups=new Map(),stockgroups=new Map();for(const p of data.parts){const key=mkey(p.material,p.t);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(p)}for(const s of data.stocks){const key=mkey(s.material,s.t);if(!stockgroups.has(key))stockgroups.set(key,[]);stockgroups.get(key).push(s)}let result={bins:[],unplaced:[],partArea:0,stockArea:0,cost:0,unknownCostBins:0,placedCount:0},search={baselineStockCount:0,savedStockCount:0,refinementAttempts:0,refinementSteps:0,offcutAttempts:0,offcutImprovements:0,offcutAreaGain:0,offcutTimeLimited:false},cfg={kerf:data.kerf,trim:data.trim,m3:data.m3,mode:state.mode,priceMode:state.priceMode};for(const [key,group]of groups){const stock=stockgroups.get(key)||[];let best=null;const trials=group.length<=35?144:group.length<=120?90:group.length<=400?40:14;for(let tr=0;tr<trials;tr++){const r=packAttempt(group,stock,cfg,tr);if(compare(r,best)<0)best=r;if(best?.unplaced.length===0&&best?.bins.length===1&&best.stockArea<=group.reduce((a,p)=>a+p.l*p.w,0)*1.005)break}search.baselineStockCount+=best.bins.length;
 const refined=enhanced?improveGroupPacking(best,group,cfg):{solution:best,attempts:0,improvements:0};
 search.refinementAttempts+=refined.attempts;search.refinementSteps+=refined.improvements;
