@@ -569,3 +569,50 @@ Gerçek fiziksel stokları kontrolsüz değiştirme.
 5. **MOTOR HENÜZ MÜHÜRLENMEDİ.** Sayım sertifikası fire veya maliyet
    optimumluğu belgesi değildir. Supabase production_v2'nin işlem başına
    100 levhası genel motor/parça kapasite sınırı olarak sunulmayacak.
+
+
+### PR #13 kesin yayın kaydı — 20 Kasım 2026
+
+- [PR #13](https://github.com/Beytullah-dot/Beytullah-/pull/13) master'a
+  **birleştirildi**. Birleştirme SHA:
+  `d8e51515da97f1d550266f3eadb3074b06dd2305`.
+- **Aynı birleştirme SHA'sında dört GitHub workflow SUCCESS:**
+  - Optimizer Verification:
+    https://github.com/Beytullah-dot/Beytullah-/actions/runs/44779208822
+  - Geometry Tests:
+    https://github.com/Beytullah-dot/Beytullah-/actions/runs/44779209182
+  - iPhone WebKit Acceptance Smoke **(emülasyon)**:
+    https://github.com/Beytullah-dot/Beytullah-/actions/runs/44779208903
+  - GitHub Pages build and deployment:
+    https://github.com/Beytullah-dot/Beytullah-/actions/runs/44779207062
+- Yayına konu `docs/engine/cutting-engine.js`, `docs/optimization-worker.js`
+  ve `docs/sw.js` dosyalarının, birlikte yüklenen test dosyası ve CI
+  workflow'unun **Git blob SHA'ları**, yerel regresyonu geçen kaynakların
+  SHA'ları ile **beş dosyada beşi de eşleşti**. Pages Actions dağıtımı
+  başarılı. **Canlı GitHub Pages URL'sindeki ham JavaScript baytları ise
+  bu ortamdan doğrudan alınamadığı için bayt eşleşmesi doğrulanamadı.**
+  Geçmiş PR sürümünün canlıda kaldığı da ileri sürülmemeli; ağ üzerinden
+  ayrı doğrulama açık kalır.
+- Tam bağımsız `fresh.cjs` audit paketi yeni motorla tekrar çalıştırıldı
+  (aynı 180 küçük + 36 tanıklı iş): 133 mümkün küçük işin
+  **133/133'ünde bağımsız minimum levha sayısı bulundu, 120/133'ünde
+  motor da kanıtladı** (önce 132/133 ve 111/133).
+  Tanıklı işler **36/36 tam, 26/36 kanıtlı**. Bu paketteki 47
+  imkânsız küçük iş başarı oranına katılmadı.
+- **Maliyet ve brüt fire optimumluğu değişik hedeflerdir.** Önceki
+  133 mümkün küçük işte ayrı sertifikalar: alan **64/133**,
+  maliyet **81/133**; minimum levha kanıtı bunları yükseltmez.
+- Ayrı, geliştirmede kullanılmamış küçük 36 tohumda **25 mümkün,
+  11 imkânsız, 0 oracle UNKNOWN, 24/25 levha sayısı kanıtlı**.
+  Ayrıca önceki asimetrik holdout **36/36 tam, 23/36 kanıtlı**.
+- Bu son durum değişikliği yalnız `BEYTHAUS-CUT-HANDOFF.md` dosyasına
+  yazılır; ürün kodu veya üretim/Supabase verisi değiştirilmez.
+
+**Şimdi sıradaki teknik öncelik:** minimum levha kanıtı açık kalan
+13 bağımsız küçük işin hangilerinde kesim araması `UNKNOWN`, hangilerinde
+alt sınır gevşek teşhis et; yanlış kanıt üretmeyen genel amaçlı kesme/
+pattern alt sınırlarını güçlendir. Aynı anda arama hedeflerini minimum
+brüt fire ile minimum kayıtlı maliyet için birbirinden ayır. Çok parçalı
+karma işlerde kalan 13 sertifika açığı ve seri plan üretim arşivi de açık.
+Canlı URL bayt kontrolü ve gerçek cihaz/saha kabulü yapılmadan bu iki
+konunun doğrulandığı iddia edilmez. **Motor mühürlenmedi.**
