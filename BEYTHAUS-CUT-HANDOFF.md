@@ -441,6 +441,15 @@ ve 1 son levha doğruladı. 104×104 mm stok, 22×22 mm parça, 2 mm kenar ve
 kesimlerini tekrar yürüttü. Geometri, optimizasyon ve ölçek CI başarılı.
 Seri yol fiziksel stok veya artık kaydı üretmez; gerçek cihaz kabulü açıktır.
 
+**PR #11 yayını (20 Kasım):** [Karma seri kesim](https://github.com/Beytullah-dot/Beytullah-/pull/11)
+`3db35b5b02cd90cf3c3cd291149589c5638b05c8` ile master dalına birleşti.
+[Pages](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44729624696)
+yayınında index.html, quantity-plan.js ve sw.js kaynakla bayt düzeyinde eşleşti.
+[Mobil WebKit](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44729625332)
+indirilen PDF'deki YAN, TABAN, yönler ve 751 levhalık tekrarı denetledi.
+[Motor ve ölçek testleri](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44729430911)
+başarılı. Karma atölye senaryoları 26/26 eksiksiz, 16/26 kanıtlı.
+
 **Sıradaki teknik adım:**
 
 1. Tek tam stoktan farklı etiket/ölçü/yöndeki yüksek adetli parça satırları,
