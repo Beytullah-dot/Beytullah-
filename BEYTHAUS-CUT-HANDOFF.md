@@ -429,6 +429,18 @@ koyma**. 25 levha sadece gerçek atölye proje
 arama UNKNOWN kalabilir ama fiziksel plan varsa
 kullanılabilir kalmalı.
 
+**PR #10 — seri kesim yayını (20 Kasım):** [PR #10](https://github.com/Beytullah-dot/Beytullah-/pull/10)
+`913edd97fecddb6b071a24c6e66cea348d05353d` ile master dalına birleşti.
+[Pages](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44728732110)
+yayınından alınan index.html, quantity-plan.js ve sw.js kaynakla bayt düzeyinde eşleşti.
+[PR WebKit](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44728554956)
+mobil hesaplama ve indirilen PDF'nin metninde 2.001 parça, 125 tekrarlı levha
+ve 1 son levha doğruladı. 104×104 mm stok, 22×22 mm parça, 2 mm kenar ve
+3 mm testere payında genişletilmiş alan sınırı levha başına 16 parçadır;
+126 levha minimumdur. Bağımsız küçük şerit deneyi 18.069 yerleşimin
+kesimlerini tekrar yürüttü. Geometri, optimizasyon ve ölçek CI başarılı.
+Seri yol fiziksel stok veya artık kaydı üretmez; gerçek cihaz kabulü açıktır.
+
 **Sıradaki teknik adım:**
 
 1. Tek parça satırı ve tek stok için yüksek adetli, tam milimetreli seri
