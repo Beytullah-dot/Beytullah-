@@ -107,6 +107,8 @@ async function main() {
   assert.ok(policy.allow.includes('uat-A'), 'Included stock must remain selectable');
   assert.ok(!policy.allow.includes('uat-B'), 'Excluded stock must not be selectable');
   assert.ok(!policy.stocks.includes('uat-B'), 'Excluded stock must not enter optimizer');
+  await page.locator('#objectiveSegment [data-objective="area"]').click();
+  assert.equal(await page.evaluate(()=>window.BeythausCut.getState().objective),'area');
   // In phone layout the desktop run button is intentionally hidden.
   await page.locator('#mobileRunBtn').click();
   await page.waitForFunction(() =>
@@ -118,7 +120,7 @@ async function main() {
   }));
   assert.equal(audited.audit?.ok, true, 'Production plan must pass independent cut audit');
   assert.deepEqual(audited.quantities, [1, 1], 'Calculating must not consume stock');
-  for (const choice of ['minimum', 'economic']) {
+  for (const choice of ['economic', 'area']) {
     await page.locator('#autoPlanChoice [data-choice="' + choice + '"]').click();
   }
   await page.waitForFunction(() => {
@@ -129,7 +131,7 @@ async function main() {
       cost?.classList.contains('is-proven') &&
       count?.classList.contains('is-proven');
   }, null, { timeout });
-  console.log('PASS 5: Explicit stock exclusion, audited cut, two plan choices, independently certified cost and area, no stock consumption');
+  console.log('PASS 5: Pre-run selected gross area, explicit stock exclusion, audited alternative goals and no stock consumption');
 
   // Drive the actual form, worker and result acceptance using only local test stock.
   const beng=require('node:child_process').execFileSync('python3',['-c',
