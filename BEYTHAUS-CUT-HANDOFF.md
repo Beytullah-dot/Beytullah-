@@ -616,3 +616,51 @@ brüt fire ile minimum kayıtlı maliyet için birbirinden ayır. Çok parçalı
 karma işlerde kalan 13 sertifika açığı ve seri plan üretim arşivi de açık.
 Canlı URL bayt kontrolü ve gerçek cihaz/saha kabulü yapılmadan bu iki
 konunun doğrulandığı iddia edilmez. **Motor mühürlenmedi.**
+
+### 20 Kasım 2026 — Optimumluk kanıtı açık küçük işlerin teşhisi (PR aşaması)
+
+- Önceki PR #13 sonunda bağımsız mümkün 133 küçük işte 133/133
+  minimum levha yerleşimi, 120/133 motor kanıtı vardı. Kanıt açığı
+  13 iş; bu sayı tek başına algoritmik kök neden teşhisi değildir.
+- Yeni `tests/motor-proof-gap-census.cjs`, 180 eski küçük tohumun
+  tamamını aynı bağımsız oracle ile tekrar üretir. 133 mümkün işte
+  kesim denetimi ve yanlış optimumluk iddiası kontrol edilir.
+  Her kanıtsız iş için indeks, tohum, ölçü ölçeği, parça sayısı,
+  testere/kenar payı, bağımsız minimum, motor levha sayısı,
+  matematiksel alt sınır, Worker hedeflerinin `infeasible` /
+  `unknown` / `feasible` durumları ve işlem sayısı raporlanır.
+- Yeni rapor, önceki sonuçların doğruluğunu varsaymak yerine
+  `133/133` yerleşim ve en az `120/133` kanıt regresyon eşiğini
+  bağımsız olarak kontrol eder. Test raporu CI artifact olarak
+  `proof-gaps.json` dosyasına eklenir.
+- Bu adım **teşhis altyapısıdır**; yeni alt sınır veya arama algoritması
+  henüz uygulanmadı. CI çalıştırılmadan yeni sonuç iddia edilmez.
+  Minimum brüt fire ve minimum kayıtlı stok maliyeti hâlâ ayrı hedeflerdir.
+  Motor mühürlenmedi. Supabase ve gerçek stok verisi değişmedi.
+
+**Sonraki işlem:** CI'dan gelen `proof-gaps.json` içinde özellikle
+`exact-unknown` ve `bound-or-search` ayrımını değerlendir.
+Kanıt açığının kök nedenine göre genel amaçlı, sound bir alt sınır
+veya kesim ağacı arama iyileştirmesi geliştir. Sonra yeni holdout,
+tüm regresyonlar, Pages ve yayın baytları doğrulansın.
+
+**CI teşhis sonucu (Optimizer Verification run 44785879435 — SUCCESS):**
+- Orijinal 180 bağımsız küçük işin 133'ü mümkün; 133/133 bağımsız
+  minimum levha bulundu, 120/133 motor kanıtı üretildi; oracle UNKNOWN 0.
+- Açık 13 işin **tamamında** Worker hedefi `unknown`; 13/13
+  `exact-unknown`, 0 `scope-limited`, 0 yalnız `bound-or-search`.
+  Hepsinde motorun mevcut levha sayısı bağımsız optimumla eşit,
+  fakat matematiksel alt sınır tam **bir levha** daha gevşek.
+- İndeksler: 0, 7, 11, 32, 36, 75, 78, 113, 127, 135,
+  163, 166, 170. Tam yeniden üretilebilir vaka girdileri ve
+  hedef başına düğüm sayıları CI `proof-gaps.json` artifact'inde.
+- `unknown` çoğu vakada düşük düğüm sayısıyla (78–2787) oluştu;
+  yalnız süre veya 500.000 düğüm sınırına takılma açıklaması
+  desteklenmiyor. `guillotine-exact.js` içindeki geometrik
+  Pareto adayının `cutPlan` aşamasında kurulamaması nedeniyle
+  `ambiguous` işaretlenmesi ve gerçek uygulanabilirliği
+  etkilemeyen çok küçük atık kesimlerinin ele alınışı
+  sonraki kök neden incelemesidir.
+- CI: https://github.com/Beytullah-dot/Beytullah-/actions/runs/44785879435
+  (başarılı). Üretim motoru değiştirilmedi; gerçek stok ve
+  Supabase etkilenmedi.

@@ -41,6 +41,8 @@ jobs:
         run: node tests/geometric-bounds.cjs
       - name: Verify fractional kerf bounds and unused independent cases
         run: node tests/motor-fractional-oracle.cjs
+      - name: Diagnose independent small-job optimum proof gaps
+        run: MOTOR_GAP_JSON=proof-gaps.json node tests/motor-proof-gap-census.cjs
       - name: Verify background exact Worker against reference oracle
         run: node tests/optimization-worker.cjs
       - name: Verify exact guillotine cut trees and proofs
@@ -60,5 +62,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: optimizer-independent-validation
-          path: optimization-report.json
+          path: |
+            optimization-report.json
+            proof-gaps.json
           if-no-files-found: warn
