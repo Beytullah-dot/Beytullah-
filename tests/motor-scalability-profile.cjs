@@ -23,7 +23,7 @@ const engine=root.BeythausCutEngine.createEngine({
  fmt:(v,n=0)=>Number(v).toFixed(n)
 });
 function rng(seed){let x=seed>>>0;return()=>{x^=x<<13;x^=x>>>17;x^=x<<5;return (x>>>0)/4294967296}}
-function makeCase({name,boards,depth,variable=false,rotate=false,seed=1}){
+function makeCase({name,boards,depth,variable=false,rotate=false,seed=1,margin=0}){
  const random=rng(seed),material='panel|benchmark',kerf=3;
  const definitions=variable?[
   {l:1200,w:800,price:1080},{l:1400,w:900,price:1540},
@@ -56,7 +56,8 @@ function makeCase({name,boards,depth,variable=false,rotate=false,seed=1}){
  for(let board=0;board<boards;board++){
   const choice=variable?board%definitions.length:0;
   quantities[choice]++;
-  partition({...definitions[choice]},depth,board,0)
+  partition({...definitions[choice],l:definitions[choice].l-margin,
+   w:definitions[choice].w-margin},depth,board,0)
  }
  // Deterministic Fisher-Yates shuffle. Input order must NOT reveal
  // which pieces were extracted from the same stock.
