@@ -11,7 +11,11 @@ const same=(a,b)=>Math.abs(a-b)<=EPS;
 const material=x=>String(x||'').trim().toLocaleLowerCase('tr-TR');
 const bitcount=x=>{let n=0;while(x){n++;x&=x-1}return n};
 const onebit=x=>x>0&&(x&(x-1))===0;
-const options=p=>p.rotate&&p.l!==p.w?[[p.l,p.w],[p.w,p.l]]:[[p.l,p.w]];
+function options(p){
+ if(p.grain==='width')return p.rotate?[[p.w,p.l]]:[];
+ if(p.grain==='length'||!p.rotate||p.l===p.w)return [[p.l,p.w]];
+ return [[p.l,p.w],[p.w,p.l]]
+}
 const compatible=(part,stock)=>material(part.material)===material(stock.material)&&
  (part.t==null||(stock.t!=null&&same(part.t,stock.t)));
 
@@ -85,7 +89,8 @@ function solve(data,mode,{maxNodes=4500000}={}){
    if(W<=0||H<=0||masksArea[sub]>W*H){guillotineCache.set(key,false);return false}
    if(onebit(sub)){
     const i=31-Math.clz32(sub);
-    const yes=options(parts[i]).some(([l,w])=>l<=W&&w<=H);
+    const trimmable=gap=>gap===0||gap>=k;
+    const yes=options(parts[i]).some(([l,w])=>trimmable(W-l)&&trimmable(H-w));
     guillotineCache.set(key,yes);return yes;
    }
    // Every full guillotine tree partitions the remaining items across
@@ -106,6 +111,17 @@ function solve(data,mode,{maxNodes=4500000}={}){
        }
       }
       left=(left-1)&sub;
+     }
+    }
+   }
+   // With kerf > one grid unit a leading scrap cut can change which
+   // exact-size leaves are reachable. Enumerate all smaller retained plates.
+   if(k>1){
+    for(const vertical of [true,false]){
+     const side=vertical?W:H;
+     for(let kept=side-k;kept>0;kept--){
+      const found=vertical?cut(sub,kept,H):cut(sub,W,kept);
+      if(found!==false){if(found)guillotineCache.set(key,true);return found}
      }
     }
    }
@@ -176,6 +192,8 @@ function audit(data,result,mode){
    if(!compatible(original,stock))fail('Material/thickness incompatible');
    const expected=options(original).some(([w,h])=>eq(w,piece.w)&&eq(h,piece.h));
    if(!expected)fail('Piece geometry changed');
+   if(original.grain==='width'&&!piece.rotated||original.grain==='length'&&piece.rotated)
+    fail('Piece direction changed');
    if(![piece.x,piece.y,piece.w,piece.h].every(finite)||
     piece.x<trim-EPS||piece.y<trim-EPS||
     piece.x+piece.w>stock.l-trim+EPS||piece.y+piece.h>stock.w-trim+EPS)

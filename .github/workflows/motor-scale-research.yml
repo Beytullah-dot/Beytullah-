@@ -25,6 +25,8 @@ jobs:
         run: node tests/motor-repair-stress.cjs
       - name: Audit fixed-orientation guillotine plans for all ten BENG instances
         run: node tests/motor-beng.cjs
+      - name: Audit mixed workshop jobs and compare small cases with exhaustive search
+        run: node tests/motor-workshop.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
