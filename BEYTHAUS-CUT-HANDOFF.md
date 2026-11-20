@@ -709,3 +709,17 @@ handoff belgesidir; üretim JS motoru değiştirilmedi.
 handoff hazırlanmasını ve yeni sohbet için tek kopyalanabilir
 devam promptu verilmesini istiyor. Devamda önce bu dosya,
 AGENTS.md, GitHub master HEAD ve CI kontrol edilmeli.
+
+**PR #15 merge kaydı:** [PR #15](https://github.com/Beytullah-dot/Beytullah-/pull/15)
+`master` dalına `19303c2aad7fd4f9d11a3e39b421b726ff6fc648`
+SHA ile birleştirildi. PR öncesi GitHub CI:
+Optimizer Verification `44790444946` SUCCESS,
+Geometry Tests `44790444936` SUCCESS,
+Uncapped scale research `44790444860` SUCCESS.
+Optimizer artifact `proof-gaps.json`: 133 optimum/133 kanıt,
+0 açık vaka. PR iPhone WebKit smoke başlatılmıştı;
+master SHA'sındaki Pages, optimizer, geometry, WebKit sonuçları
+ayrıca doğrulanacak. Canlı JS baytları ve gerçek iPhone test
+edilmiş sayılmamalı. Bir sonraki geliştirmede büyük karma işler,
+minimum brüt fire ve minimum kayıtlı maliyet sertifikaları ayrı
+ölçülecek; motor mühürlenmedi.
