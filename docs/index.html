@@ -1758,6 +1758,8 @@ function startExactWorker(data,initial){
  const groupCounts=new Map();
  for(const p of data.parts){const key=mkey(p.material);groupCounts.set(key,(groupCounts.get(key)||0)+1)}
  const eligible=[...groupCounts].some(([key,count])=>
+  (state.mode==='guillotine'&&data.kerf===0&&
+   data.stocks.filter(s=>mkey(s.material)===key&&s.qty>0).length===1)||
   count<=(state.mode==='guillotine'?11:14)&&
   data.stocks.filter(s=>mkey(s.material)===key&&s.qty>0).length<=4&&
   initial.bins.filter(b=>mkey(b.stock.material)===key).length<=(state.mode==='guillotine'?5:7));
@@ -1949,6 +1951,9 @@ function launchEconomyAfterCount(data,plan){
 }
 function startEconomyWorker(data,initial){
  cancelEconomySearch(true);
+ if(data.parts.some(p=>p.grain)){
+  economySearchStatus('Damar kısıtıyla minimum maliyet kesinliği henüz desteklenmiyor.','warning');return
+ }
  if(initial.unplaced.length||!initial.bins.length){
   economySearchStatus('Eksik parçalar bulunduğu için minimum maliyet kanıtlanamıyor.','warning');
   return
@@ -2101,7 +2106,7 @@ function run(){
     if(errors.length)throw Error(errors.join(' '));
     showResult(data,sol);
     if(sol.unplaced.length)toast(sol.unplaced.length+' parça yerleştirilemedi.');
-    if(data.parts.some(p=>p.grain)||data.stocks.some(s=>s.grain)){
+    if(state.mode!=='guillotine'&&data.parts.some(p=>p.grain)){
      exactSearchStatus('Damar kısıtı için kesin arama henüz desteklenmiyor; plan doğrulandı, optimumluk kanıtlanmadı.','warning');
      economySearchStatus('Damar kısıtıyla minimum maliyet kesinliği henüz kanıtlanmadı.','warning');
     }else startExactWorker(data,sol);

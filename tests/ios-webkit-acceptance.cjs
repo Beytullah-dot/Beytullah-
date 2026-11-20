@@ -130,6 +130,28 @@ async function main() {
   }, null, { timeout });
   console.log('PASS 5: Explicit stock exclusion, audited cut, two plan choices, independently certified cost and area, no stock consumption');
 
+  // Drive the actual form, worker and result acceptance using only local test stock.
+  const beng=require('node:child_process').execFileSync('unzip',['-p',
+    require('node:path').join(__dirname,'fixtures/2dpacklib-beng.zip'),
+    'BENG/BENG/BENG02.ins2D'],{encoding:'utf8'}).trim().split(/\r?\n/)
+    .slice(2).map(line=>line.split(/\s+/).map(Number));
+  await page.evaluate(rows=>{
+    const app=window.BeythausCut,d=app.defaultData();
+    Object.assign(d,{unit:'mm',mode:'guillotine',materialMode:'single',
+      singleCategory:'panel',singleMaterial:'BENG02',kerf:0,trim:0});
+    const common={t:18,category:'panel',material:'BENG02'};
+    d.parts=rows.map(([id,l,w])=>({...common,id:'p'+id,label:'P'+id,
+      l,w,qty:1,grain:'length',rotate:false}));
+    d.stocks=[{...common,id:'sheet',l:25,w:10,qty:40,priceUnit:'panel',price:1}];
+    app.setState(d);
+  },beng);
+  await page.locator('#mobileRunBtn').click();
+  await page.waitForFunction(()=>{
+    const audit=window.BeythausCut.getLastAudit();
+    return audit?.ok&&audit.checkedStocks===6&&audit.checkedParts===40;
+  },null,{timeout});
+  assert.equal(await page.evaluate(()=>window.BeythausCut.getState().stocks[0].qty),40);
+  console.log('PASS: BENG02 from mobile calculation through background search and audited six-sheet result');
   await page.reload({ waitUntil: 'load' });
   await page.waitForFunction(() => Boolean(window.BeythausCutWorkspace), null, { timeout });
   assert.equal(await page.locator('#bhDrawerHandle').getAttribute('aria-expanded'), 'false');

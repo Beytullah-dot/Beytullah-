@@ -19,7 +19,7 @@ for(const name of ['material-policy.js','optimality-certificate.js',
 const state={mode:'guillotine',priceMode:'panel',kerf:3,trim:0,
  offcutMinEdgeMm:50,offcutMinAreaCm2:100};
 const engine=root.BeythausCutEngine.createEngine({
- getState:()=>state,val:Number,mkey:(mat,t)=>String(mat).trim().toLocaleLowerCase('tr-TR')+'|'+t,
+ getState:()=>state,val:Number,mkey:mat=>String(mat).trim().toLocaleLowerCase('tr-TR'),
  fmt:(v,n=0)=>Number(v).toFixed(n)
 });
 function rng(seed){let x=seed>>>0;return()=>{x^=x<<13;x^=x>>>17;x^=x<<5;return (x>>>0)/4294967296}}
