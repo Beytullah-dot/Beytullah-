@@ -67,13 +67,14 @@ function applyFit(bin,it,fit,cfg,splitVariant){
 function packAttempt(items,stocks,cfg,trial){const ordered=orderParts(items,trial),bins=[],unplaced=[],used={},suffix=new Array(ordered.length+1).fill(0);for(let k=ordered.length-1;k>=0;k--)suffix[k]=suffix[k+1]+ordered[k].l*ordered[k].w;const variant=Math.floor(trial/2)%5,splitVariant=Math.floor(trial/5)%4,stockSelect=Math.floor(trial/7)%4;
 for(let idx=0;idx<ordered.length;idx++){const it=ordered[idx];let match=null;for(let bi=0;bi<bins.length;bi++){const fit=findFit(bins[bi],it,variant,cfg);if(fit&&(!match||fit.score<match.fit.score))match={bin:bins[bi],fit}}if(match){applyFit(match.bin,it,match.fit,cfg,splitVariant);continue}
 let choices=[];for(const s of stocks){if(used[s.id]>=s.qty||s.qty===0)continue;const tmp=mkBin(s,cfg.trim);if(tmp.w<=0||tmp.h<=0)continue;const fit=findFit(tmp,it,variant,cfg);if(!fit)continue;const remainingArea=suffix[idx];const usableArea=tmp.w*tmp.h;const cost=binCost(s,cfg),missingCost=cost===null,rankCost=cost??0;let rank;
-if(cfg.objective==='minimum'&&stockSelect===0)rank=-Math.min(remainingArea,usableArea);
+if(cfg.objective==='area')rank=s.l*s.w+(usableArea-it.l*it.w)*.0000001;
+ else if(cfg.objective==='minimum'&&stockSelect===0)rank=-Math.min(remainingArea,usableArea);
 else if(stockSelect===0)rank=rankCost+(usableArea-it.l*it.w)*.000001;
 else if(stockSelect===1)rank=Math.ceil(remainingArea/usableArea)*Math.max(rankCost,1)+usableArea*.0000001;
 else if(stockSelect===2)rank=usableArea;
 else rank=(Math.ceil(remainingArea/usableArea)*Math.max(rankCost,1))+(Math.abs(remainingArea-usableArea)*.000001);
 choices.push({s,tmp,fit,rank,missingCost})}
-choices.sort((a,b)=>(cfg.objective==='minimum'&&stockSelect===0?0:Number(a.missingCost)-Number(b.missingCost))||a.rank-b.rank||a.s.order-b.s.order);if(!choices.length){unplaced.push(it);continue}let c=choices[0];used[c.s.id]=(used[c.s.id]||0)+1;applyFit(c.tmp,it,c.fit,cfg,splitVariant);bins.push(c.tmp)}
+choices.sort((a,b)=>(cfg.objective==='area'||cfg.objective==='minimum'&&stockSelect===0?0:Number(a.missingCost)-Number(b.missingCost))||a.rank-b.rank||a.s.order-b.s.order);if(!choices.length){unplaced.push(it);continue}let c=choices[0];used[c.s.id]=(used[c.s.id]||0)+1;applyFit(c.tmp,it,c.fit,cfg,splitVariant);bins.push(c.tmp)}
 const unknownCostBins=bins.filter(b=>binCost(b.stock,cfg)===null).length,cost=unknownCostBins?null:bins.reduce((sum,b)=>sum+binCost(b.stock,cfg),0),stockArea=bins.reduce((sum,b)=>sum+b.stock.l*b.stock.w,0),partArea=bins.reduce((sum,b)=>sum+b.placed.reduce((a,p)=>a+p.w*p.h,0),0);return{bins,unplaced,cost,unknownCostBins,stockArea,partArea,placedCount:items.length-unplaced.length}}
 
 function offcutThresholds(){
@@ -98,6 +99,9 @@ function salvageAreaForSolution(result){
 
 function compare(a,b,objective){if(!b)return-1;
 if(a.unplaced.length!==b.unplaced.length)return a.unplaced.length-b.unplaced.length;
+if(objective==='area'&&Math.abs(a.stockArea-b.stockArea)>1e-5)return a.stockArea-b.stockArea;
+if(objective==='area'&&a.bins.length!==b.bins.length)return a.bins.length-b.bins.length;
+if(objective==='area')return a.cost!==null&&b.cost!==null&&Math.abs(a.cost-b.cost)>.01?a.cost-b.cost:0;
 if(objective==='minimum'&&a.bins.length!==b.bins.length)return a.bins.length-b.bins.length;
 if(a.unknownCostBins!==b.unknownCostBins)return a.unknownCostBins-b.unknownCostBins;
 if(a.cost!==null&&b.cost!==null&&Math.abs(a.cost-b.cost)>.01)return a.cost-b.cost;
