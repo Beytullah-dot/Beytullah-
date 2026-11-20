@@ -409,6 +409,16 @@ kullanılıyor. Üretim kodu planı parça ölçülerinden yeniden buluyor.
 BENG ailesinde 10/10 tam ve minimum levha adedi kanıtlı; sıfır kerf,
 sabit yön ve tek stok ölçüsü. `node tests/motor-beng.cjs` ile tekrarlanır.
 
+**Karma atölye ölçümü (20 Kasım):** Pozitif testere ve kenar payı, üç
+stok ebadı, sonlu adet ve üç parça yönü birlikte sınandı. İki iş hem masif
+hem panel içeriyor. 26/26 tam ve denetlenmiş; 16/26 minimum levha kanıtlı,
+10 işte fark 1–4. 399 parçalık işte kerf içeren alan alt sınırı 25'e
+ulaştı. 12 küçük tam tarama referansı motorla eşleşti. Ayrıntılı tablo ve
+tekrar komutu: `tests/MOTOR-WORKSHOP-RESULTS.md`.
+Kaydedilmiş projelerdeki 250 parça satırı, 100 stok satırı ve 800 seçili
+stok kimliği sonrasında sessiz veri kesilmesi giderildi. Doğrudan motor
+yük deneyi ile formun aktif girdi sınırları ayrı raporlandı.
+
 **Son açık kullanıcı hedefi:** Önce matematiksel
 kesim motorunu tamamlama/mühürleme; kullanıcıya
 **keyfî bir maksimum parça veya levha sayısı
@@ -419,11 +429,12 @@ kullanılabilir kalmalı.
 
 **Sıradaki teknik adım:**
 
-1. Pozitif testere payı, kenar payı, farklı levha ölçüleri ve parça yönleri
-   birlikte kullanılan işlerde geçerli plan ve optimumluk açığını ölç.
-2. Eski formda normalize() toplam 1.500 parça sınırı içeriyor. Keyfî
-   sınır koymama ürün kararıyla uyuşmayan bu giriş yolunu, toplu adetleri
-   güvenle işleyebilen temsil ve gerçek telefon performansıyla ele al.
+1. Adetleri toplu taşıyan temsil: formda halen 1.500 toplam parça,
+   parça satırında 2.000 ve stok satırında 99.999 adet doğrulaması var.
+   Yüksek tekrarlı işleri tek tek belleğe açmadan normalleştir,
+   yerleştir ve fiziksel kesim ağacını denetle; mobil ve PDF yolunu ölç.
+2. Karma işlerde en geniş açık `planted-6`: 100 parça, 19 levha alt sınırı,
+   23 levha denetlenmiş plan. Daha sıkı alt sınır veya daha iyi plan ara.
 3. Kullanıcının **hesaplama öncesi seçtiği**
    ana hedef: minimum **kayıtlı stok maliyeti**
    veya minimum **brüt fire**. Tek bir hedefin

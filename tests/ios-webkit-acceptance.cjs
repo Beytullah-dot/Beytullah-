@@ -161,8 +161,23 @@ async function main() {
   });
   assert.equal(await page.evaluate(()=>window.BeythausCut.getState().stocks[0].qty),40);
   console.log('PASS: BENG02 from mobile calculation through background search and audited six-sheet result');
+  // Save and reopen just beyond the former silent row truncation points.
+  await page.evaluate(()=>{
+    const app=window.BeythausCut,d=app.getState();
+    d.parts=Array.from({length:251},(_,i)=>({...d.parts[0],id:'row-'+i}));
+    d.stocks=Array.from({length:101},(_,i)=>({...d.stocks[0],id:'stock-'+i}));
+    d.allowedStockIds=Array.from({length:801},(_,i)=>'old-stock-'+i).concat('stock-100');
+    d.materialMode='auto';
+    app.setState(d)
+  });
   await page.reload({ waitUntil: 'load' });
   await page.waitForFunction(() => Boolean(window.BeythausCutWorkspace), null, { timeout });
+  const reopened=await page.evaluate(()=>{
+    const app=window.BeythausCut,d=app.getState(),job=app.normalize();
+    return [d.parts.length,d.parts.at(-1).id,d.stocks.length,d.stocks.at(-1).id,
+      d.allowedStockIds.length,job.parts.length,job.stocks.map(s=>s.id),job.errors]
+  });
+  assert.deepEqual(reopened,[251,'row-250',101,'stock-100',802,251,['stock-100'],[]]);
   assert.equal(await page.locator('#bhDrawerHandle').getAttribute('aria-expanded'), 'false');
   await page.locator('#bhDrawerHandle').click();
   assert.equal(await page.locator('#bhDrawerHandle').getAttribute('aria-expanded'), 'true');
