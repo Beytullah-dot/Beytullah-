@@ -1854,6 +1854,9 @@ function startExactWorker(data,initial){
     initial.exact=outcome.proposal.exact;
     const checked=auditCutPlan(initial,data);
     initial.stockProof=certifyStockCount(initial,data,checked);
+    if(state.materialMode==='auto')initial.stockProof={...initial.stockProof,
+     proven:false,method:'conditional-material-assignment',
+     reason:'Kesin levha sayısı araması yalnız seçilmiş malzeme dağılımını kapsar; tüm karma atamalar kanıtlanmadı.'};
     byId('optimalityRow').textContent=stockProofDescription(initial.stockProof);
     byId('optimalityRow').classList.toggle('is-proven',initial.stockProof.proven)
    }
