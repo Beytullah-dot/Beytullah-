@@ -167,7 +167,7 @@ const sliver=context.GuillotineExact.feasible(
  [{id:'stock',l:50,w:100,t:null,material:'MDF',qty:1}],
  1,{kerf:2,trim:0},Date.now()+5000,50000
 );
-assert.equal(sliver.status,'unknown','Uncuttable residual is not a proof');
+assert.equal(sliver.status,'infeasible','Exhaustive physical-grid proof rejects an uncuttable residual');
 
 assert.ok(improvements>=1,'Must demonstrate at least one guillotine stock saving');
 console.log('Exact guillotine validation: '+fixtures.length+' reference scenarios + '+largeProofs+' larger analytical proofs; '+
