@@ -1315,7 +1315,7 @@ function certifyLargePlan(data,plan){
   if(response.type!=='certificate'){
    costLine.textContent='Küresel maliyet optimumluğu: hesaplama tamamlanmadı.';syncSelectedObjectiveProof(plan);return
   }
-  plan.globalAreaProof=response.area;plan.globalCostProof=response.cost;
+  plan.globalAreaProof=response.area;plan.globalCostProof=response.cost;plan.globalCountProof=response.count;
   if(response.count?.proven&&state.materialMode==='auto'){
    plan.stockProof={...plan.stockProof,proven:true,
     lowerBound:response.count.lowerBound,method:'global-integer-cover',
@@ -1854,9 +1854,14 @@ function startExactWorker(data,initial){
     initial.exact=outcome.proposal.exact;
     const checked=auditCutPlan(initial,data);
     initial.stockProof=certifyStockCount(initial,data,checked);
-    if(state.materialMode==='auto')initial.stockProof={...initial.stockProof,
-     proven:false,method:'conditional-material-assignment',
-     reason:'Kesin levha sayısı araması yalnız seçilmiş malzeme dağılımını kapsar; tüm karma atamalar kanıtlanmadı.'};
+    if(state.materialMode==='auto'){
+     const global=initial.globalCountProof;
+     initial.stockProof=global?.proven===true?{...initial.stockProof,
+      proven:true,lowerBound:global.lowerBound,method:'global-integer-cover',
+      reason:'Tüm uygun stokların gevşetilmiş alt sınırı mevcut fiziksel planın stok sayısına eşittir.'}:
+      {...initial.stockProof,proven:false,method:'conditional-material-assignment',
+       reason:'Kesin levha sayısı araması yalnız seçilmiş malzeme dağılımını kapsar; tüm karma atamalar kanıtlanmadı.'}
+    }
     byId('optimalityRow').textContent=stockProofDescription(initial.stockProof);
     byId('optimalityRow').classList.toggle('is-proven',initial.stockProof.proven)
    }
