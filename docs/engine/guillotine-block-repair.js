@@ -349,7 +349,7 @@
    candidate.unknownCostBins=candidate.bins.filter(b=>binCost(b.stock,cfg)===null).length;
    candidate.cost=candidate.unknownCostBins?null:
     candidate.bins.reduce((sum,b)=>sum+binCost(b.stock,cfg),0);
-   if(compare(candidate,best)>=0)return;
+   if(compare(candidate,best,cfg.objective)>=0)return;
    const audit=auditCutPlan(candidate,{parts:items,stocks,
     kerf:cfg.kerf,trim:cfg.trim});
    if(!audit.ok)return;
@@ -481,7 +481,7 @@
      info.candidates++;
      const raw=packAttempt(blockItems,stocks,cfg,tr*7+attempt);
      const candidate=expand(raw,items,cfg);
-     if(!candidate||compare(candidate,best)>=0)continue;
+     if(!candidate||compare(candidate,best,cfg.objective)>=0)continue;
      const audited=auditCutPlan(candidate,{
       parts:items,stocks,kerf:cfg.kerf,trim:cfg.trim
      });

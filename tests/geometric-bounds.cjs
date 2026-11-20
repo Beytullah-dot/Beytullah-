@@ -50,6 +50,13 @@ verify({name:'mixed stock types permit one board',
 verify({name:'sampled bound remains conservative for 200 pieces',
  parts:Array.from({length:200},(_,i)=>piece(i,60,60)),
  stocks:[stock(0,100,100,210)],lower:160,area:72,geometry:160});
+const tall=Array.from({length:4},(_,i)=>({...piece(i,3,6),rotate:false}));
+const boundFor=(parts,stocks)=>engine.minStockCountLowerBound({parts,stocks,kerf:0,trim:0});
+assert.equal(boundFor(tall,[stock(0,10,10)]).method,'half-span');
+assert.equal(boundFor(tall,[stock(0,10,10)]).lowerBound,2);
+assert.equal(boundFor(tall.map(p=>({...p,rotate:true})),[stock(0,10,10)]).lowerBound,1);
+assert.equal(boundFor(tall,[stock(0,10,10),stock(1,12,10)]).lowerBound,1);
+assert.equal(boundFor(tall.map(p=>({...p,w:5})),[stock(0,10,10)]).lowerBound,1);
 const data={parts:Array.from({length:25},(_,i)=>piece(i,60,60)),
  stocks:[stock(0,100,100,30)],kerf:0,trim:0,m3:1};
 const solution=engine.optimize(data,true);

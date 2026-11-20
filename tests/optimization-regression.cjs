@@ -55,7 +55,7 @@ for(let i=0;i<cases.length;i++){
   let ref,plan,appCheck,independent,certificate;
   try{
    ref=solve(data,mode,{maxNodes:4500000});
-   plan=engine.optimize(data,true);
+   plan=engine.optimize(data,true,true,'minimum');
    appCheck=engine.auditCutPlan(plan,data);
    independent=audit(data,plan,mode);
    certificate=engine.certifyStockCount(plan,data,appCheck);

@@ -34,6 +34,10 @@ for (let index = 1; index <= 10; index++) {
  // from this zero-kerf job. Four bins have an audited witness.
  if (index === 1) assert.ok(plan.bins.length <= 4);
  const proof = engine.certifyStockCount(plan,data,audit);
+ if (index === 1 || index === 4) {
+  assert.equal(proof.proven,true,name+' must meet a certified lower bound');
+  assert.equal(plan.bins.length,index === 1 ? 4 : 11,name);
+ }
  const area = parts.reduce((total,p)=>total+p.l*p.w,0);
  console.log(JSON.stringify({name,parts:parts.length,boards:plan.bins.length,
   lowerBound:proof.lowerBound,proven:proof.proven,grossWaste:plan.bins.length*l*w-area,
