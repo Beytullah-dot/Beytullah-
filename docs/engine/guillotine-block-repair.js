@@ -96,7 +96,9 @@
   })).filter(s=>s.stock.qty>0&&s.w>0&&s.h>0);
   if(!usable.length)return [];
   const fit=(w,h)=>usable.some(s=>w<=s.w+EPS&&h<=s.h+EPS);
-  const atEdge=(w,h)=>usable.some(s=>eq(w,s.w)||eq(h,s.h));
+  const near=(size,side)=>size<=side+EPS&&
+   size>=side-Math.max(24,side*.025);
+  const atEdge=(w,h)=>usable.some(s=>near(w,s.w)||near(h,s.h));
   const all=[],seen=new Set(),maxCandidates=24000;
   function candidate(a,b,axis){
    if((a.mask&b.mask)!==0n)return;
@@ -114,7 +116,12 @@
   function completed(node){
    for(let stockIndex=0;stockIndex<usable.length;stockIndex++){
     const ref=usable[stockIndex];
-    if(eq(node.w,ref.w)&&eq(node.h,ref.h))
+    const dw=ref.w-node.w,dh=ref.h-node.h;
+    // A residual outer strip is physically cuttable only when the
+    // available gap can accommodate an entire saw kerf.
+    const cuttable=v=>v>=-EPS&&(v<=EPS||v+EPS>=cfg.kerf);
+    if(near(node.w,ref.w)&&near(node.h,ref.h)&&
+       cuttable(dw)&&cuttable(dh))
      all.push({node,stock:ref.stock,stockIndex,mask:node.mask,
       indices:node.indices,count:node.indices.length})
    }
@@ -157,6 +164,31 @@
   }
   return all
  }
+ function makeRootBlock(stock,node,cfg){
+  const bin={stock,free:[],cuts:[],placed:[]};
+  let rect={x:cfg.trim,y:cfg.trim,
+   w:stock.l-2*cfg.trim,h:stock.w-2*cfg.trim};
+  function crop(axis,size){
+   const vertical=axis==='vertical',dimension=vertical?rect.w:rect.h;
+   const gap=dimension-size,k=cfg.kerf;
+   if(gap<=EPS)return true;
+   if(gap<k-EPS)return false;
+   const at=(vertical?rect.x:rect.y)+size+k/2;
+   bin.cuts.push({axis,at,source:{...rect},number:bin.cuts.length+1,
+    label:'Kenar kesimi',
+    x1:vertical?at:rect.x,y1:vertical?rect.y:at,
+    x2:vertical?at:rect.x+rect.w,y2:vertical?rect.y+rect.h:at});
+   const rem=Math.max(0,gap-k);
+   if(rem>EPS)bin.free.push(vertical?
+    {x:rect.x+size+k,y:rect.y,w:rem,h:rect.h}:
+    {x:rect.x,y:rect.y+size+k,w:rect.w,h:rem});
+   rect=vertical?{...rect,w:size}:{...rect,h:size};
+   return true
+  }
+  if(!crop('vertical',node.w)||!crop('horizontal',node.h))return null;
+  bin.placed.push({_block:node,x:rect.x,y:rect.y,w:node.w,h:node.h});
+  return bin
+ }
  function selectPatterns(patterns,stocks,items,trial){
   if(!patterns.length)return [];
   const rand=randomSeed(9027+trial*317);
@@ -187,9 +219,9 @@
    for(const c of chosen){
     for(const index of c.indices)used.add(index);
     counts.set(c.stock.id,(counts.get(c.stock.id)||0)+1);
-    premade.push({stock:c.stock,free:[],cuts:[],
-     placed:[{_block:c.node,x:cfg.trim,y:cfg.trim,
-      w:c.node.w,h:c.node.h}]})
+    const rootBin=makeRootBlock(c.stock,c.node,cfg);
+    if(!rootBin)return {candidate:null,found:0,patterns:patterns.length};
+    premade.push(rootBin)
    }
    const rest=items.filter((_,i)=>!used.has(i));
    const left=stocks.map(s=>({...s,qty:s.qty-(counts.get(s.id)||0)}))
