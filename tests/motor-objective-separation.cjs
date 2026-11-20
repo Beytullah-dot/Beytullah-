@@ -11,7 +11,7 @@ const parts=[0,1].map(i=>({id:'p'+i,l:50,w:100,t:18,
  material:'MDF',label:'P'+i,rotate:false,grain:'length'}));
 const stocks=[
  {id:'large',l:100,w:100,t:18,qty:1,price:100,material:'MDF'},
- {id:'small',l:50,w:100,t:18,qty:2,price:25,material:'MDF'}
+ {id:'small',l:60,w:100,t:18,qty:2,price:25,material:'MDF'}
 ];
 const data={parts,stocks,kerf:0,trim:0};
 function run(objective){
@@ -40,7 +40,7 @@ for(let a=0;a<=1;a++)for(let b=0;b<=2;b++){
  const reference=oracle.solve({...data,stocks:[{...stocks[0],qty:a},{...stocks[1],qty:b}]},
   'guillotine',{maxNodes:200000});
  assert.notEqual(reference.status,'unknown');
- if(reference.status==='optimal')options.push({area:10000*a+5000*b,cost:100*a+25*b});
+ if(reference.status==='optimal')options.push({area:10000*a+6000*b,cost:100*a+25*b});
 }
 assert.equal(Math.min(...options.map(x=>x.area)),10000);
 assert.equal(Math.min(...options.map(x=>x.cost)),50);
