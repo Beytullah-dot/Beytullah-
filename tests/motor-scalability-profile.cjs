@@ -111,19 +111,21 @@ function benchmark(spec){
     certified?.proven?'Global minimum stock count PROVEN':
       'Physically complete; global minimum stock count not proven'};
 }
-const results=specs.map(spec=>{
- const r=benchmark(spec);
- console.log(JSON.stringify(r));return r
-});
-const summary={total:results.length,feasible:results.filter(r=>r.feasible).length,
- proven:results.filter(r=>r.exactCountProven).length,
- largestTestedParts:Math.max(...results.map(r=>r.parts)),
- largestTestedBoards:Math.max(...results.map(r=>r.plantedBoards)),
- results};
-const out=path.join(__dirname,'motor-scalability-profile-results.json');
-fs.writeFileSync(out,JSON.stringify(summary,null,2)+'\n');
-console.log('SUMMARY '+JSON.stringify({
- tested:summary.total,feasible:summary.feasible,
- proven:summary.proven,largestTestedParts:summary.largestTestedParts,
- largestTestedBoards:summary.largestTestedBoards
-}));
+if(require.main===module){
+ const results=specs.map(spec=>{
+  const r=benchmark(spec);
+  console.log(JSON.stringify(r));return r
+ });
+ const summary={total:results.length,feasible:results.filter(r=>r.feasible).length,
+  proven:results.filter(r=>r.exactCountProven).length,
+  largestTestedParts:Math.max(...results.map(r=>r.parts)),
+  largestTestedBoards:Math.max(...results.map(r=>r.plantedBoards)),results};
+ const out=path.join(__dirname,'motor-scalability-profile-results.json');
+ fs.writeFileSync(out,JSON.stringify(summary,null,2)+'\n');
+ console.log('SUMMARY '+JSON.stringify({
+  tested:summary.total,feasible:summary.feasible,
+  proven:summary.proven,largestTestedParts:summary.largestTestedParts,
+  largestTestedBoards:summary.largestTestedBoards
+ }));
+}
+module.exports={makeCase,benchmark,specs};
