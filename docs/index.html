@@ -1305,7 +1305,7 @@ function certifyLargePlan(data,plan){
  }
  worker.onerror=error=>{
   console.warn('Global certificate error',error);finish();
-  if(!dirty&&solution===plan)costLine.textContent='Küresel maliyet optimumluğu: hesaplama çalıştırılamadı.';
+  if(!dirty&&solution===plan){costLine.textContent='Küresel maliyet optimumluğu: hesaplama çalıştırılamadı.';syncSelectedObjectiveProof(plan)}
  };
  worker.onmessage=event=>{
   if(boundProofWorker!==worker||requestId!==boundProofRequest)return;
@@ -1313,7 +1313,7 @@ function certifyLargePlan(data,plan){
   finish();
   if(dirty||solution!==plan||response?.requestId!==requestId)return;
   if(response.type!=='certificate'){
-   costLine.textContent='Küresel maliyet optimumluğu: hesaplama tamamlanmadı.';return
+   costLine.textContent='Küresel maliyet optimumluğu: hesaplama tamamlanmadı.';syncSelectedObjectiveProof(plan);return
   }
   plan.globalAreaProof=response.area;plan.globalCostProof=response.cost;
   if(response.count?.proven&&state.materialMode==='auto'){
@@ -1359,6 +1359,7 @@ function certifyLargePlan(data,plan){
   if(!dirty&&solution===plan){
    areaLine.textContent='Küresel minimum fire kanıtı: işlem sınırı aşıldı.';
    costLine.textContent='Küresel minimum maliyet kanıtı: işlem sınırı aşıldı.';
+   syncSelectedObjectiveProof(plan);
   }
  },8500);
  worker.postMessage({type:'certify',requestId,
