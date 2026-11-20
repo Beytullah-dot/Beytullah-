@@ -166,6 +166,75 @@
   }
   return all
  }
+ // Four-level pattern reconstruction supports nested 16-piece blocks.
+ // Partial patterns are NEVER treated as an impossibility certificate.
+ // Grouping by shared width/height avoids enumerating all shape pairings.
+ function deeperSheetPatterns(items,stocks,cfg,deadline){
+  const usable=stocks.filter(s=>s.qty>0).map(s=>({
+   stock:s,w:s.l-2*cfg.trim,h:s.w-2*cfg.trim}));
+  if(!usable.length)return [];
+  const near=(v,target)=>v<=target+EPS&&
+   v>=target-Math.max(24,target*.025);
+  const canFit=(w,h)=>usable.some(s=>w<=s.w+EPS&&h<=s.h+EPS);
+  const atEdge=(w,h)=>usable.some(s=>near(w,s.w)||near(h,s.h));
+  const key=v=>Math.round(v*1e5);
+  let nodes=items.map((p,i)=>({
+   ...orientations(p,0,()=>.5),mask:1n<<BigInt(i),indices:[i]
+  }));
+  const results=[],globalSeen=new Set(),maxLevel=4;
+  function complete(node){
+   for(const s of usable){
+    const dw=s.w-node.w,dh=s.h-node.h,k=cfg.kerf;
+    if(!near(node.w,s.w)||!near(node.h,s.h)||
+       dw>EPS&&dw<k-EPS||dh>EPS&&dh<k-EPS)continue;
+    const id=node.mask.toString(36)+'/'+s.stock.id;
+    if(globalSeen.has(id))continue;
+    globalSeen.add(id);
+    results.push({node,stock:s.stock,mask:node.mask,indices:node.indices,
+     count:node.indices.length,exact:dw<=EPS&&dh<=EPS,
+     slackRatio:Math.max(0,1-node.w*node.h/(s.w*s.h))})
+   }
+  }
+  for(let layer=1;layer<=maxLevel&&Date.now()<deadline;layer++){
+   const next=[],seen=new Set(),maxLevelCandidates=12000;
+   const byW=new Map(),byH=new Map();
+   for(const node of nodes){
+    const w=key(node.w),h=key(node.h);
+    if(!byW.has(w))byW.set(w,[]);
+    if(!byH.has(h))byH.set(h,[]);
+    byW.get(w).push(node);byH.get(h).push(node)
+   }
+   function addGroups(groups,axis){
+    for(const group of groups.values()){
+     if(Date.now()>=deadline||next.length>=maxLevelCandidates)break;
+     for(let i=0;i<group.length;i++){
+      if(i%30===0&&Date.now()>=deadline)break;
+      for(let j=i+1;j<group.length;j++){
+       const a=group[i],b=group[j];
+       if((a.mask&b.mask)!==0n)continue;
+       const node=joinBlocks(a,b,axis,cfg.kerf);
+       if(!canFit(node.w,node.h))continue;
+       if(layer>=3&&!atEdge(node.w,node.h))continue;
+       node.mask=a.mask|b.mask;
+       node.indices=a.indices.concat(b.indices);
+       const signature=node.mask.toString(36)+':'+key(node.w)+':'+key(node.h);
+       if(seen.has(signature))continue;
+       seen.add(signature);
+       next.push(node);
+       complete(node);
+       if(next.length>=maxLevelCandidates)break
+      }
+      if(next.length>=maxLevelCandidates)break
+     }
+    }
+   }
+   addGroups(byH,'x');
+   if(next.length<maxLevelCandidates)addGroups(byW,'y');
+   if(!next.length)break;
+   nodes=next
+  }
+  return results
+ }
  function makeRootBlock(stock,node,cfg){
   const bin={stock,free:[],cuts:[],placed:[]};
   let rect={x:cfg.trim,y:cfg.trim,
@@ -212,42 +281,48 @@
   return chosen
  }
  function tryWholePatterns(items,stocks,cfg,trial,deadline,packAttempt,binCost,auditCutPlan,baseline,compare){
-  const patterns=exactSheetPatterns(items,stocks,cfg,deadline);
-  if(!patterns.length)return {candidate:null,found:0,patterns:0};
-  let best=baseline,bestFound=0;
-  for(let variant=0;variant<5&&Date.now()<deadline;variant++){
-   const chosen=selectPatterns(patterns,stocks,items,variant+trial);
-   if(!chosen.length)continue;
-   const used=new Set(),counts=new Map(),premade=[];
-   for(const c of chosen){
-    for(const index of c.indices)used.add(index);
-    counts.set(c.stock.id,(counts.get(c.stock.id)||0)+1);
-    const rootBin=makeRootBlock(c.stock,c.node,cfg);
-    if(!rootBin)return {candidate:null,found:0,patterns:patterns.length};
-    premade.push(rootBin)
+  let best=baseline,bestFound=0,patternCount=0;
+  function evaluate(patterns){
+   patternCount+=patterns.length;
+   if(!patterns.length)return;
+   for(let variant=0;variant<5&&Date.now()<deadline;variant++){
+    const chosen=selectPatterns(patterns,stocks,items,variant+trial);
+    if(!chosen.length)continue;
+    const used=new Set(),counts=new Map(),premade=[];
+    for(const c of chosen){
+     for(const index of c.indices)used.add(index);
+     counts.set(c.stock.id,(counts.get(c.stock.id)||0)+1);
+     const bin=makeRootBlock(c.stock,c.node,cfg);
+     if(!bin)return;
+     premade.push(bin)
+    }
+    const rest=items.filter((_,i)=>!used.has(i));
+    const left=stocks.map(s=>({...s,qty:s.qty-(counts.get(s.id)||0)}))
+     .filter(s=>s.qty>0);
+    const remaining=rest.length?packAttempt(rest,left,cfg,variant*3+trial):
+     {bins:[],unplaced:[]};
+    const raw={bins:[...premade,...remaining.bins],
+     unplaced:remaining.unplaced};
+    const candidate=expand(raw,items,cfg);
+    if(!candidate)continue;
+    candidate.stockArea=candidate.bins.reduce((sum,b)=>sum+b.stock.l*b.stock.w,0);
+    candidate.unknownCostBins=candidate.bins.filter(b=>binCost(b.stock,cfg)===null).length;
+    candidate.cost=candidate.unknownCostBins?null:
+     candidate.bins.reduce((sum,b)=>sum+binCost(b.stock,cfg),0);
+    if(compare(candidate,best)>=0)continue;
+    const audit=auditCutPlan(candidate,{parts:items,stocks,
+     kerf:cfg.kerf,trim:cfg.trim});
+    if(!audit.ok)continue;
+    best=candidate;bestFound=chosen.length;
+    if(!candidate.unplaced.length)break
    }
-   const rest=items.filter((_,i)=>!used.has(i));
-   const left=stocks.map(s=>({...s,qty:s.qty-(counts.get(s.id)||0)}))
-    .filter(s=>s.qty>0);
-   const remaining=rest.length?packAttempt(rest,left,cfg,variant*3+trial):
-    {bins:[],unplaced:[]};
-   const raw={bins:[...premade,...remaining.bins],
-    unplaced:remaining.unplaced};
-   const candidate=expand(raw,items,cfg);
-   if(!candidate)continue;
-   candidate.stockArea=candidate.bins.reduce((sum,b)=>sum+b.stock.l*b.stock.w,0);
-   candidate.unknownCostBins=candidate.bins.filter(b=>binCost(b.stock,cfg)===null).length;
-   candidate.cost=candidate.unknownCostBins?null:
-    candidate.bins.reduce((sum,b)=>sum+binCost(b.stock,cfg),0);
-   if(compare(candidate,best)>=0)continue;
-   const audit=auditCutPlan(candidate,{parts:items,stocks,
-    kerf:cfg.kerf,trim:cfg.trim});
-   if(!audit.ok)continue;
-   best=candidate;bestFound=chosen.length
-   if(!candidate.unplaced.length)break
   }
-  return {candidate:best===baseline?null:best,found:bestFound,
-   patterns:patterns.length}
+  evaluate(exactSheetPatterns(items,stocks,cfg,deadline));
+  // Deep trees or damaged edge stock need 16-part and near-full sheets.
+  if(best.unplaced.length&&Date.now()<deadline)
+   evaluate(deeperSheetPatterns(items,stocks,cfg,deadline));
+  return {candidate:best===baseline?null:best,
+   found:bestFound,patterns:patternCount}
  }
  function flatten(tree,output){
   if(tree.leaf){output.push(tree.piece);return}
