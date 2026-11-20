@@ -388,6 +388,8 @@ alınıp bu sürümle bayt düzeyinde karşılaştırıldı. PR araştırma CI: 
 Genel regresyonda 72/72 geçerli plan; `alternate stock types` örneğinde
 minimum 1 levha iken sezgisel plan 2 levha kullanıyor.
 
+**Yayın doğrulaması (20 Kasım):** [PR #7](https://github.com/Beytullah-dot/Beytullah-/pull/7) master dalına birleşti (`2898a44140e8c65180212ed78f66fa02c420d393`). [Pages yayını](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44713952855), geometri (44713952440), optimizasyon (44713952160) ve WebKit emülasyonu (44713952415) başarılı. Üç motor/dağıtım modülü ve sw.js canlı URL'de bu commit ile bayt düzeyinde eşleşti.
+
 **Takip geliştirmesi (20 Kasım):** Karma otomatikte “En ekonomik” ve
 “En az stok” ayrı adaylarla aranıyor. Aynı malzeme örneğinde 2 levha/50 ₺
 ve 1 levha/100 ₺ birlikte doğrulandı. Stok adedi hedefli regresyonda 72/72
