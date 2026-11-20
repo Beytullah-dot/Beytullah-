@@ -450,6 +450,26 @@ indirilen PDF'deki YAN, TABAN, yönler ve 751 levhalık tekrarı denetledi.
 [Motor ve ölçek testleri](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44729430911)
 başarılı. Karma atölye senaryoları 26/26 eksiksiz, 16/26 kanıtlı.
 
+**Asimetrik giyotin ağaçları (20 Kasım):** Önceki bağımsız motor denetiminde
+bulunan 8, 16, 20, 28, 29 ve 32 numaralı vakalar birlikte 12 eksik parça
+bırakıyordu. Yeni kurtarma araması farklı derinlikteki iki alt ağacı,
+ortak tam kenar ve testere payıyla birleştiriyor. Stokta karşılığı olan
+adaylar, parça kimlikleri çakışmadan tüm talebi karşılarsa fiziksel kesim
+denetimine gönderiliyor. Arama bütçesi dolarsa mevcut plan korunuyor.
+Özdeş üreticide farklı tohumlarla karşılaştırma (tam / minimum levha kanıtlı):
+
+| Grup | Önce | Sonra |
+|---|---|---|
+| Önceki 36 denetim işi | 30 / 20 | 36 / 26 |
+| Geliştirmeden önce ayrılan 36 yeni tohum | 28 / 15 | 36 / 23 |
+
+İki grupta da payda 36. Altı asıl regresyon varsayılan hesaplama yolunda
+ters giriş sırası ve yeni parça kimlikleriyle de denetlenir. Tekrarlanabilir
+test: `node tests/motor-asymmetric.cjs` ve `--holdout`.
+Yeni grupta 13 işte minimum levha sayısı açık. Önceki küçük iş denetiminde
+67 numaralı altı parçalı işin referans optimumu iki levhadır. Üç levha
+kullanan kesirli ölçülü aday ve zayıf alt sınırlar sonraki motor hedefleri.
+
 **Sıradaki teknik adım:**
 
 1. Tek tam stoktan farklı etiket/ölçü/yöndeki yüksek adetli parça satırları,
