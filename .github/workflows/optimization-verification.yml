@@ -49,6 +49,8 @@ jobs:
         run: node tests/guillotine-worker.cjs
       - name: Verify real atelier PDF has full-length cuts and safe draft marking
         run: node tests/atolye-production-safety.cjs
+      - name: Verify gross-area and stock-cost objectives remain independent
+        run: node tests/motor-objective-separation.cjs
       - name: Verify exact incremental stock-cost optimum
         run: node tests/economic-worker.cjs
       - name: Validate economic plan acceptance and tamper rejection

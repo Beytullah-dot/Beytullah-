@@ -723,3 +723,35 @@ ayrıca doğrulanacak. Canlı JS baytları ve gerçek iPhone test
 edilmiş sayılmamalı. Bir sonraki geliştirmede büyük karma işler,
 minimum brüt fire ve minimum kayıtlı maliyet sertifikaları ayrı
 ölçülecek; motor mühürlenmedi.
+
+### 20 Kasım 2026 — Ayrı brüt fire / kayıtlı maliyet kesin arama (PR #16)
+
+- `docs/economic-exact.js` aramasına `job.objective='area'`
+  seçeneği eklendi; mevcut varsayılan `cost` korunur.
+  `area` hedefi brüt stok alanını minimize eder. Sabit parça
+  listesinin net alanı sabit olduğundan bu, minimum brüt fireye
+  eşdeğerdir; artık satış değeri veya yeniden kullanılabilir artık
+  değeri bu hedefe katılmaz.
+- Kanıtlar ayrı tutulur: `objective` sonuç alanı ve
+  `bestArea/initialArea` veya `bestCost/initialCost`.
+  `area` kanıtı maliyet kanıtı olarak sunulmaz.
+  Fiyatı bilinmeyen stok `cost` kanıtını engeller; `area`
+  hesabını tek başına engellemez.
+- Yeni `tests/motor-objective-separation.cjs`: iki adet
+  50x100 mm parça, tek 100x100 mm levha (100 TL) ve iki
+  60x100 mm levha (25 TL/adet). Alan optimumu 10000 mm² /
+  1 levha; maliyet optimumu 50 TL / 2 levha / 12000 mm².
+  Bağımsız giyotin oracle tüm stok kombinasyonlarını
+  kontrol eder. Bilinmeyen fiyat ayrımı da test edilir.
+- Optimizer Verification CI workflow'una test eklendi.
+  **PR #16:** https://github.com/Beytullah-dot/Beytullah-/pull/16
+- Bu bir **arama çekirdeği API'si** geliştirmesidir; kullanıcı
+  arayüzündeki ana hedef seçimi ve plan kabul/rapor katmanı
+  henüz bağlanmadı. CI sonucu ve merge ayrıca doğrulanmalı.
+  Üretim stokları / Supabase değişmedi; motor mühürlenmedi.
+
+**Sonraki adım:** CI'da iki hedefin bağımsız optimum
+sertifikalarını doğrula; sonra UI'daki kullanıcının seçtiği
+tek ana hedefi aramaya bağla. Çok parçalı karma işlerde
+kesin çözüm kapsamını ayrıca büyüt; kapsam dışı işi
+kanıtlanmış diye gösterme.

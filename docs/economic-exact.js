@@ -1,5 +1,6 @@
 /* Beythaus Cut — bounded exact incremental stock acquisition-cost search.
-   Distinct objective from minimum board count, gross waste or salvage value.
+   Supports independent gross stock area and acquisition cost objectives.
+   For a fixed parts list, minimum gross area is minimum gross waste.
    Enumerates ALL material-compatible stock multisets cheaper than incumbent;
    every candidate is checked using the mode-specific exhaustive geometry
    search. Any interrupted comparison => partial, never cost-optimal proof.
@@ -22,8 +23,10 @@ const EconomicExact=(()=>{
   const budget={nodes:0,limit:false};
   const finish=(status,groups,reason='')=>({
    type:'economy-finished',requestId:job.requestId,status,groups,reason,
+   objective:job.objective==='area'?'area':'cost',
    nodes:budget.nodes,elapsedMs:now()-started,mode:job.cutMode
   });
+  const objective=job.objective==='area'?'area':'cost';
   const data=job.data;
   if(!data||!Array.isArray(data.parts)||!Array.isArray(data.stocks)||
     !Array.isArray(job.incumbentBins)||!['nest','guillotine'].includes(job.cutMode)||
@@ -40,14 +43,16 @@ const EconomicExact=(()=>{
   let allProven=true;
   for(const [material,parts] of groupParts){
    const g={material,status:'skipped',proven:false,initialCost:null,bestCost:null,
+    initialArea:null,bestArea:null,
     initialCount:0,bestCount:0,checked:0,nodes:0,combinations:0,layout:null};
    groups.push(g);
    const stocks=data.stocks.filter(s=>s.qty>0&&canon(s.material)===material);
    const incumbent=job.incumbentBins.filter(b=>canon(b.material)===material);
    g.initialCount=g.bestCount=incumbent.length;
+   const unit=s=>objective==='area'?s.l*s.w:price(s,cfg);
    const currentCosts=incumbent.map(b=>stockByID.get(b.stockId))
-    .map(s=>s?price(s,cfg):null);
-   const prices=stocks.map(s=>price(s,cfg));
+    .map(s=>s?unit(s):null);
+   const prices=stocks.map(unit);
    if(!incumbent.length||parts.length>partLimit||stocks.length>3||
      incumbent.length>7){
     g.status='scope-limited';allProven=false;continue
@@ -58,8 +63,9 @@ const EconomicExact=(()=>{
     g.status='unknown-price';allProven=false;continue
    }
    let bestCost=currentCosts.reduce((a,b)=>a+b,0);
-   g.initialCost=g.bestCost=bestCost;
-   const actualCost=list=>list.reduce((sum,b)=>sum+price(b.stock,cfg),0);
+   if(objective==='area')g.initialArea=g.bestArea=bestCost;
+   else g.initialCost=g.bestCost=bestCost;
+   const actualCost=list=>list.reduce((sum,b)=>sum+unit(b.stock),0);
    const needed=parts.reduce((sum,p)=>sum+p.l*p.w,0);
    // A cheaper solution may require MORE boards than the incumbent.
    // Capping here at 7 would produce an unsound cost-optimality certificate.
@@ -90,7 +96,7 @@ const EconomicExact=(()=>{
    }
    // With an incumbent price of zero, the objective is already optimal
    // because no stock has negative acquisition price.
-   if(bestCost<=EPS){g.status='zero-cost-bound';g.proven=true;continue}
+   if(bestCost<=EPS){g.status='zero-objective-bound';g.proven=true;continue}
    enumerate(0,0,0,0);
    g.combinations=enumerated;
    if(truncated){g.status='enumeration-limit';allProven=false;continue}
@@ -116,7 +122,9 @@ const EconomicExact=(()=>{
     }
     if(cost<bestCost-EPS){
      bestCost=cost;
-     g.bestCost=cost;g.bestCount=answer.layout.length;
+     if(objective==='area')g.bestArea=cost;
+     else g.bestCost=cost;
+     g.bestCount=answer.layout.length;
      g.layout=answer.layout;g.status='improved'
     }
     // Every cheaper candidate was sorted before the current one, so
