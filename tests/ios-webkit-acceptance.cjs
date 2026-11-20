@@ -131,7 +131,8 @@ async function main() {
   console.log('PASS 5: Explicit stock exclusion, audited cut, two plan choices, independently certified cost and area, no stock consumption');
 
   // Drive the actual form, worker and result acceptance using only local test stock.
-  const beng=require('node:child_process').execFileSync('unzip',['-p',
+  const beng=require('node:child_process').execFileSync('python3',['-c',
+    'import sys,zipfile;sys.stdout.buffer.write(zipfile.ZipFile(sys.argv[1]).read(sys.argv[2]))',
     require('node:path').join(__dirname,'fixtures/2dpacklib-beng.zip'),
     'BENG/BENG/BENG02.ins2D'],{encoding:'utf8'}).trim().split(/\r?\n/)
     .slice(2).map(line=>line.split(/\s+/).map(Number));
@@ -149,7 +150,12 @@ async function main() {
   await page.waitForFunction(()=>{
     const audit=window.BeythausCut.getLastAudit();
     return audit?.ok&&audit.checkedStocks===6&&audit.checkedParts===40;
-  },null,{timeout});
+  },null,{timeout}).catch(async error=>{
+    console.error(await page.evaluate(()=>({audit:window.BeythausCut.getLastAudit(),
+      status:document.querySelector('#exactSearchLine')?.textContent,
+      errors:window.BeythausCut.normalize().errors})));
+    throw error
+  });
   assert.equal(await page.evaluate(()=>window.BeythausCut.getState().stocks[0].qty),40);
   console.log('PASS: BENG02 from mobile calculation through background search and audited six-sheet result');
   await page.reload({ waitUntil: 'load' });
