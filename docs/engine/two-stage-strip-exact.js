@@ -97,28 +97,37 @@ function solve(parts,stocks,opts={}){
   boards.push({stock:s,W,H,unit,qty:Math.min(s.qty,parts.length),patterns:[]});
  }
  if(!boards.length)return bail('infeasible-two-stage-class');
- // Compare objectives in a common EXACT decimal integer grid. IEEE-754
- // addition must not silently decide an alleged mathematical optimum.
- let unitScale=1;
- for(const board of boards){
-  const value=board.unit;
-  let factor=1,exact=false;
-  for(let exp=0;exp<=6;exp++,factor*=10){
-   const encoded=Math.round(value*factor);
-   if(Number.isSafeInteger(encoded)&&encoded/factor===value){
-    unitScale=Math.max(unitScale,factor);exact=true;break;
-   }
+ // Exact fixed-denominator rational arithmetic for monetary/area objective:
+ // 6 decimal input places per factor; 4 factors and the m³ / 10^9 ratio.
+ // No floating-point tie/dominance decisions are allowed to assert optimum.
+ const DEN=10n**33n,F=10n**6n;
+ const fixed=x=>{
+  if(!Number.isFinite(x)||x<0)return null;
+  const raw=String(x);
+  if(!/^\d+(?:\.\d+)?$/.test(raw))return null;
+  const [whole,frac='']=raw.split('.');
+  if(frac.length>6)return null;
+  return BigInt(whole)*F+BigInt((frac+'000000').slice(0,6));
+ };
+ const exactUnit=board=>{
+  const s=board.stock;
+  if(objective==='count')return DEN;
+  const L=fixed(s.l),W=fixed(s.w);
+  if(L===null||W===null)return null;
+  if(objective==='area')return L*W*(DEN/(F*F));
+  if(s.isRemnant){const r=fixed(s.bookValue);return r===null?null:r*(DEN/F);}
+  const unit=s.priceUnit||priceMode;
+  if(unit==='panel'){const p=fixed(s.price);return p===null?null:p*(DEN/F);}
+  if(unit==='m3'){
+   const T=fixed(s.t),rate=fixed(s.priceUnit?s.price:m3);
+   return T===null||rate===null?null:L*W*T*rate;
   }
-  if(!exact)return bail('unknown-precision');
- }
- let maxObjective=0;
+  return null;
+ };
  for(const board of boards){
-  const encoded=Math.round(board.unit*unitScale);
-  if(!Number.isSafeInteger(encoded)||encoded/unitScale!==board.unit)
-   return bail('unknown-precision');
-  board.unitInt=encoded;
-  maxObjective+=board.unitInt*board.qty;
-  if(!Number.isSafeInteger(maxObjective))return bail('unknown-precision');
+  const exact=exactUnit(board);
+  if(exact===null)return bail('unknown-precision');
+  board.unitExact=exact;
  }
  const vectorKey=a=>a.join(',');
  const fitsResidual=r=>r===0||r>=k;
@@ -199,11 +208,11 @@ function solve(parts,stocks,opts={}){
  function cover(rest,quantities){
   if(!tick()||Date.now()>=deadline){limited=true;return null;}
   const pivot=rest.findIndex(q=>q>0);
-  if(pivot<0)return {value:0,choice:null};
+  if(pivot<0)return {value:0n,choice:null};
   const tag=key(rest,quantities);
   if(memo.has(tag))return memo.get(tag);
   if(memo.size>=maxStates){limited=true;return null;}
-  let best={value:Infinity,choice:null};
+  let best={value:null,choice:null};
   for(let b=0;b<boards.length;b++){
    if(!quantities[b])continue;
    for(const pattern of boards[b].patterns){
@@ -212,8 +221,9 @@ function solve(parts,stocks,opts={}){
     q[b]--;
     const sub=cover(next,q);
     if(sub===null)return null;
-    const val=boards[b].unitInt+sub.value;
-    if(val<best.value)best={value:val,choice:{b,pattern}};
+    if(sub.value===null)continue;
+    const val=boards[b].unitExact+sub.value;
+    if(best.value===null||val<best.value)best={value:val,choice:{b,pattern}};
    }
   }
   memo.set(tag,best);states++;peakMemo=Math.max(peakMemo,memo.size);
@@ -221,7 +231,7 @@ function solve(parts,stocks,opts={}){
  }
  const initialQty=boards.map(b=>b.qty),solution=cover(demand,initialQty);
  if(limited||!solution)return bail('unknown-limit');
- if(!Number.isFinite(solution.value))return bail('infeasible-two-stage-class');
+ if(solution.value===null)return bail('infeasible-two-stage-class');
  // Reconstruct actual first-stage full-edge strips, then second-stage cuts.
  const remaining=demand.slice(),qty=initialQty.slice(),used=groups.map(()=>0),bins=[];
  const makeCut=(bin,src,axis,span)=>{
@@ -283,7 +293,7 @@ function solve(parts,stocks,opts={}){
   partArea:parts.reduce((acc,p)=>acc+p.l*p.w,0),
   stockArea:bins.reduce((acc,b)=>acc+b.stock.l*b.stock.w,0),cost,
   unknownCostBins:bins.filter(b=>POLICY.stockPrice(b.stock,{priceMode,m3})===null).length};
- return {status:'optimal-two-stage-class',objectiveValue:solution.value/unitScale,plan,
+ return {status:'optimal-two-stage-class',objectiveValue:objective==='cost'?plan.cost:objective==='area'?plan.stockArea:bins.length,plan,
   model:'two-stage-canonical-strips-VH-or-HV',...meta()};
 }
 const api=Object.freeze({version:1,solve});
