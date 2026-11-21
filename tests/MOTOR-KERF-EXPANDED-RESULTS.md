@@ -1,8 +1,11 @@
 # Beythaus Cut — Kerf-expanded area proof and physically exact holdouts
 
-**Research PR:** #32, 21 November 2026. This document describes the code
-and a direct isolated-JavaScript validation run; **GitHub Actions, merge,
-Pages deployment and physical-device acceptance must be checked separately**.
+**Released motor PR:** [#32](https://github.com/Beytullah-dot/Beytullah-/pull/32),
+merged to master as `aaccc74ba4429b55872d8d98f4b8a910c5685220`
+on 21 November 2026. GitHub Actions optimizer, geometry, iPhone
+WebKit **emulation**, scale and Pages deployment were all verified
+successful on the indicated commits. A physical iPhone/device acceptance,
+multi-user cloud UAT or direct live-JS byte comparison is NOT implied.
 No production database or inventory was modified.
 
 ## The new necessary geometric inequality
@@ -48,10 +51,10 @@ future research.
 ## Direct regression observations — original planted cases
 
 The pre-PR lower bounds were read from the existing
-`MOTOR-TRIPLE-THRESHOLD-RESULTS.md`. The new figures below were computed
-by invoking the repository test logic with the changed certificate code
-in an isolated JavaScript harness, **not by assuming CI success**.
-Time-bounded family completion may vary between machines.
+`MOTOR-TRIPLE-THRESHOLD-RESULTS.md`. Updated values were independently
+observed in an isolated-JS harness AND reproduced by the merged
+master Optimizer run `44939079866` (success). Time-bounded family
+completion may differ between machines.
 
 | Original, not physically proven optimal | Existing feasible incumbent | Former LB | Updated LB | New open gap |
 |---|---:|---:|---:|---:|
@@ -149,3 +152,45 @@ searches, while keeping separate objectives and retaining the best
 completed lower bound. Only a new feasible physically audited plan can
 prove an incumbent improvement; only a matching lower bound or
 independent exact physical oracle can prove optimality.
+
+## Verified GitHub Actions and resource metrics
+
+After merge `aaccc74ba4429b55872d8d98f4b8a910c5685220`:
+
+- Optimizer verification: [44939079866](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44939079866) — **SUCCESS**.
+  The independent 28 x 3 stock-cover oracle and both separately audited
+  physical exact holdouts passed in real Node 22 on Linux. 84/84 exact
+  stock-cover comparisons, 0 overbounds, 9,072 combinations.
+- Geometry: [44939079961](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44939079961) — **SUCCESS**.
+- iPhone WebKit **emulation**, not actual Safari device:
+  [44939079982](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44939079982) — **SUCCESS**.
+- Pages build and deployment:
+  [44939079731](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44939079731) — **SUCCESS**.
+- Source PR head `9d7828a00ab7eea60324503a046eb55f8ecfe216`
+  also passed all four applicable source PR Actions checks:
+  optimizer `44938954744`, geometry `44938954690`,
+  WebKit emulation `44938954696`, uncapped-scale `44938954689`.
+  The service worker was updated to
+  `beythaus-cut-v39-kerf-expanded-proof`.
+
+Real master Linux Node process, from optimizer step logs:
+
+| Observation | Value |
+|---|---:|
+| 44-piece exact physical holdout: process maxRSS at checkpoint | 65,444 KiB |
+| 305-piece exact physical holdout: process maxRSS at checkpoint | 97,772 KiB |
+| Final process-wide peak RSS | **97,772 KiB (~95.48 MiB)** |
+| Final heap used | 15,905,640 bytes |
+| Final resident set RSS snapshot | 99,123,200 bytes |
+| Independent oracle's 84 comparisons | 8.70 ms |
+| 44-piece optimum: certification cost / area | 19.80 / 97.66 ms |
+| 305-piece optimum: certification cost / area | 239.93 / 218.05 ms |
+
+RSS high-water measures the entire Node process, not the per-algorithm
+peak incremental allocation. The independent oracle test is
+stock-multiset mathematical verification; it does not silently turn
+into a general physical guillotine exact solver.
+
+The physically optimal new 44/305 holdouts and the original
+44/305 planted non-optimality-certified incumbents remain intentionally
+separate datasets. General physical optimality is **NOT proved**.
