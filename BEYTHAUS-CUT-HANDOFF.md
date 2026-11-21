@@ -1917,3 +1917,31 @@ Supabase `pdqgpupdqgrxejvjpdzs` Auth/gerçek stok/migration/
 iki kullanıcılı bulut saha UAT, gerçek canlı JavaScript byte
 eşleşmesi ve sunucuda bağımsız kesim ağacı audit'i **AÇIK**.
 **GENEL GİYOTİN OPTİMUMLUĞU MÜHÜRLENMEDİ.**
+
+
+## U. 22 Kasım 2026 — PR #46 lazy/anytime üç aşamalı fiziksel yapıcı aday araştırması
+
+**Araştırma PR:** [#46](https://github.com/Beytullah-dot/Beytullah-/pull/46) (taslak,
+CI sonuçları bekleniyor; master'a henüz birleştirilmedi).
+Kod: `docs/engine/three-stage-lazy-research.js`.
+Test: `tests/motor-three-stage-lazy.cjs`.
+Rapor: `tests/MOTOR-THREE-STAGE-LAZY-RESULTS.md`.
+Mevcut özel-sınıf exact modül ve tüm üretim Worker/sertifikaları korunuyor.
+Auth, gerçek stok, migration veya üretim geçmişi değiştirilmedi.
+
+Amaç, PR #44'te farklı parça enlerinde erkenden görülen desen patlamasına
+karşı, tüm kombinasyonları saymadan bant/şeritleri gerektiğinde oluşturan
+kaynak bütçeli araştırma. `VH-V/HV-H` tam kenarlı canlı-alt-yaprak
+kesimleri, pozitif kerf/trim, damar, rotasyon, malzeme/kalınlık ve fiyat
+uyumu korunacak. Tamamlanmış adayların iki BAĞIMSIZ fiziksel denetimi
+CI'da zorunlu. `feasible-uncertified` optimumluk demek değil.
+`unknown-limit` ve `unknown-no-candidate` imkânsızlık demek değil.
+Yanlış fiyat sıfırlaması, farklı-vetör unsafe dominance, keyfî kullanıcı
+parça/levha limiti yok. Sonuçlanan gerçek CI ve RSS ölçümleri geldikten
+sonra bu bölüm güncellenecek. Üretime entegrasyon bu PR'nin KAPSAMI DIŞINDA.
+
+**Bağımsız açık araştırma:** PR #32'nin fiziksel optimumluğu kanıtlı,
+farklı 305-parça holdout'unda 499.224 mm² optimuma karşı genel
+208.692 mm² alt sınır açığı aynen sürüyor. PR #30 ve PR #37'nin
+birbirinden farklı 44/305 örnekleri bu veri kümesi değildir.
+**GENEL GİYOTİN OPTİMUMLUĞU HÂLÂ MÜHÜRLENMEDİ.**
