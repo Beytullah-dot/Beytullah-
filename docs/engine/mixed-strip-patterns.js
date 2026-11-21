@@ -32,7 +32,47 @@ function split(bin,rect,vertical,span,k){
   {x:rect.x,y:rect.y+span+k,w:rect.w,h:left}):null;
  return {kept,remainder}
 }
-function sheet(items,stock,cfg,alongX,variant,deadline){
+// Complete leftover cut-tree leaves with nested full-edge cuts.
+// A strip's side offcut may hold a differently sized part; abandoning it
+// forces false partial solutions in otherwise simple three-stage jobs.
+// Reuse only FREE leaves recorded by the original strip cuts and keep the
+// fully materialized tree for the independent production auditor.
+function fillResidual(bin,placed,order,stock,cfg,deadline,variant){
+ const k=cfg.kerf;
+ while(bin.free.length&&placed.size<order.length&&Date.now()<deadline){
+  let best=null;
+  for(let i=0;i<bin.free.length&&Date.now()<deadline;i++){
+   const fr=bin.free[i];
+   for(const p of order){
+    if(placed.has(p.id)||p.material!==stock.material||
+       p.t!==null&&(stock.t===null||Math.abs(p.t-stock.t)>1e-6))
+     continue;
+    for(const o of orientations(p,stock,variant%2===1)){
+     if(o.w>fr.w+EPS||o.h>fr.h+EPS||
+        !goodGap(fr.w-o.w,k)||!goodGap(fr.h-o.h,k))continue;
+     const score=o.w*o.h/(fr.w*fr.h);
+     if(!best||score>best.score+EPS)
+      best={index:i,p,o,score};
+    }
+   }
+  }
+  if(!best)break;
+  const rect=bin.free.splice(best.index,1)[0];
+  // Either order yields a full-edge cutting tree. Alternating between
+  // free-leaf shapes reduces but does not eliminate greedy myopia.
+  const verticalFirst=variant%2===0?rect.w>=rect.h:rect.w<rect.h;
+  const first=split(bin,rect,verticalFirst,
+   verticalFirst?best.o.w:best.o.h,k);
+  const second=split(bin,first.kept,!verticalFirst,
+   verticalFirst?best.o.h:best.o.w,k);
+  if(first.remainder)bin.free.push(first.remainder);
+  if(second.remainder)bin.free.push(second.remainder);
+  bin.placed.push({...best.p,x:second.kept.x,y:second.kept.y,
+   w:best.o.w,h:best.o.h,rotated:best.o.rotated});
+  placed.add(best.p.id);
+ }
+}
+function sheet(items,stock,cfg,alongX,variant,deadline,residualFill){
  const usable={x:cfg.trim,y:cfg.trim,w:stock.l-2*cfg.trim,
   h:stock.w-2*cfg.trim};
  if(!(usable.w>0&&usable.h>0))return null;
@@ -80,10 +120,12 @@ function sheet(items,stock,cfg,alongX,variant,deadline){
   active=outer.remainder;
  }
  if(active)bin.free.push(active);
+ if(residualFill&&bin.free.length&&placed.size<items.length)
+  fillResidual(bin,placed,order,stock,cfg,deadline,variant);
  if(!bin.placed.length)return null;
  return {bin,area:bin.placed.reduce((n,p)=>n+p.w*p.h,0)}
 }
-function build(items,stocks,cfg,variant,deadline){
+function build(items,stocks,cfg,variant,deadline,residualFill){
  let remaining=items.slice();
  const usage=new Map(),bins=[];
  while(remaining.length&&Date.now()<deadline){
@@ -98,7 +140,7 @@ function build(items,stocks,cfg,variant,deadline){
    for(const alongX of [true,false]){
     for(let order=0;order<4&&Date.now()<deadline;order++){
      const c=sheet(remaining,stock,cfg,alongX,
-      (order+variant)%4,deadline);
+      (order+variant)%4,deadline,residualFill);
      if(!c)continue;
      const efficiency=unit===null?-1:unit===0?
       Number.POSITIVE_INFINITY:c.area/unit;
@@ -126,7 +168,7 @@ function build(items,stocks,cfg,variant,deadline){
   unknownCostBins:missing,cost};
  return plan
 }
-function construct(items,stocks,cfg,{timeBudgetMs=180}={}){
+function construct(items,stocks,cfg,{timeBudgetMs=180,residualFill=true}={}){
  const started=Date.now(),deadline=started+Math.max(0,timeBudgetMs);
  if(!Array.isArray(items)||!Array.isArray(stocks)||
   !Number.isFinite(cfg?.kerf)||cfg.kerf<0||
@@ -135,7 +177,7 @@ function construct(items,stocks,cfg,{timeBudgetMs=180}={}){
   return {status:'unknown',plan:null,reason:'invalid-input'};
  let best=null,attempts=0;
  for(let variant=0;variant<3&&Date.now()<deadline;variant++){
-  const trial=build(items,stocks,cfg,variant,deadline);attempts++;
+  const trial=build(items,stocks,cfg,variant,deadline,residualFill);attempts++;
   const metric=p=>cfg.objective==='area'?p.stockArea:p.cost;
   if(!best||trial.unplaced.length<best.unplaced.length||
     trial.unplaced.length===best.unplaced.length&&
