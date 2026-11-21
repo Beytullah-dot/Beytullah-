@@ -43,6 +43,8 @@ jobs:
         run: node tests/motor-heterogeneous-capacity.cjs
       - name: Verify positive-kerf mixed-stock physical strip rescue
         run: node tests/motor-mixed-strip.cjs
+      - name: Verify nested residual full-edge cuts against planted witnesses
+        run: MOTOR_NESTED_JSON=nested-kerf-report.json node tests/motor-nested-residual.cjs
       - name: Verify mixed-size threshold kerf area and cost lower bounds
         run: node tests/motor-threshold-kerf.cjs
       - name: Verify fractional kerf bounds and unused independent cases
@@ -75,4 +77,5 @@ jobs:
           path: |
             optimization-report.json
             proof-gaps.json
+            nested-kerf-report.json
           if-no-files-found: warn
