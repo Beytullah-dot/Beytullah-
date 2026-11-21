@@ -75,6 +75,14 @@ const outside=proof.certify(fitted.plan,outsideClass,{
  ...budget,objective:'cost'});
 assert.equal(outside.groups[0].fullSpanPhysicalRelaxation.status,'unknown-class');
 assert.notEqual(outside.method,'physical-fullspan-strip-exact');
+// Optional solver errors fail closed and leave existing proofs usable.
+const normalSolver=win.BeythausFullSpanPatternExact;
+win.BeythausFullSpanPatternExact={solve(){throw Error('simulated isolated failure')}};
+const retained=proof.certify(fitted.plan,data,{...budget,objective:'cost'});
+assert.equal(retained.groups[0].fullSpanPhysicalRelaxation.status,'unknown-limit');
+assert(retained.groups[0].kerfExpandedAreaRelaxation,
+ 'Existing safe bounds continue after strict-solver exception');
+win.BeythausFullSpanPatternExact=normalSolver;
 const auto=proof.certify(fitted.plan,data,{...budget,objective:'cost',
  allowMaterialAssignment:true});
 assert.equal(auto.groups[0].fullSpanPhysicalRelaxation.status,'unknown-class');
