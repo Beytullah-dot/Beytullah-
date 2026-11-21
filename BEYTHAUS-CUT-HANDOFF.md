@@ -1155,10 +1155,10 @@ bağımsız kesim ağacı denetimi açık. **MOTOR HENÜZ MÜHÜRLENMEDİ.**
 ## K. 21 Kasım 2026 — PR #26 eşzamanlı alan + büyük parça kapasitesi kanıtı
 
 - Kod PR: https://github.com/Beytullah-dot/Beytullah-/pull/26,
-  \`master\` merge \`2886b99beb750cd677bed90a014e9a2addd72ce7\`.
-  Başlangıç HEAD \`4de1119d25f81cedf996b83dab17bf90170a4bbf\`.
-  \`docs/engine/optimality-certificate.js\` içinde
-  \`pairedAreaCardinalityCover\` ve tamsayılı \`pairedCover\` eklendi.
+  `master` merge `2886b99beb750cd677bed90a014e9a2addd72ce7`.
+  Başlangıç HEAD `4de1119d25f81cedf996b83dab17bf90170a4bbf`.
+  `docs/engine/optimality-certificate.js` içinde
+  `pairedAreaCardinalityCover` ve tamsayılı `pairedCover` eklendi.
 - Matematiksel gerekçe: Her fiziksel guillotine plan aynı stok
   seçiminde toplam parça alanını karşılayacak **kullanılabilir stok
   alanına** VE eşiği aşan parçaların **kerf-ayrımlı maksimum kare
@@ -1170,12 +1170,12 @@ bağımsız kesim ağacı denetimi açık. **MOTOR HENÜZ MÜHÜRLENMEDİ.**
   Aynı parça/levha işinde farklı eşikler için bulunan bitmiş
   alt sınırların maksimumu kullanılır; kesilen arama
   hiçbir zaman optimum sertifikası olarak kabul edilmez.
-- Tamsayılı dinamik programda \`(usable-area, threshold-count,
-  selected-objective)\` Pareto durumları kullanılır. Azalan
+- Tamsayılı dinamik programda `(usable-area, threshold-count,
+  selected-objective)` Pareto durumları kullanılır. Azalan
   alan sırası ve sayı boyutunda Fenwick prefix-min üzerinden
-  yalnız güvenli \`>= capacity, <= objective\` dominance uygulanır.
-  Dahili \`maxStates\`/\`maxMs\` giriş limitleri değildir.
-  \`certify\` tek işte tüm malzeme grupları ve bound aileleri
+  yalnız güvenli `>= capacity, <= objective` dominance uygulanır.
+  Dahili `maxStates`/`maxMs` giriş limitleri değildir.
+  `certify` tek işte tüm malzeme grupları ve bound aileleri
   arasında **ortak süre bütçesi** uygular; Worker'daki üç
   hedefin toplamı mobil UI watchdog altında tutulmaya çalışılır.
   Kesin uçtan uca süre garantisi yoktur.
@@ -1184,7 +1184,7 @@ bağımsız kesim ağacı denetimi açık. **MOTOR HENÜZ MÜHÜRLENMEDİ.**
   A=47×1000 mm / 40 TL / 1 adet;
   B=100×100 mm / 100 TL / en çok 5 adet.
   Tamamen ayrı **elle kurulan fiziksel guillotine kesim ağaçları**
-  \`production-audit.js\` ile kabul edildi:
+  `production-audit.js` ile kabul edildi:
   - Maliyet optimum tanığı: 4 B + 1 A, **440 TL**,
     87.000 mm² brüt alan. Önceki bağımsız maliyet gevşetmeleri
     40 ve 400 TL, **yeni ortak alt sınır 440 TL**.
@@ -1197,31 +1197,31 @@ bağımsız kesim ağacı denetimi açık. **MOTOR HENÜZ MÜHÜRLENMEDİ.**
     brüt alanın yaklaşık %42,5'i). Bu farklar mümkün
     iyileştirmenin **kanıtlı üst sınırlarıdır**, kazanç vaadi
     veya büyük işler için genel istatistik değildir.
-- \`tests/motor-paired-cover.cjs\`: çözüm kodunu kullanmayan
+- `tests/motor-paired-cover.cjs`: çözüm kodunu kullanmayan
   stok çoklu küme brute-force alt sınır oracle'ı, iki bağımsız
   fiziksel plan, üç amaçla 36 deterministik ayrı vaka,
   **90** sonlu/karşılaştırılabilir oracle sonucu içinde
   aşırı yüksek güvensiz alt sınır 0. Tahrif edilmiş kısa
   kesim reddi, fiyatı bilinmeyen alternatif stokun maliyet
-  ispatını engellemesi, sıfır bütçe \`UNKNOWN\` ve UI
+  ispatını engellemesi, sıfır bütçe `UNKNOWN` ve UI
   görecek kanıtlı farkın testleri. Ortak DP bir MILP veya
   genel guillotine exact pricing çözücüsü değildir.
-- \`docs/index.html\`: kanıtlanmamış iki hedefte alt sınır
+- `docs/index.html`: kanıtlanmamış iki hedefte alt sınır
   ile **olası iyileşmenin kanıtlı maksimumu** görünür.
-  \`status='unknown-price'\` özellikle ele alınıyor.
-  \`docs/sw.js\`: \`beythaus-cut-v36-paired-area-threshold-cover\`.
+  `status='unknown-price'` özellikle ele alınıyor.
+  `docs/sw.js`: `beythaus-cut-v36-paired-area-threshold-cover`.
   Optimizer CI'da yeni test kapısı eklendi.
-- PR head \`5906813ec46066075e6bebcfc97ee6a22192284a\`
+- PR head `5906813ec46066075e6bebcfc97ee6a22192284a`
   dört Actions kontrolü **SUCCESS**:
-  Optimizer \`44929446267\`,
-  Geometry \`44929446239\`,
-  Uncapped Scale \`44929446197\`,
-  iPhone WebKit **emülasyonu** \`44929446211\`.
-  \`master\` merge sonrası run'lar:
-  Optimizer \`44929573922\`,
-  Geometry \`44929573976\`,
-  WebKit emülasyonu \`44929574059\`,
-  Pages \`44929573983\`; handoff PR merge öncesinde
+  Optimizer `44929446267`,
+  Geometry `44929446239`,
+  Uncapped Scale `44929446197`,
+  iPhone WebKit **emülasyonu** `44929446211`.
+  `master` merge sonrası run'lar:
+  Optimizer `44929573922`,
+  Geometry `44929573976`,
+  WebKit emülasyonu `44929574059`,
+  Pages `44929573983`; handoff PR merge öncesinde
   durumları tekrar sorgulanmalı.
 - Supabase şeması, Auth, canlı stok ve kullanıcıya ait
   üretim kayıtları bu adımda hiç değiştirilmedi.
