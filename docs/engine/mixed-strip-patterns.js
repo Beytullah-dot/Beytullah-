@@ -176,16 +176,26 @@ function construct(items,stocks,cfg,{timeBudgetMs=180,residualFill=true}={}){
   !['guillotine'].includes(cfg?.mode))
   return {status:'unknown',plan:null,reason:'invalid-input'};
  let best=null,attempts=0;
- for(let variant=0;variant<3&&Date.now()<deadline;variant++){
-  const trial=build(items,stocks,cfg,variant,deadline,residualFill);attempts++;
-  const metric=p=>cfg.objective==='area'?p.stockArea:p.cost;
-  if(!best||trial.unplaced.length<best.unplaced.length||
-    trial.unplaced.length===best.unplaced.length&&
-    metric(trial)!==null&&
-    (metric(best)===null||metric(trial)<metric(best)-EPS))
-   best=trial;
-  if(best.unplaced.length===0)break;
- }
+ // Preserve the previous fast two-stage path. Running nested recovery
+ // for EVERY stock/variant/board under a short mobile deadline could
+ // exhaust the budget before completing a formerly feasible large job.
+ // Invoke the more expensive nested pass only for a genuinely partial job.
+ const attemptStage=withResidual=>{
+  for(let variant=0;variant<3&&Date.now()<deadline;variant++){
+   const trial=build(items,stocks,cfg,variant,deadline,withResidual);
+   attempts++;
+   const metric=p=>cfg.objective==='area'?p.stockArea:p.cost;
+   if(!best||trial.unplaced.length<best.unplaced.length||
+      trial.unplaced.length===best.unplaced.length&&
+      metric(trial)!==null&&
+      (metric(best)===null||metric(trial)<metric(best)-EPS))
+    best=trial;
+   if(best.unplaced.length===0)break;
+  }
+ };
+ attemptStage(false);
+ if(residualFill&&best?.unplaced.length&&Date.now()<deadline)
+  attemptStage(true);
  return {status:best&&best.unplaced.length===0?'feasible':'unknown',
   plan:best,nodes:attempts,elapsedMs:Date.now()-started,
   reason:best?.unplaced.length?'incomplete-or-resource-limited':null}
