@@ -1962,3 +1962,29 @@ farklı 305-parça holdout'unda 499.224 mm² optimuma karşı genel
 208.692 mm² alt sınır açığı aynen sürüyor. PR #30 ve PR #37'nin
 birbirinden farklı 44/305 örnekleri bu veri kümesi değildir.
 **GENEL GİYOTİN OPTİMUMLUĞU HÂLÂ MÜHÜRLENMEDİ.**
+
+**Sonraki doğrulama kaydı (PR #47):** PR #46
+master merge `300187a29a3c73f3d0a9b901288f31aa62e092c5`.
+Merge sonrası gerçek master Optimizer
+[44952654524](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44952654524),
+Geometry [44952654649](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44952654649),
+WebKit **emülasyonu**
+[44952654606](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44952654606)
+ve Pages [44952654269](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44952654269):
+**SUCCESS**. Ek 96 deterministik karışık geometri denemesi:
+93 bağımsız denetlenmiş uygulanabilir yapıcı plan,
+3 UNKNOWN, yanlış fiziksel ağaç iddiası 0.
+96-vaka testinin dahil olduğu GitHub
+[Optimizer #44952550336](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44952550336)
+SUCCESS. Bu genişletilmiş testte süreç `maxRSS`
+80.912 KiB (~79,0 MiB), toplam araştırma testi yaklaşık
+329,06 ms. Önceki 67.592 KiB yalnız 96-vaka eklenmeden
+önceki ayrı koşuya aitti. Genel optimumluk / minimum levha
+sayısı hâlâ KANITLANMADI. Yeni ölçüm raporu:
+`tests/MOTOR-THREE-STAGE-LAZY-RESULTS.md`.
+Sıradaki teknik iş, ayrı PR'da mobil kaynak bütçesi
+ve denetlenmiş tam planların üretime **yalnız aday**
+olarak güvenli bağlanabilirliğini değerlendirmek; eğer gerekirse
+lazy pricing / branch-and-price, MILP/CP-SAT yöntemlerini
+farklı, kontrollü araştırmalarda karşılaştırmaktır.
+Açık PR ve güncel master bilgilerini her seferinde GitHub'dan teyit et.
