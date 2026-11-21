@@ -154,6 +154,37 @@ audit(baseline,byCount.plan);
 assert.equal(byCount.objectiveValue,byCount.plan.bins.length);
 assert.equal(lazy.solve(baseline.parts,baseline.stocks.map(s=>({
  ...s,qty:0})),{trim:1,kerf:2}).status,'unknown-no-candidate');
+// Deterministic mixed-geometry fuzz: unknown is always legitimate;
+// every complete plan, however, must satisfy BOTH physical auditors.
+let rng=45231;
+const rand=()=>{rng=(rng*1664525+1013904223)>>>0;return rng/2**32};
+const randInt=(a,b)=>a+Math.floor(rand()*(b-a+1));
+let fuzzFeasible=0,fuzzUnknown=0;
+for(let iteration=0;iteration<96;iteration++){
+ const n=randInt(1,14),tr=randInt(0,1),ker=randInt(0,3);
+ const generic={category:'panel',material:'panel|lazy-fuzz',
+  t:18,grain:'length',rotate:false};
+ const randomParts=Array.from({length:n},(_,i)=>({...generic,
+  id:'f'+iteration+'-'+i,label:'f'+iteration+'-'+i,
+  l:randInt(5,23),w:randInt(5,16)}));
+ const randomStocks=Array.from({length:randInt(1,3)},(_,i)=>({
+  ...generic,id:'sf'+iteration+'-'+i,l:randInt(25,56),
+  w:randInt(20,42),price:randInt(25,150),
+  priceUnit:'panel',qty:randInt(1,5)}));
+ const job={parts:randomParts,stocks:randomStocks,trim:tr,kerf:ker};
+ const before=JSON.stringify(job),selected=['cost','area','count'][iteration%3];
+ const out=lazy.solve(randomParts,randomStocks,{trim:tr,kerf:ker,
+  objective:selected,maxMs:300,maxNodes:35000,maxCandidates:3});
+ assert.equal(JSON.stringify(job),before,'fuzz may not mutate input');
+ if(out.status==='feasible-uncertified'){
+  audit(job,out.plan);fuzzFeasible++;
+ }else{
+  assert(['unknown-limit','unknown-no-candidate'].
+   includes(out.status),'no heuristic infeasibility/optimality claim');
+  assert.equal(out.plan,null);fuzzUnknown++;
+ }
+}
+assert(fuzzFeasible>=80,'Most deterministic fuzz cases should construct');
 const report={scope:'lazy physical feasible three-stage research; NO optimum certificate',
  exactMixed8Baseline:old.status,attempted:cases,feasible:successful,
  unknown,independentlyAuditedUpdates:totalUpdates,totalCuts:allCuts,
