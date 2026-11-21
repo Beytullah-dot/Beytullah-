@@ -41,6 +41,8 @@ jobs:
         run: node tests/geometric-bounds.cjs
       - name: Verify heterogeneous 27-sheet kerf bounds and distinct exact objectives
         run: node tests/motor-heterogeneous-capacity.cjs
+      - name: Verify positive-kerf mixed-stock physical strip rescue
+        run: node tests/motor-mixed-strip.cjs
       - name: Verify mixed-size threshold kerf area and cost lower bounds
         run: node tests/motor-threshold-kerf.cjs
       - name: Verify fractional kerf bounds and unused independent cases
