@@ -166,7 +166,7 @@
   // maxMs into unbounded cumulative delays on large mixed jobs.
   const deadline=Date.now()+Math.max(0,maxMs);
   const remaining=()=>Math.max(0,deadline-Date.now());
-  let totalBound=0,allExact=true,pairedImproved=false;
+  let totalBound=0,allExact=true,pairedImproved=false,multiImproved=false;
   for(const [key,parts] of groups){
    const demand=parts.reduce((sum,p)=>sum+p.l*p.w,0);
    const stocks=data.stocks.filter(s=>groupKey(s)===key);
@@ -179,19 +179,29 @@
     Number.isFinite(data.kerf)?data.kerf:0,{
      objective,priceMode,m3,
      maxStates:Math.min(maxStates,9000),maxMs:Math.min(remaining(),350)});
+   const multi=multipleThresholdAreaCover(parts,stocks,data.trim,
+    Number.isFinite(data.kerf)?data.kerf:0,{
+     objective,priceMode,m3,
+     maxStates:Math.min(maxStates,2400),maxMs:Math.min(remaining(),350)});
    const oldBounds=[r,c].filter(b=>b?.status==='optimal-relaxation')
     .map(b=>b.lowerBound);
    const oldBest=oldBounds.length?Math.max(...oldBounds):null;
-   const certifiedBounds=[r,c,paired].filter(b=>
+   const certifiedBounds=[r,c,paired,multi].filter(b=>
     b?.status==='optimal-relaxation');
    const best=certifiedBounds.length?
     Math.max(...certifiedBounds.map(b=>b.lowerBound)):null;
    if(paired.status==='optimal-relaxation'&&
       (oldBest===null||paired.lowerBound>oldBest+EPS))
     pairedImproved=true;
+   if(multi.status==='optimal-relaxation'&&
+      (oldBest===null||multi.lowerBound>oldBest+EPS)&&
+      (paired.status!=='optimal-relaxation'||
+       multi.lowerBound>paired.lowerBound+EPS))
+    multiImproved=true;
    base.groups.push({key,parts:parts.length,stockTypes:stocks.length,
     status:best===null?'unknown-bound':'optimal-relaxation',lowerBound:best,
-    areaRelaxation:r,cardinalityRelaxation:c,pairedRelaxation:paired});
+    areaRelaxation:r,cardinalityRelaxation:c,pairedRelaxation:paired,
+    multiThresholdRelaxation:multi});
    if(best===null){allExact=false;continue}
    totalBound+=best;
   }
@@ -227,7 +237,8 @@
   return {...base,proven,lowerBound:totalBound,
     gap,gapPercent:incumbent>0?100*gap/incumbent:0,
     status:proven?'optimal':'gap',
-    method:pairedImproved?'paired-area-threshold-cover':'integer-area-cover'};
+    method:multiImproved?'multi-threshold-area-cover':
+     pairedImproved?'paired-area-threshold-cover':'integer-area-cover'};
  }
  // Every subset of pieces with minimum edge >= threshold must fit into
  // the same physical stock collection. For that subset, inscribed
@@ -428,11 +439,175 @@
    method:'paired-area-threshold-cover',
    elapsedMs:Date.now()-started};
  }
+
+ // Exact finite-stock multiset relaxation: usable area AND TWO different
+ // inscribed-square threshold counts must hold in the SAME stock selection.
+ // All actual guillotine cuts remain relaxed; no pattern feasibility claimed.
+ function dualThresholdCover(types,needArea,needs,{
+  objective='cost',trim=0,priceMode='panel',m3=25000,
+  maxStates=2400,maxMs=350
+ }={}){
+  const started=Date.now(),deadline=started+maxMs;
+  const unknown=(status,states)=>({status,lowerBound:null,states,
+   elapsedMs:Date.now()-started});
+  if(!['area','cost','count'].includes(objective)||
+     !Number.isFinite(needArea)||needArea<0||
+     !Array.isArray(needs)||needs.length!==2||
+     needs.some(n=>!Number.isSafeInteger(n)||n<0)||
+     !Number.isFinite(trim)||trim<0||
+     (!(maxStates>0)&&maxStates!==Infinity)||
+     !Number.isFinite(maxMs)||maxMs<0)return unknown('invalid',0);
+  if(!needArea&&!needs[0]&&!needs[1])
+   return {status:'optimal-relaxation',lowerBound:0,states:1,elapsedMs:0};
+  if(maxMs===0)return unknown('unknown-limit',0);
+  const stocks=[];
+  for(const s of types){
+   if(!Number.isSafeInteger(s.qty)||s.qty<0||
+      !Number.isFinite(s.l)||!Number.isFinite(s.w)||
+      !Array.isArray(s._proofCaps)||s._proofCaps.length!==2||
+      s._proofCaps.some(n=>!Number.isFinite(n)||n<0))
+    return unknown('invalid',0);
+   if(!s.qty)continue;
+   const W=s.l-2*trim,H=s.w-2*trim;
+   const area=W>0&&H>0?W*H:0;
+   const counts=s._proofCaps.map((n,i)=>Math.min(needs[i],n));
+   if(!(area>0||counts.some(n=>n>0)))continue;
+   const unit=objective==='area'?s.l*s.w:
+    objective==='count'?1:costOf(s,{priceMode,m3});
+   if(unit===null)return unknown('unknown-price',0);
+   if(!Number.isFinite(unit)||unit<0||!Number.isFinite(area))
+    return unknown('invalid',0);
+   // Saturation of every resource by one type makes additional copies
+   // redundant when the objective has nonnegative per-stock units.
+   const qty=Math.min(s.qty,Math.max(
+    area>0?Math.ceil((needArea+EPS)/area):0,
+    ...counts.map((n,i)=>n>0?Math.ceil(needs[i]/n):0)));
+   if(qty>0)stocks.push({area,counts,unit,qty});
+  }
+  if(!stocks.length)return unknown('infeasible-relaxation',0);
+  if(stocks.reduce((sum,s)=>sum+s.area*s.qty,0)+EPS<needArea||
+     needs.some((n,i)=>stocks.reduce((sum,s)=>
+      sum+s.qty*s.counts[i],0)<n))
+   return unknown('infeasible-relaxation',0);
+  stocks.sort((a,b)=>{
+   const score=s=>s.area/(needArea||1)+
+    s.counts[0]/(needs[0]||1)+s.counts[1]/(needs[1]||1);
+   return score(b)-score(a)||a.unit-b.unit
+  });
+  let states=[[0,0,0,0]],peak=1;
+  for(const s of stocks){
+   if(Date.now()>=deadline)return unknown('unknown-limit',peak);
+   const expanded=[];
+   for(const st of states)for(let q=0;q<=s.qty;q++){
+    expanded.push([Math.min(needArea,st[0]+q*s.area),
+     Math.min(needs[0],st[1]+q*s.counts[0]),
+     Math.min(needs[1],st[2]+q*s.counts[1]),
+     st[3]+q*s.unit]);
+    if(expanded.length>maxStates*6||Date.now()>=deadline)
+     return unknown('unknown-limit',Math.max(peak,expanded.length));
+   }
+   expanded.sort((a,b)=>b[0]-a[0]||b[1]-a[1]||
+    b[2]-a[2]||a[3]-b[3]);
+   // Sorted usable area descending. A 2D Fenwick prefix-min on
+   // descending high/low counts removes only provably dominated states.
+   const highs=[...new Set(expanded.map(st=>st[1]))].sort((a,b)=>b-a);
+   const highRank=new Map(highs.map((n,i)=>[n,i+1]));
+   const coords=Array.from({length:highs.length+1},()=>[]);
+   for(const st of expanded)
+    for(let x=highRank.get(st[1]);x<coords.length;x+=x&-x)
+     coords[x].push(st[2]);
+   const trees=coords.map((v,i)=>{
+    if(!i)return null;
+    coords[i]=[...new Set(v)].sort((a,b)=>b-a);
+    const tree=new Float64Array(coords[i].length+1);
+    tree.fill(Infinity);return tree
+   });
+   function rank(xs,v){
+    let l=0,r=xs.length;
+    while(l<r){
+     const mid=(l+r)>>1;
+     if(xs[mid]>=v)l=mid+1;else r=mid;
+    }
+    return l
+   }
+   function minDominating(hi,lo){
+    let best=Infinity;
+    for(let x=highRank.get(hi);x>0;x-=x&-x)
+     for(let j=rank(coords[x],lo);j>0;j-=j&-j)
+      best=Math.min(best,trees[x][j]);
+    return best
+   }
+   function save(hi,lo,cost){
+    for(let x=highRank.get(hi);x<coords.length;x+=x&-x)
+     for(let j=rank(coords[x],lo);j<trees[x].length;j+=j&-j)
+      trees[x][j]=Math.min(trees[x][j],cost);
+   }
+   const frontier=[];
+   for(const st of expanded){
+    if(minDominating(st[1],st[2])<=st[3])continue;
+    frontier.push(st);save(st[1],st[2],st[3]);
+    if(frontier.length>maxStates||Date.now()>=deadline)
+     return unknown('unknown-limit',Math.max(peak,frontier.length));
+   }
+   states=frontier;peak=Math.max(peak,states.length);
+  }
+  let best=Infinity;
+  for(const st of states)if(st[0]+EPS>=needArea&&
+     st[1]>=needs[0]&&st[2]>=needs[1])
+   best=Math.min(best,st[3]);
+  if(!Number.isFinite(best))return unknown('infeasible-relaxation',peak);
+  return {status:'optimal-relaxation',lowerBound:best,states:peak,
+   elapsedMs:Date.now()-started};
+ }
+ // Strongest completed pair of thresholds. Partial enumeration may retain
+ // completed valid bounds, never claim all pairs were explored.
+ function multipleThresholdAreaCover(parts,stocks,trim,kerf,options={}){
+  const started=Date.now(),maxMs=options.maxMs??350;
+  const blank={status:'unknown-limit',lowerBound:null,tested:0,
+   total:0,complete:false,method:'multi-threshold-area-cover'};
+  if(!parts.length||!Number.isFinite(trim)||trim<0||
+     !Number.isFinite(kerf)||kerf<0||
+     parts.some(p=>!Number.isFinite(p.l)||!Number.isFinite(p.w)||
+      p.l<=0||p.w<=0))return blank;
+  const edges=[...new Set(parts.map(p=>Math.min(p.l,p.w)))]
+   .sort((a,b)=>b-a);
+  if(edges.length<2)return blank;
+  const area=parts.reduce((sum,p)=>sum+p.l*p.w,0);
+  if(!Number.isFinite(area))return blank;
+  const total=edges.length*(edges.length-1)/2;
+  let best=null,tested=0,interrupted=false;
+  // Adjacent size classes before distant pairs: no hard size-class limit.
+  for(let distance=1;distance<edges.length&&!interrupted;distance++)
+   for(let i=0;i+distance<edges.length;i++){
+    const left=maxMs-(Date.now()-started);
+    if(left<=0){interrupted=true;break}
+    const subsets=[edges[i],edges[i+distance]].map(edge=>
+     parts.filter(p=>Math.min(p.l,p.w)>=edge));
+    const caps=subsets.map(p=>cardinalityTypes(p,stocks,trim,kerf));
+    if(caps.some(c=>!c)){interrupted=true;break}
+    const types=stocks.map((s,j)=>({...s,
+     _proofCaps:caps.map(c=>c[j]._proofCapacity)}));
+    const result=dualThresholdCover(types,area,subsets.map(p=>p.length),
+     {...options,trim,maxMs:left});
+    if(result.status==='unknown-price')
+     return {...blank,status:'unknown-price',tested,total};
+    if(result.status!=='optimal-relaxation'){
+     interrupted=true;break
+    }
+    tested++;best=best===null?result.lowerBound:
+     Math.max(best,result.lowerBound);
+   }
+  return {status:best===null?'unknown-limit':'optimal-relaxation',
+   lowerBound:best,tested,total,complete:!interrupted&&tested===total,
+   method:'multi-threshold-area-cover',
+   elapsedMs:Date.now()-started};
+ }
  function countBoundForGroup(parts,stocks,trim,kerf){
   return thresholdCardinalityCover(parts,stocks,trim,kerf,{
    objective:'count',maxMs:700,maxStates:50000});
  }
- const api=Object.freeze({version:1,cover,certify,countBoundForGroup,thresholdCardinalityCover,pairedAreaCardinalityCover});
+ const api=Object.freeze({version:1,cover,certify,countBoundForGroup,
+  thresholdCardinalityCover,pairedAreaCardinalityCover,multipleThresholdAreaCover});
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
  root.BeythausOptimalityCertificate=api;
 })(typeof self!=='undefined'?self:typeof window!=='undefined'?window:globalThis);
