@@ -7,6 +7,7 @@
 (function(root){
  'use strict';
  const EPS=1e-6;
+ const mixedStrips=root.BeythausMixedStripPatterns;
  const eq=(a,b)=>Math.abs(a-b)<=EPS;
  function randomSeed(value){
   let x=value|0||137;
@@ -511,9 +512,28 @@
    let best=baseline;
    if(!items.length||!stocks.length||!baseline.unplaced.length||
       cfg.mode!=='guillotine')return {solution:baseline,info};
+   // First seek a complete manufacturable plan on heterogeneous stock.
+   // This is a candidate, not an exact oracle. Independently audit before
+   // it can displace the previous production plan.
+   if(mixedStrips&&Date.now()<deadline){
+    const attempt=mixedStrips.construct(items,stocks,cfg,{
+     timeBudgetMs:Math.min(180,deadline-Date.now())});
+    info.stripStatus=attempt.status;
+    info.stripPlaced=attempt.plan?.placedCount||0;
+    if(attempt.plan&&compare(attempt.plan,best,cfg.objective)<0){
+     const checked=auditCutPlan(attempt.plan,{
+      parts:items,stocks,trim:cfg.trim,kerf:cfg.kerf});
+     if(checked.ok){best=attempt.plan;info.status='improved'}
+    }
+   }
+   if(!best.unplaced.length){
+    info.status='improved';info.rescued=baseline.unplaced.length;
+    info.elapsedMs=Date.now()-started;
+    return {solution:best,info}
+   }
    const patternDeadline=Math.min(deadline,started+Math.round(timeBudgetMs*.75));
    const reconstructed=tryWholePatterns(items,stocks,cfg,0,patternDeadline,
-    packAttempt,binCost,auditCutPlan,baseline,compare);
+    packAttempt,binCost,auditCutPlan,best,compare);
    info.patternCandidates=reconstructed.patterns;
    info.fullBlocks=reconstructed.found;
    if(reconstructed.candidate)best=reconstructed.candidate;
