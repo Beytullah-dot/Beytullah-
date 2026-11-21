@@ -12,8 +12,10 @@ infeasibility. Source and reproducible test:
 
 24 isolated Node.js 22/Linux processes, with one solver call per process.
 The job is visibly planted, with positive **2 mm kerf**, **1 mm trim**,
-four eligible finite-quantity panel stocks of **52x36, 54x38, 56x40,
-60x42 mm**, respective recorded prices **100, 114, 129, 157**.
+four catalogued compatible panel stock types of **52x36, 54x38,
+56x40, 60x42 mm**, respective recorded prices **100, 114, 129, 157**.
+At eight pieces only the first stock type has positive availability;
+at 40 and 200 pieces all four stock types have positive quantities.
 Each board's usable area contains the same genuine full-edge, three-stage
 physical pattern: V strips of 24+2+24 mm; H bands of 16+2+16 mm;
 V piece pairs that occupy 24 mm each. A repeated variant has all
