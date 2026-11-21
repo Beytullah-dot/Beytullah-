@@ -262,7 +262,7 @@ function solve(parts,stocks,opts={}){
  }
  const initialQty=boards.map(b=>b.qty),solution=cover(demand,initialQty);
  if(limited||!solution)return bail('unknown-limit');
- if(solution.value===null)return bail('infeasible-two-stage-class');
+ if(solution.value===null)return bail('infeasible-three-stage-class');
  // Reconstruct actual first-stage full-edge strips, then second-stage cuts.
  const remaining=demand.slice(),qty=initialQty.slice(),used=groups.map(()=>0),bins=[];
  const makeCut=(bin,src,axis,span)=>{
