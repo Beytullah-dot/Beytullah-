@@ -205,6 +205,8 @@ assert.equal(solver.solve(job,[onlyUnknown],{trim:1,kerf:2,objective:'cost'}).st
 const areaUnknown=solver.solve(job,[onlyUnknown],{trim:1,kerf:2,objective:'area'});
 assert.equal(areaUnknown.status,'optimal-two-stage-class');
 assert.equal(areaUnknown.plan.cost,null);
+assert.equal(solver.solve(job,[{...large,price:0.1234567}],
+ {trim:1,kerf:2,objective:'cost'}).status,'unknown-precision');
 assert.equal(solver.solve(job,[large],{trim:1,kerf:2,maxMs:0}).status,'unknown-limit');
 assert.equal(solver.solve(job,[large],{trim:1,kerf:2,maxNodes:1}).status,'unknown-limit');
 assert.equal(solver.solve(job.map(p=>({...p,rotate:true,grain:''})),[large],
