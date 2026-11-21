@@ -1,7 +1,7 @@
 # Beythaus Cut — Proje devamlılık kaydı
 
 > **Bu belge yeni sohbetler için tek başlangıç noktasıdır.**
-> Son güncelleme: **21 Kasım 2026 (Türkiye)**.
+> Son güncelleme: **22 Kasım 2026 (Türkiye)**.
 > Kaynak depo: https://github.com/Beytullah-dot/Beytullah-
 > Canlı uygulama: https://beytullah-dot.github.io/Beytullah-/
 > Yayın dalı: `master`; GitHub Pages kaynak dizini: `/docs`.
@@ -1705,3 +1705,122 @@ Supabase `pdqgpupdqgrxejvjpdzs` salt-okunur kontrolde **ACTIVE_HEALTHY**; migrat
 **SIRADAKİ MATEMATİKSEL GÖREV:** Önce ayrı küçük araştırma PR'ında **üç aşamalı** VH-V/HV-H gerçek nested guillotine kesim ağacı sınıfını açık tanımla; kimlik bazlı bağımsız oracle ve her fiziksel ağacın ayrı audit'iyle küçük vakaları doğrula. Çoklu stok fiyat/brüt alan/count'u birbirinden ayrı ele al. Unsafe dominance yapma; 4+ eşik Pareto RSS ve exact DP/branch-price/MILP/CP-SAT kaynak bütçesini ayrı araştır. Sadece özel sınıftaki exact sonucu genel optimum sertifikasına geçirme. Eski 305-area açığını AYRI izle; UNKNOWN asla imkânsızlık/optimumluk ispatı değildir.
 
 **MOTOR GENEL FİZİKSEL OPTİMUMLUK İÇİN MÜHÜRLENMEDİ.**
+
+## S. 22 Kasım 2026 — PR #42 üç aşamalı VH-V / HV-H fiziksel exact araştırması
+
+**Birleştirilen araştırma PR [#42](https://github.com/Beytullah-dot/Beytullah-/pull/42)**,
+master merge commit `8a64fb24010f2fef2f9a78f9db6a7f078762b389`.
+Kod: `docs/engine/three-stage-nested-exact.js`; bağımsız oracle:
+`tests/motor-three-stage-exact.cjs`; rapor:
+`tests/MOTOR-THREE-STAGE-PHYSICAL-RESULTS.md`. CI Optimizer
+iş akışında ayrıca çalışıyor. **ÜRETİM WORKER / GENEL
+OPTİMUMLUK SERTİFİKASINA BAĞLANMADI.** Mevcut iki aşamalı, strict
+full-span, stok LB, UI ve bulut üretim mekanizmaları korundu.
+
+**Kesin sınıfın matematiksel tanımı:** VH-V = ilk aşamada levhayı
+tam boy dikey şeritlere, ikinci aşamada her şeridi tam en yatay
+bantlara, üçüncü aşamada her bandı yeniden dikey tam kenarlı
+kesimlerle parçalara ayır. HV-H tam eksen transpozisyonudur.
+Parçalar dönüşsüz yerleşir, her parça kendi bandının ikinci aşama
+eksenini tümüyle kaplar. Aynı stokta VH-V/HV-H yönleri karışmaz;
+dördüncü veya daha derin aşama burada yok. Yalnız her anki canlı
+alt stokun **tam kenarından tam kenarına** fiziksel kesimler üretilir.
+Pozitif kerf artıklarında `0 < r < k` yasaktır. Trim, panel/masif
+damar, rotasyon izinleri, malzeme, kalınlık ve stok adedi denetlenir.
+
+**Sınıf-içi enumerasyon neden eksiksiz:** Üçüncü aşama boyunca
+aynı bandı kaplayan parçaların gerekli toplam genişliği
+`u = Σ(genişlikler) + (parça_adedi - 1) × kerf` biçimindedir.
+Bir üst şerit genişliği `d` için fiziksel izinli durum
+`d = u` veya `d >= u + kerf`. Bütün bantların bu koşullarını
+karşılayan asgari şerit genişliği adaylardan birinin
+`u` veya `u + kerf` eşiğindedir. Şeridi bu eşiğe daraltmak
+levha sığmasını bozmaz. Bu nedenle uygun çoklu bant
+desenleri, gerekli şerit genişlikleri, şerit çoklu kümeleri,
+stok adetleri ve üç ayrı hedef için exact DP bütçe
+elverdiğinde tamamen sayılır. Yalnız aynı stokta eşit
+parça-adedi vektörlerinin kesim sırası tanığı teke indirgenir;
+**farklı vektör dominance yapılmaz.** Para ve brüt alan
+karşılaştırması BigInt sabit paydalıdır; bilinmeyen fiyat
+sıfır değildir. Geometrik sayısal hassasiyet 6 ondalık
+yere kadar exact; dışı ve arama bütçesi aşımı UNKNOWN.
+Keyfî kullanıcı parça/levha üst sınırı eklenmedi.
+
+**Bağımsız oracle/üretim testi:** Kimlik bazlı ayrı stok
+atamalarını, tamsayı konumlarında üç seviyeli **tam kenarlı
+fiziksel kesim ağaçlarını** bağımsız arayan oracle;
+motorun band/şerit enumerasyonunu, threshold adaylarını
+ve stok DP'sini kullanmaz. Her gerçek ağacı ayrıca
+canlı-yaprak checker, mevcut `auditCutPlan` ve
+`optimization-oracle.cjs` denetledi. 6 farklı küçük
+girdi × 3 hedef = **18/18** karşılaştırma; 4 özel tanık
+kontrolüyle **22/22**; **2.946** stok ataması,
+**9.144.808** oracle kesim ağacı rekürsiyon çağrısı,
+yanlış sınıf optimumluğu **0**. Testere hattı kısaltma,
+malzeme/kalınlık uyumsuzluğu, yasak dönüş, UNKNOWN fiyat,
+masif m³, kerf artığı ve kaynak aşımı korumaları testte.
+
+**Üçüncü aşamanın gerekli olduğu fiziksel tanık:** 32×24 mm
+stok, kerf 2 mm, trim 0; beş parça (8×10, 8×10, 18×12,
+12×14, 12×8 mm). Dış V şerit 18/12; sol H bantlar 10/12,
+sağ H bantlar 14/8; sol üst bant iç V kesim 8/8.
+**4 tam kenarlı kesim**. Önceki iki aşamalı exact
+solverde tek bu stok için sınıf-içi infeasible;
+üç aşamalı solverda sınıf-içi optimal 1 levha.
+HV-H transpoze tanığı da 4 tam kenarlı kesimle doğrulandı.
+Ayrı fiyat/alan tercihinde maliyet optimumu **60 TL**
+(52×24 mm stok), brüt alan optimumu **768 mm²**
+(32×24 mm stok, kayıtlı 90 TL), stok adedi optimumu **1**.
+Bu rakamlar aynı genel 2D problemin optimumluğu iddiası
+DEĞİLDİR.
+
+**Gerçek CI ve Pages (PR head `e8cd78956b2e640464ea3d427e51e111ee06cdf2`):**
+Optimizer [44950201256](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44950201256),
+Geometry [44950201233](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44950201233),
+Uncapped Scale [44950201386](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44950201386),
+iPhone **WebKit emülasyonu** [44950201306](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44950201306):
+**4/4 SUCCESS**. Bağımsız üç aşamalı CI testinin zaman
+**315,3 ms** ve Linux Node süreç tepe RSS **63.692 KiB**
+(~62,2 MiB). Sadece bu koşu/runner ölçümüdür; yüksek
+adetli bütün işler için garantili kapasite değildir.
+
+**Master PR #42 merge doğrulaması:** Pages
+[44950337641](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44950337641),
+Optimizer [44950338169](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44950338169),
+Geometry [44950338221](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44950338221),
+WebKit **emülasyonu** [44950338228](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44950338228)
+**4/4 SUCCESS**. Gerçek Safari cihaz kabulü ve canlı JS
+bayt karşılaştırması halen AÇIK. Supabase
+`pdqgpupdqgrxejvjpdzs` salt-okunur durum/migration
+kontrolünde ACTIVE_HEALTHY; gerçek Auth/stoğa, migration'a
+ve üretim kayıtlarına DOKUNULMADI.
+
+**Kapanmayan, ayrı büyük problem:** PR #32'nin
+fiziksel optimumu daha önceden bağımsız kanıtlı
+305 parçalık holdout'unda brüt alan optimumu
+**499.224 mm²**, genel optimumluk alt sınırı
+**208.692 mm²**. Bu GAP açıktır. Bu holdout,
+strict full-span PR #37'nin farklı 44/305 vakalarından
+ve PR #30'un farklı 44/305 stresinden ayrıdır.
+**Üç aşamalı sınıf optimumluğunu genel giyotin alt
+sınırına/sertifikasına dönüştürmek YASAK.**
+`UNKNOWN` her zaman bilinmiyor, imkânsızlık değil.
+
+**SIRADAKİ TEKNİK ADIM:** (1) Araştırma modülünün
+kapsamını ve kaynak bütçeleri altında büyük,
+çok enli stoklarda büyümesini ayrı deneyle ölç;
+testere payı, bilinmeyen fiyat ve fiziksel audit
+korunarak yalnız **yapıcı üst sınır** olarak
+Worker'a güvenli opsiyonel aday bağlantısını ayrı PR'da
+değerlendir. (2) Gerçek genel alt sınır açığını
+kapatmak için 4+ eşik Pareto skyline patlamasının
+gerçek RSS ölçümüyle sınırlı olduğu durumlarda,
+exact DP, branch-and-price, MILP ve CP-SAT araştırma
+modellerini ayrık/bağımsız yöntemlerle karşılaştır.
+(3) Üç aşamalı sınıf-dışı planları genel infeasible
+sayma; 305-parça eski holdout'u ayrı hedef olarak tut.
+(4) Gerçek iPhone/Safari, test stoklu iki kullanıcılı
+Supabase uçtan uca UAT, sunucu bağımsız kesim ağacı audit'i,
+gerçek stok güvenliği halen açık.
+
+**GENEL FİZİKSEL GİYOTİN OPTİMUMLUĞU MÜHÜRLENMEDİ.**
