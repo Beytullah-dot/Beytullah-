@@ -67,6 +67,57 @@ Reproduce: `MOTOR_TRIPLE_JSON=triple-threshold-report.json
 node tests/motor-triple-threshold.cjs`.
 GitHub Actions stores the JSON with other optimizer artifacts.
 
+
+## Measured CI results (PR #30, optimizer workflow 44933791883)
+
+These figures are observations from a specific GitHub Actions Linux runner, not
+a constant-time guarantee. The test independently enumerates 245,412
+bounded-stock combinations across 24 seeds x three objectives.
+
+- Strict cost example: three-threshold lower bound **208 TL** versus
+  strongest two-threshold lower bound **176 TL**. Independent cost/area/count
+  full-threshold references matched; the exact three-threshold relaxation
+  cost case needed 14 peak states.
+- Independent eight-stock / five-part-class oracle: **72/72 completed
+  comparable results, 0 overbounds, 0 UNKNOWN**. Largest observed
+  frontier 11 states, maximum per-result runtime 8 ms. This dataset by
+  itself does not stress Pareto blowup.
+- Audited **44 pieces, five stocks, 49 full-edge cuts**:
+  registered cost incumbent 500 TL, certified LB 220 TL, **280 TL gap
+  (56.00% of incumbent)**; gross stock area incumbent 99,174 mm²,
+  certified LB 71,544 mm², **27,630 mm² gap (27.86%)**. Both remain
+  \`status=gap\`, not \`optimal\`.
+- Audited **305 pieces, 17 eligible heterogeneous stock types, five
+  used source stocks, 310 full-edge cuts**:
+  registered cost incumbent 1,000 TL, integrated certified LB **409 TL**,
+  **591 TL gap (59.10%)**; gross area incumbent **585,753 mm²**,
+  integrated certified LB **419,200 mm²**, **166,553 mm² gap (28.43%)**.
+  Both remain \`status=gap\`, not \`optimal\`.
+- On that 305-piece case at 700 frontier states / 250 ms: cost bound
+  409 TL finished all ten threshold triples; area returned
+  **UNKNOWN** with no usable triple LB. At 3,000 states / 1,000 ms,
+  area produced a safe **419,200 mm²** LB from completed triples,
+  **2,038 peak Pareto states**, but did **not** finish all ten
+  triples (3/10 in this run). Timing can change the count of
+  completed triples; a partial bound remains valid, but global
+  triple enumeration completeness is unproven.
+- Separate 35-state resource limit returned UNKNOWN for cost and
+  area without manufacturing an exact bound. These are **internal
+  computation budgets, never artificial limits on input parts/stocks**.
+
+The holdout batch took 2,559 ms of wall time in this CI observation;
+Node heap sampled before/after was about 6.6 MB / 49.4 MB. These two
+snapshots are **not peak memory measurements**. For a trustworthy peak
+RSS/heap profile, a separate process sampler or Actions runner metrics
+would be required. Absolute timings and the number of completed
+time-budgeted triples are machine dependent.
+
+The 305-piece integrated cost and area bounds match the standalone
+three-threshold reference LBs for this instance; this is evidence of a
+stronger necessary-condition bound, **not** independent proof of physical
+optimality. The physical witnesses establish feasible upper bounds
+only. Cost and gross-area gaps must never be added together or conflated.
+
 ## Limitations and next research
 
 The larger comparator tests are finite-stock relaxation tests, **not**
