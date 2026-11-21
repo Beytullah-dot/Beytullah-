@@ -1338,19 +1338,28 @@ function certifyLargePlan(data,plan){
   }else{
    const bound=Number.isFinite(area?.lowerBound)?
     ' · matematiksel alt sınır '+fmt((area.lowerBound-plan.partArea)/1e6,4)+' m²':'';
-   areaLine.textContent='Küresel minimum brüt fire kanıtlanmadı'+bound+
+   const upper=Number.isFinite(area?.gap)&&area.gap>0&&
+    Number.isFinite(area?.gapPercent)?
+    ' · olası iyileştirmenin kanıtlı üst sınırı '+fmt(area.gap/1e6,4)+
+    ' m² (mevcut brüt stok alanının %'+fmt(area.gapPercent,1)+')':'';
+   areaLine.textContent='Küresel minimum brüt fire kanıtlanmadı'+bound+upper+
     '. Giyotin planı geçerlidir; daha iyi yerleşim olabilir.';
   }
   if(cost?.proven){
    costLine.textContent='Küresel minimum kayıtlı stok maliyeti kanıtlandı: '+money(plan.cost)+
     '. İşçilik ve varsayımsal artık değeri hariçtir.';
    costLine.classList.add('is-proven');
-  }else if(cost?.status==='unknown-bound'&&cost.groups?.some(g=>g.status==='unknown-price')){
+  }else if(cost?.status==='unknown-price'||
+   cost?.status==='unknown-bound'&&cost.groups?.some(g=>g.status==='unknown-price')){
    costLine.textContent='Küresel minimum stok maliyeti kanıtlanmadı: fiyatı bilinmeyen stok var.';
   }else{
+   const upper=Number.isFinite(cost?.gap)&&cost.gap>0&&
+    Number.isFinite(cost?.gapPercent)?
+    ' · olası iyileştirmenin kanıtlı üst sınırı '+money(cost.gap)+
+    ' (mevcut kayıtlı maliyetin %'+fmt(cost.gapPercent,1)+')':'';
    costLine.textContent='Küresel minimum stok maliyeti kanıtlanmadı'+
     (Number.isFinite(cost?.lowerBound)?' · kanıtlı alt sınır '+money(cost.lowerBound):'')+
-    '. Daha ekonomik bir kesim planı bulunabilir.';
+    upper+'. Daha ekonomik bir kesim planı bulunabilir.';
   }
   syncSelectedObjectiveProof(plan);
  };
