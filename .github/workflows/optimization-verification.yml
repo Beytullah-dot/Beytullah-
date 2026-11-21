@@ -57,6 +57,8 @@ jobs:
         run: MOTOR_TWO_STAGE_JSON=two-stage-report.json node tests/motor-two-stage-exact.cjs
       - name: Verify independent three-stage VH-V and HV-H nested trees
         run: MOTOR_THREE_STAGE_JSON=three-stage-report.json node tests/motor-three-stage-exact.cjs
+      - name: Profile bounded three-stage exact enumeration and isolated Linux RSS
+        run: MOTOR_THREE_STAGE_SCALE_JSON=three-stage-scale-report.json node tests/motor-three-stage-scale.cjs
       - name: Verify new physical exact full-span bound in deployed proof worker
         run: MOTOR_FULLSPAN_CERT_JSON=fullspan-certificate-report.json node tests/motor-fullspan-certificate.cjs
       - name: Verify physical stock-geometry compatibility with independent oracle
@@ -100,4 +102,5 @@ jobs:
             fullspan-certificate-report.json
             two-stage-report.json
             three-stage-report.json
+            three-stage-scale-report.json
           if-no-files-found: warn
