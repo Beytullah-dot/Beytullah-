@@ -158,7 +158,12 @@ masaüstü uyumlu bir web/PWA; yalın, işlev odaklı arayüz.
 
 ## D. Güncel teknik durum — 21 Kasım 2026
 
-**Son motor birleştirmesi (PR #22):** `4d4c19543296df5b997018d102a5729a2f901af2`.
+**Son motor birleştirmesi (PR #24):** `a722ce5d30df59a1f8893cad2c9f1ee42325a77a`.
+Önce mevcut hızlı giyotin şerit yerleşimi çalışır; eksik plan kalırsa
+artık yapraklarda farklı ölçülü parçalar için **daha derin, tam kenarlı
+kesim ağacı** denenir. Her aday bağımsız denetlenir. Bu, yeni optimality
+proof değil, eksiksiz geçerli plan arama iyileştirmesidir.
+PR #24: https://github.com/Beytullah-dot/Beytullah-/pull/24.
 PR #21 `87e8cbd12811617e6147bd45ef27c5d6f9b526c9` ile güvenli heterojen
 eşik kapasitesi ve ayrı alan/maliyet kanıtı eklendi. PR #22 pozitif kerf
 içeren farklı stok ebatları ve yüksek adetler için yalnız **yapıcı,
@@ -401,8 +406,24 @@ Gerçek iPhone/Safari ve canlı JS içerik baytları ayrıca doğrulanmadı.
 
 ## E. Son tamamlanan adım / sıradaki adım
 
-**Son tamamlanan motor adımı (21 Kasım):** PR #22, `master` birleştirme
-`4d4c19543296df5b997018d102a5729a2f901af2`.
+**Son tamamlanan motor adımı (21 Kasım):** PR #24, `master` birleştirme
+`a722ce5d30df59a1f8893cad2c9f1ee42325a77a`.
+Karışık şeritlerin yanında kalan serbest dikdörtgenlerde farklı boyuttaki
+parçalar için tam kenardan kesilen yeni fiziksel alt ağaçlar kuruluyor.
+18 bağımsız planted 4-kesimli benchmarkta önce **0/18 tam**,
+şimdi **18/18 tam**; 30 levha / 6 fiyatlı-ebatlı stok tipi /
+150 parça büyük planted işte önce **60 eksik**, şimdi **0 eksik**.
+Bağımsız kaynak kesim tanığı ve motor çıktılarının audit'i PASS.
+160 parça / 80 levhalı eski kurtarma regresyonu da PASS.
+`UNKNOWN` asla optimumluk değildir.
+
+**Sonraki matematik önceliği:** Bu daha iyi fiziksel adayların
+minimum kayıtlı maliyet ve minimum brüt alan açısından optimumluğunu
+birbirinden bağımsız alt sınırlar ve ölçülen optimality gap ile kıyasla;
+büyük heterojen holdout için güvenli pattern dominance/fiyatlandırma
+ve gerektiğinde kapsama uygun MILP/CP-SAT/branch-and-price araştır.
+İki aşamalı sezgiseli veya iç içe artık kurtarmayı genel
+branch-and-price kesin çözücü sayma.
 PR #21 boyut eşiğine göre min-kenar kare kapasitesi üzerindeki
 bağımsız tamsayı stok örtüsü alt sınırlarını güçlendirdi; `count`, `area`
 ve `cost` ayrıdır. PR #22 farklı stok ebatları, pozitif kerf, kenar
@@ -1036,3 +1057,66 @@ Büyük heterojen holdout'ta bağımsız optimum referansı, açık
 optimality gap'lerin sistematik raporlanması, süre/bellek,
 gerçek Safari ve iki kullanıcı cloud E2E halen açık.
 **MOTOR HENÜZ MÜHÜRLENMEDİ.**
+
+
+## J. 21 Kasım 2026 — PR #24 gerçek iç içe giyotin artık doldurma
+
+- Kod: https://github.com/Beytullah-dot/Beytullah-/pull/24;
+  master merge `a722ce5d30df59a1f8893cad2c9f1ee42325a77a`.
+- `docs/engine/mixed-strip-patterns.js`: Sadece kaydedilmiş gerçek
+  **free leaf** dikdörtgenlerine sonradan farklı boyutlu parçalar
+  yerleştiren `fillResidual` eklendi. Her kesim önceki aktüel
+  alt dikdörtgenin tam kesiti olacak şekilde tutulur; kerf, kenar
+  payı, parça yönü, dönme izni, malzeme ve kalınlık korunur.
+  Derinlik, parça sayısı veya levha miktarı için yapay maksimum yok;
+  kaynak bütçesi dolduğunda sonuç kısmi/`UNKNOWN` kalabilir.
+- İlk CI denemesinde 160 parça/80 levha regresyonu, yeni pahalı
+  taramanın **her aday için** çalışması nedeniyle 29 eksik parça
+  bıraktı; bu sürüm birleştirilmedi. Çözüm: `construct`
+  önce eski hızlı şerit aşamasını dener; ancak eksik plan
+  kaldığında iç içe artık kesimini devreye alır. Sonraki
+  regresyonda 160/160 tam. CI geçilmeden birleştirme yapılmadı.
+- `tests/motor-nested-residual.cjs`: Tamamen bağımsız
+  inşa edilmiş 4 kesimli/5 parçalı fiziksel kesim ağacı
+  ile kontrol; 18 ek farklı ölçülü planted işin tamamında
+  ilk iki-aşamalı düzende **0/18** eksiksizken yeni kurtarmada
+  **18/18**; 0 geçersiz kesim ağacı, 0 UNKNOWN. Bilerek
+  kısaltılmış kesim denetleyici tarafından reddediliyor;
+  sıfır kaynakta `UNKNOWN` değişmedi.
+- Daha büyük, üretim verisinden bağımsız **30 levha, altı farklı
+  stok tipi, toplam 150 parça, kerf 3 mm, trim 2 mm**
+  için tüm parçaları karşılayan dışarıda üretilmiş fiziksel
+  kesim ağacı tanığı saklanmadan test sırasında kuruldu.
+  Önceki hızlı arama 60 parçayı açıkta bıraktı, yeni arama
+  hepsini yerleştirdi. Hem planted referans hem motorun
+  çıktısı `production-audit.js` ile kabul edildi. Bu
+  **feasibility** sonucudur, area/cost optimum ispatı değildir.
+- Test: `node tests/motor-nested-residual.cjs`, CI'da
+  `nested-kerf-report.json` artifact'ı; motor kodu dışındaki
+  üretim değişikliği `docs/sw.js` v35 PWA cache güncellemesi.
+- PR #24 head `1a367aeee795013bd7cafd6f9e0f18443c7bbee2`,
+  Optimizer `44926321893`, Geometry `44926321761`,
+  Uncapped scale `44926321743`, WebKit emülasyonu
+  `44926321831` dört CI **SUCCESS**.
+  Master merge sonrası Optimizer `44926439253`,
+  Geometry `44926439228`, Pages `44926438361` ve
+  iPhone WebKit **emülasyonu** `44926439265` dört
+  kontrol **SUCCESS**. Canlı Safari baytları ve gerçek
+  iPhone saha kabulü bu kontrollerle doğrulanmış değildir.
+- Supabase veri, şema, migration, kayıtlı kullanıcı stokları
+  ve fiziksel üretim hareketlerine **dokunulmadı**.
+  Arama sonuçları yeni üretim tamamlanması yaratmaz.
+
+**Kalan riskler:** Büyük heterojen işlerin tümünü tamamlayan,
+maliyet/fire için aynı anda bağımsız matematiksel optimum kanıtı
+sunan **genel** çözücü henüz yok. Salt iki-aşamalı şerit
+deseni ve mevcut genişletilmiş gerçek kesim ağacı
+sezgisel yapıcı yöntemlerdir. Kalan exact Worker ve
+Pareto stok-cover gevşetmesi optimality gap bırakabilir.
+Bir sonraki PR'da farklı gerçek kesim yapılarında geniş
+holdout, güvenli dominance/alt sınır, süre ve bellek
+ölçümleri; sonra gerekirse düzgün geometri sınıflı
+MILP/CP-SAT veya exact pricing yapılmalı.
+Gerçek iPhone/Safari, canlı baytların doğrulanması,
+iki kullanıcı Supabase cloud UAT ve sunucu tarafında
+bağımsız kesim ağacı denetimi açık. **MOTOR HENÜZ MÜHÜRLENMEDİ.**
