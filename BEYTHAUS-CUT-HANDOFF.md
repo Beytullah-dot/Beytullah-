@@ -1431,3 +1431,72 @@ bağımsız kesim ağacı denetimi açık. **MOTOR HENÜZ MÜHÜRLENMEDİ.**
   exact oracle kapsamı ve bağımsız audit açıkça tanımlanırsa
   küçük ayrı PR olarak uygulanmalı.
 - **MOTOR HENÜZ GENEL OPTİMUMLUK İÇİN MÜHÜRLENMEDİ.**
+
+
+## N. 21 Kasım 2026 — PR #32 kerf-genişletilmiş güvenli alan alt sınırı (CI bekliyor)
+
+- **PR:** https://github.com/Beytullah-dot/Beytullah-/pull/32,
+  kaynak dal `feat/kerf-expanded-area-proof-20261121`;
+  başlangıç ve PR açılışında doğrulanan master HEAD
+  `c47181e1fc6b63231c8ba1ba0effd63c6162dbd7`.
+  Bu bölüm PR üzerinde hazırlanırken **merge/PAGES yayını
+  doğrulanmış değildir**. Durumu GitHub'dan yeniden doğrula.
+- `docs/engine/optimality-certificate.js` içine
+  `kerfExpandedAreaCover` eklendi ve `certify` akışında üç
+  hedeften (maliyet, brüt stok alanı, adet) her biri için
+  bağımsız kaynak-bütçeli alt sınır olarak değerlendiriliyor.
+  Her k mm testere aralıklı gerçek fiziksel guillotine ağaçta
+  parça dikdörtgenlerinin sağından ve altından k genişletilmiş
+  alanları ayrık olur. Bu nedenle
+  `Σ((parça.l+k)*(parça.w+k)) <= Σ((stok.l-2*trim+k)*(stok.w-2*trim+k))`
+  zorunlu koşuludur (yalnız kullanılabilir pozitif stok boyutu).
+  Sonlu tamsayılı stok kombinasyonları bu gevşetme altında
+  optimize ediliyor. **Fiziksel kesim üretmiyor.**
+- `tests/motor-kerf-expanded-area.cjs`: ayrı stock-multiset
+  exhaustive oracle ile 28 iş x 3 amaç = **84/84** karşılaştırma,
+  aşırı yüksek alt sınır **0** (yerel izole JS doğrulaması).
+  Ayrı analitik stok fiyat/alan eşitsizliğiyle optimumluğu
+  kanıtlanan 44 ve 305 parçalık **YENİ** fiziksel holdout;
+  bağımsız tam kenarlı kesim ağacı, üretim denetimi ve ikinci
+  bağımsız audit, bozulan tam-kenar kesimin reddi. Bu yeni
+  vakalarda 44 parça için optimum 1.530 TL ve 69.564 mm²,
+  305 parça için optimum 10.980 TL ve 499.224 mm².
+  Bunlar eski PR #30 vaka stoklarıyla **aynı işler değil**.
+- Aynı yeni fiziksel optimum vakalarında sertifikanın maliyet
+  farkı sırasıyla %56,67 ve %50, 305 parçadaki alan farkı
+  %58,20 kaldı. **Fiziksel plan zaten optimum olduğu için bu
+  pozitif gap'lerin tümü alt sınır gevşetmesi / kaynak-bütçesi
+  zayıflığıdır; tasarruf değildir.**
+- `tests/motor-triple-threshold.cjs` eski PR #30'un gerçek
+  test vakalarında her ispat ailesini ayrı kaydediyor. İzole
+  JS koşusunda 44 parça maliyet LB **220 → 255 TL**,
+  brüt alan LB **71.544 → 78.399 mm²**; 305 parça
+  maliyet LB **409 → 485 TL**, brüt alan LB
+  **419.200 → 467.000 mm²** oldu. Uygun maliyet/alan
+  fiziksel incumbents değişmedi. 305 alan ispatındaki
+  zaman-bütçeli aileler farklı sistemlerde değişebilir;
+  aşağıdaki CI çalıştırılmadan değerleri yayın başarısı
+  diye raporlama.
+- CI kapısı `.github/workflows/optimization-verification.yml`
+  içine `MOTOR_EXPANDED_JSON=kerf-expanded-report.json
+  node tests/motor-kerf-expanded-area.cjs` eklendi.
+  Açıklama `tests/MOTOR-KERF-EXPANDED-RESULTS.md` içinde.
+  Ölçüm: Node `process.resourceUsage().maxRSS` Linux peak
+  RSS (KiB) ve ayrı heap/RSS/süre örnekleri; izole JS
+  harnessındaki mock bellek değerleri gerçek ölçüm DEĞİLDİR.
+- **Açık kontrol:** PR #32 Actions sonuçları, optimizer,
+  geometry, iPhone WebKit emülasyonu, uncapped-scale,
+  ardından gerçek `master` Actions + Pages. Üretim
+  geçişi/merge yalnız test ve yayın gerçekten başarılı
+  görüldükten sonra yapılabilir. Bu bölüm yazılırken
+  Actions sonuçları henüz doğrulanamamıştır.
+- Dört veya fazla eşikte güvenli dominance yalnız tüm
+  kapasite koordinatlarında `>=` ve seçili amaçta `<=`
+  ilişkisi ile olabilir; pairwise skyline en kötü durumda
+  karesel, state explosion hâlâ araştırılmalıdır. Genel DFF,
+  fiziksel exact MILP/CP-SAT/branch-and-price veya genel
+  optimumluk mühürü bu PR kapsamına **girmiyor**.
+- Gerçek Supabase `pdqgpupdqgrxejvjpdzs` şema/migration,
+  Auth, kullanıcı stokları ve üretim hareketleri değişmedi.
+  Tam kenarlı kesim, damar, bilinmeyen fiyat ve UNKNOWN
+  ilkeleri korundu. **MOTOR GENEL OPTİMUMLUK İÇİN MÜHÜRLENMEDİ.**

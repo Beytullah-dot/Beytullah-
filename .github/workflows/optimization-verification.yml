@@ -51,6 +51,8 @@ jobs:
         run: node tests/motor-multi-threshold.cjs
       - name: Verify three simultaneous size thresholds and larger independent holdouts
         run: MOTOR_TRIPLE_JSON=triple-threshold-report.json node tests/motor-triple-threshold.cjs
+      - name: Verify kerf-expanded area against independent stock oracle and physical exact holdouts
+        run: MOTOR_EXPANDED_JSON=kerf-expanded-report.json node tests/motor-kerf-expanded-area.cjs
       - name: Verify mixed-size threshold kerf area and cost lower bounds
         run: node tests/motor-threshold-kerf.cjs
       - name: Verify fractional kerf bounds and unused independent cases
@@ -85,4 +87,5 @@ jobs:
             proof-gaps.json
             nested-kerf-report.json
             triple-threshold-report.json
+            kerf-expanded-report.json
           if-no-files-found: warn
