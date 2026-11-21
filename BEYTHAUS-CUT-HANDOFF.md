@@ -158,7 +158,15 @@ masaüstü uyumlu bir web/PWA; yalın, işlev odaklı arayüz.
 
 ## D. Güncel teknik durum — 21 Kasım 2026
 
-**Son motor birleştirmesi (PR #19):** `770c356bef88bf497600b702a1a1fd9a31a17629`.
+**Son motor birleştirmesi (PR #22):** `4d4c19543296df5b997018d102a5729a2f901af2`.
+PR #21 `87e8cbd12811617e6147bd45ef27c5d6f9b526c9` ile güvenli heterojen
+eşik kapasitesi ve ayrı alan/maliyet kanıtı eklendi. PR #22 pozitif kerf
+içeren farklı stok ebatları ve yüksek adetler için yalnız **yapıcı,
+iki aşamalı giyotin şerit desenleri** üretir. Her aday bağımsız
+`production-audit.js` denetiminden geçmeden mevcut planı değiştirmez.
+Giyotin motorunun geri kalan sınıfları ve blok kurtarma korunur.
+Sayı/yüksek adet giriş tavanı getirilmedi. Arama bütçesi veya başarısız
+desen üretimi `UNKNOWN` olup imkânsızlık/optimumluk kanıtı değildir.
 PR #18 (`ba49e9cb3230da110a390cb3b56420d51012458b`) CI hazırlık yarışı
 onarımını içerir. Aşağıdaki PR #17 açıklaması aynı motor hattının önceki
 adımıdır; GitHub'da daha yeni `master` HEAD her oturumda ayrıca okunmalıdır.
@@ -393,8 +401,26 @@ Gerçek iPhone/Safari ve canlı JS içerik baytları ayrıca doğrulanmadı.
 
 ## E. Son tamamlanan adım / sıradaki adım
 
-**Son tamamlanan motor adımı (21 Kasım):** PR #19, `master` birleştirme
-`770c356bef88bf497600b702a1a1fd9a31a17629`.
+**Son tamamlanan motor adımı (21 Kasım):** PR #22, `master` birleştirme
+`4d4c19543296df5b997018d102a5729a2f901af2`.
+PR #21 boyut eşiğine göre min-kenar kare kapasitesi üzerindeki
+bağımsız tamsayı stok örtüsü alt sınırlarını güçlendirdi; `count`, `area`
+ve `cost` ayrıdır. PR #22 farklı stok ebatları, pozitif kerf, kenar
+payı, parça yönü ve farklı stok fiyatları için tam kenar kesimli yeni
+**fiziksel şerit deseni üreten, sınırlı kaynaklı bir sezgisel yöntem**
+ekledi. 160 parçalı/80 levhalı testte plan eksiksiz ve bağımsız
+kesim ağacı denetiminden geçti; bu tüm büyük işlere garanti değildir.
+`UNKNOWN` sonuç sertifika değildir, Supabase ve gerçek stoklar değişmedi.
+
+**Sonraki motor geliştirmesi:** Çok daha heterojen ve derin kesim
+ağaçlarında eksiksiz giyotin plan üretim oranını bağımsız planted
+fixture'larla ve süre/bellek maliyetiyle ölç, gerektiğinde bounded
+large-neighborhood / desen araması geliştir. Alan ve maliyet için
+ayrı güvenli alt sınır ve optimality gap'i artır; ancak **tüm
+giyotin aşamalarını kapsayan ispatlı fiyatlandırma ve dallanma**
+uygulamadan iki aşamalı pattern generator'ı gerçek bir
+branch-and-price/MILP/CP-SAT genel kesin çözücü diye tanıtma.
+Yayın baytları, gerçek iPhone ve bulut saha kabulü ayrı açık.
 Farklı ölçülü ve farklı fiyatlı stoklarda pozitif kerf için tüm parçaların
 içine çizilebilen en küçük kareye dayalı güvenli stok-başı kapasite sınırı
 eklendi; sabit eksenli özdeş parça sınırı da korunuyor. 27 farklı ölçü/yön
@@ -937,3 +963,76 @@ kullanıcıya sunulan bir özellik olduğu iddia edilmemeli.
   üretim tamamlanması ve şema değiştirilmedi; yalnız
   kesim kanıt kodu, test/CI ve cache güncellendi.
   Motor henüz genel anlamda mühürlenmedi.
+
+
+## I. 21 Kasım 2026 — PR #21–22 güvenli heterojen alt sınır ve fiziksel desen
+
+**PR #21** https://github.com/Beytullah-dot/Beytullah-/pull/21 — birleşim:
+`87e8cbd12811617e6147bd45ef27c5d6f9b526c9`.
+
+- `docs/engine/optimality-certificate.js` içindeki
+  `thresholdCardinalityCover`, parçalardaki her farklı minimum kenar
+  eşiğinin üzerindeki alt küme için pozitif testere paylı en küçük kare
+  kapasitesi hesaplar. Her alt kümenin stoğa yerleşme kapasitesi mevcut
+  işin fiziksel zorunlu koşuludur; ayrı biten `count/area/cost`
+  tamsayılı stok örtüsü çözümlerinin **maksimum güvenli alt sınırı**
+  kullanılır. Eksik kalan eşik araması başka eşiğin tamamlanmış
+  geçerli alt sınırını geçersiz kılmaz; `UNKNOWN` optimumluk kanıtı
+  değildir.
+- `tests/motor-threshold-kerf.cjs`: 30 adet 70×70 mm + 30 adet
+  20×20 mm parça, 3 mm kerf, 2 mm kenar payı; 100×100 mm/100 TL ve
+  95×105 mm/160 TL alternatifleri. Her büyük parça ayrı levha ister;
+  **30 minimum levha** bağımsız boyut çatışmasıyla gösterilir.
+  Bağımsız giyotin ağacı denetimiyle minimum maliyet **3.000 TL**,
+  minimum brüt alan **299.250 mm²** iki farklı planda
+  ayrı ayrı kanıtlanır. Bilinmeyen fiyat, karşıt hedefin sertifikası
+  ve sıfır kaynakta `UNKNOWN` güvenlik testleri vardır.
+- PR #21 dalındaki 4 CI kapısı SUCCESS; master birleştirme SHA'sında
+  Pages `44924957248`, Geometry `44924957146`,
+  Optimizer `44924957207` SUCCESS. Gerçek Safari ölçülmedi.
+
+**PR #22** https://github.com/Beytullah-dot/Beytullah-/pull/22 — birleşim:
+`4d4c19543296df5b997018d102a5729a2f901af2`.
+
+- Yeni `docs/engine/mixed-strip-patterns.js`: stok tipi ve kesim
+  yönü alternatiflerini tarayan zaman bütçeli şerit oluşturucu;
+  her gerçek kerf kesimi aktif alt dikdörtgenin **tam kenarı** boyunca
+  işlenir. Yön, rotasyon, kalınlık, kayıtlı fiyat ve stok adetleri
+  korunur. `guillotine-block-repair.js` yalnız eski plan eksikse
+  aday ister; daha iyi adayın tamamı `auditCutPlan` tarafından
+  doğrulanmadan uygulanmaz. Önceki derin/asimetrik blok kurtarma
+  yedek olarak kalır. Yeni modül tarayıcıya, test harness'a ve
+  PWA v34 cache listesine bağlandı.
+- `tests/motor-mixed-strip.cjs`: 80 adet 70×70 ve 80 adet 20×20,
+  heterojen stok, 3 mm kerf, 2 mm trim; 80 levha üzerinden
+  tüm **160 parça** yerleştirildi, 8.000 TL/800.000 mm²
+  tanık planı bağımsız olarak denetlendi; tahrif edilmiş kısa kesim,
+  eksik fiyat ve sıfır bütçe sınandı. **Bu test planın fiziki
+  uygulanabilirliğidir; optimum alan/maliyet arama sertifikası
+  ayrıca değerlendirilmelidir.**
+- PR #22 dört kapı SUCCESS: Geometry `44925236028`;
+  Optimizer `44925236021`; uncapped scale `44925235935`;
+  iPhone WebKit **emülasyonu** `44925235934`. Optimizer adımında
+  `motor-mixed-strip` ve `motor-threshold-kerf` PASS.
+- PR #22 master merge SHA `4d4c19543296df5b997018d102a5729a2f901af2`
+  üzerinde Pages `44925409342`, Geometry `44925409717`,
+  Optimizer `44925409703` ve WebKit emülasyonu
+  `44925409660` **SUCCESS**. Doküman birleştirme
+  yeni HEAD oluşturduğundan her yeni sohbette canlı HEAD yenilenmelidir.
+- Supabase migration, fiziksel stok ve kullanıcı üretim kayıtları
+  değiştirilmedi; tüm değişiklikler sadece GitHub kod, test,
+  browser modül referansı, cache ve dokümantasyondadır.
+  Bağlı gerçek Supabase projesi `pdqgpupdqgrxejvjpdzs`
+  salt okunur durum sorgusunda `ACTIVE_HEALTHY` idi;
+  DB tablolarına / Auth kayıtlarına erişilmedi, SQL çalıştırılmadı.
+
+**Eksikler ve güvenilirlik sınırları:** Birçok farklı parça/levha
+kombinasyonunda tüm alan ve maliyet optimumluğu kanıtlanmış değildir.
+İki aşamalı şerit deseni, genel çok aşamalı giyotin probleminin
+tam pattern-price oracle'ı değildir. Geometriye özgü agresif dominance
+kullanılmadı; yalnız Pareto stok örtüsü dominance'ı, `capacity>=`
+ve `unit<=` koşullarına dayanan güvenli gevşetmedir.
+Büyük heterojen holdout'ta bağımsız optimum referansı, açık
+optimality gap'lerin sistematik raporlanması, süre/bellek,
+gerçek Safari ve iki kullanıcı cloud E2E halen açık.
+**MOTOR HENÜZ MÜHÜRLENMEDİ.**
