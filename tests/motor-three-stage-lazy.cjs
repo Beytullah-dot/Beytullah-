@@ -76,7 +76,7 @@ for(const family of ['mixed','repeated'])
     successful++;allCuts+=result.plan.bins.reduce((n,b)=>n+b.cuts.length,0);
    }else{assert.equal(result.plan,null);unknown++;}
    rows.push({family,count,objective,status:result.status,
-    bins:result.plan?.bins.length??null,cuts:result.plan?.bins.reduce(
+    bins:result.plan?.bins.length??null,objectiveValue:result.objectiveValue,cuts:result.plan?.bins.reduce(
      (n,b)=>n+b.cuts.length,0)??null,
     updates,attempts:result.attempts,nodes:result.nodes,
     bands:result.bandsBuilt,strips:result.stripsBuilt,
@@ -128,6 +128,32 @@ if(witness.plan?.bins[0]?.cuts.length){
  assert.equal(engine.auditCutPlan(tampered,baseline).ok,false);
  assert.equal(independent.audit(baseline,tampered,'guillotine').ok,false);
 }
+// Additional policy regressions: category/m3 pricing, fractional exact grid,
+// board-count objective, and no oversubscription when every stock qty is zero.
+const onePart={...common,id:'one',label:'one',l:20,w:9};
+const masifPart={...onePart,category:'masif',material:'masif|mese',t:20};
+const masifStock={...masifPart,id:'masif-stock',l:22,w:11,qty:1,
+ price:50000,priceUnit:'m3'};
+const masifJob={parts:[masifPart],stocks:[masifStock],trim:1,kerf:2};
+const masif=lazy.solve(masifJob.parts,masifJob.stocks,{
+ trim:1,kerf:2,objective:'cost'});
+assert.equal(masif.status,'feasible-uncertified');
+audit(masifJob,masif.plan);
+assert(Math.abs(masif.plan.cost-22*11*20/1e9*50000)<1e-9);
+const fractionalJob={parts:[{...onePart,id:'fractional',label:'fractional',
+ l:10.25,w:7.5}],stocks:[{...common,id:'fractional-stock',
+ l:12.25,w:9.5,qty:1,price:20,priceUnit:'panel'}],trim:1,kerf:1.5};
+const fractional=lazy.solve(fractionalJob.parts,fractionalJob.stocks,{
+ trim:1,kerf:1.5,objective:'area'});
+assert.equal(fractional.status,'feasible-uncertified');
+audit(fractionalJob,fractional.plan);
+const byCount=lazy.solve(baseline.parts,baseline.stocks,{
+ trim:1,kerf:2,objective:'count'});
+assert.equal(byCount.status,'feasible-uncertified');
+audit(baseline,byCount.plan);
+assert.equal(byCount.objectiveValue,byCount.plan.bins.length);
+assert.equal(lazy.solve(baseline.parts,baseline.stocks.map(s=>({
+ ...s,qty:0})),{trim:1,kerf:2}).status,'unknown-no-candidate');
 const report={scope:'lazy physical feasible three-stage research; NO optimum certificate',
  exactMixed8Baseline:old.status,attempted:cases,feasible:successful,
  unknown,independentlyAuditedUpdates:totalUpdates,totalCuts:allCuts,
