@@ -77,4 +77,5 @@ jobs:
           path: |
             optimization-report.json
             proof-gaps.json
+            nested-kerf-report.json
           if-no-files-found: warn
