@@ -53,6 +53,8 @@ jobs:
         run: MOTOR_TRIPLE_JSON=triple-threshold-report.json node tests/motor-triple-threshold.cjs
       - name: Verify kerf-expanded area against independent stock oracle and physical exact holdouts
         run: MOTOR_EXPANDED_JSON=kerf-expanded-report.json node tests/motor-kerf-expanded-area.cjs
+      - name: Verify independent two-stage guillotine pattern oracle and physical trees
+        run: MOTOR_TWO_STAGE_JSON=two-stage-report.json node tests/motor-two-stage-exact.cjs
       - name: Verify new physical exact full-span bound in deployed proof worker
         run: MOTOR_FULLSPAN_CERT_JSON=fullspan-certificate-report.json node tests/motor-fullspan-certificate.cjs
       - name: Verify physical stock-geometry compatibility with independent oracle
@@ -94,4 +96,5 @@ jobs:
             kerf-expanded-report.json
             geometry-stock-filter-report.json
             fullspan-certificate-report.json
+            two-stage-report.json
           if-no-files-found: warn
