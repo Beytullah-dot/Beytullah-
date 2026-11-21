@@ -159,7 +159,23 @@ masaüstü uyumlu bir web/PWA; yalın, işlev odaklı arayüz.
 
 ## D. Güncel teknik durum — 21 Kasım 2026
 
-**Son motor birleştirmesi (PR #26):** `2886b99beb750cd677bed90a014e9a2addd72ce7`.
+**Son motor birleştirmesi (PR #28):**
+`fe674da755efa7770f41a62996a9522258648b5a`.
+Toplam kullanılabilir stok alanıyla **iki farklı parça-boyutu
+eşiğinin** güvenli kerf'li kapasitesi aynı stok kombinasyonunda
+eşzamanlı karşılanıyor. Tamsayılı üç kaynaklı Pareto örtüsü
+`docs/engine/optimality-certificate.js` içinde; eksiksiz
+gevşetme optimumluğu yalnız bağımsız giyotin planla eşleşirse
+ilgili hedef için fiziksel optimumluk sertifikası. Maliyet,
+brüt alan, stok adedi ayrıdır; `UNKNOWN` kanıt değildir.
+Bağımsız test: `tests/motor-multi-threshold.cjs`;
+rapor: `tests/MOTOR-MULTI-THRESHOLD-RESULTS.md`.
+31 parçalık iki ayrı denetlenmiş optimum tanığı: maliyet
+139 TL, alan 80.000 mm²; 64 heterojen stok işi × üç amaç =
+**192/192** oracle karşılaştırması, aşım 0. PR:
+https://github.com/Beytullah-dot/Beytullah-/pull/28.
+**Önceki motor adımı (PR #26):**
+`2886b99beb750cd677bed90a014e9a2addd72ce7`.
 PR #26 mevcut `docs/engine/optimality-certificate.js` içindeki
 tamsayılı stok örtüsü kanıtına **toplam parça alanı + eşik-boyutlu
 parça kapasitesini aynı stok kombinasyonunda zorunlu tutan**
@@ -418,17 +434,30 @@ Gerçek iPhone/Safari ve canlı JS içerik baytları ayrıca doğrulanmadı.
 
 ## E. Son tamamlanan adım / sıradaki adım
 
-**Son tamamlanan motor adımı (21 Kasım):** PR #26,
-`master` birleştirme
-`2886b99beb750cd677bed90a014e9a2addd72ce7`.
-Kerf ve kenar paylı bütün parçaların **toplam alanı** ile
-büyük parça alt kümelerinin aynı stoklardan karşılanması
-gereken **sayı kapasitesi** iki boyutlu Pareto tamsayı
-örtüsü olarak birlikte çözülüyor. Maliyet ve brüt alan
-kanıtları farklı fiziksel planlar için bağımsız ve doğrulanabilir.
-Kanıtlanmamış kalan mutlak fark ve mevcut maliyet/brüt alan
-ölçeğine göre yüzde fark arayüzde gösterilir. `UNKNOWN`
-halen optimumluk veya imkânsızlık kanıtı değildir.
+**Güncel motor adımı (21 Kasım 2026):** PR #28 `master`
+merge `fe674da755efa7770f41a62996a9522258648b5a`.
+Birden fazla parça boyutu eşiğinden **iki tanesi aynı stok çoklu
+kümesi üzerinde eşzamanlı** zorunlu tutuluyor; toplam kullanılabilir
+alanla birlikte üç kapasiteli güvenli alt sınır elde ediliyor.
+31 parçalık bağımsız fiziksel giyotin örneğinde ayrı
+maliyet/alan optimumu 139 TL / 80.000 mm² doğrulandı.
+64 altı-stok-tipli deterministik holdout × üç amaç = 192/192
+bitmiş karşılaştırma, hiçbirinde oracle üstüne çıkan alt sınır
+yok. Kayıtlı maliyet ve brüt alan seçimi farklı plan
+üretebilir; yüzdesel/mutlak kanıtlı fark iyileştirme vaadi değildir.
+
+**Sıradaki matematik adımı:** Çoklu eşik örtüsünün halen açık
+optimality-gap bıraktığı daha büyük, stok fiyatı ve boyutu
+heterojen, kesim ağacı şekli farklı planted/gerçekçi holdout'ları
+geliştir. Eşzamanlı 3+ eşiklerin durum patlamasını ve bellek
+kullanımını ölç; güvenli dual-feasible/geometrik alt sınırları
+incele. Ancak tam genel giyotin desen uzayını doğrulayan exact
+pricing ve branching kurulmadan genel MILP/CP-SAT/
+branch-and-price optimumluğu ilan etme. Sunucu tarafı
+bağımsız fiziksel denetim, gerçek Safari, iki kullanıcı
+Supabase saha UAT ve canlı byte eşleşmesi açık.
+Gerçek kullanıcı stokları ve üretim kayıtları
+bu adımda değiştirilmedi.
 
 **Sonraki araştırma:** 20–25+ çok farklı parça ve stok tipiyle
 bağımsız optimality-gap dağılımlarını ölç; fiyat/alan kanıtı
@@ -1230,3 +1259,80 @@ bağımsız kesim ağacı denetimi açık. **MOTOR HENÜZ MÜHÜRLENMEDİ.**
   doğrulaması, iki kullanıcı/çok cihaz Supabase ve sunucu
   tarafında kesim ağacı tekrar kontrolü yapılmış sayılmaz.
   **Motor genel optimumluk için henüz mühürlenmedi.**
+
+
+## L. 21 Kasım 2026 — PR #28 aynı stokta iki parça eşiği ve toplam alan
+
+- **Birleştirme:** PR https://github.com/Beytullah-dot/Beytullah-/pull/28
+  `master` merge `fe674da755efa7770f41a62996a9522258648b5a`.
+  Başlangıç HEAD `79cee7da9722dd195d448352fdc0fa4e22f9dbe9`.
+  Önceki tek eşikli ortak alan + sayı alt sınırı korunuyor.
+- **Yöntem:** `docs/engine/optimality-certificate.js` içinde
+  `multipleThresholdAreaCover` her tamamlanan iki eşik çifti
+  için aynı stokun **kullanılabilir alan** + **yüksek eşik slot**
+  + **düşük eşik slot** koşullarını birlikte zorunlu tutuyor.
+  `dualThresholdCover` üç kaynaklı durumları tamsayılı
+  Pareto DP ile çözüyor. Azalan alan sırası, iki
+  eşik kapasitesinde Fenwick 2D prefix-min ile
+  sadece **her üç kaynakta daha az olmayan ve seçili
+  amaçta daha pahalı olmayan** güvenli dominance kullanır.
+  Arama zamanı/durum bütçesi dolarsa UNKNOWN kalır;
+  önceden bitmiş çiftlerden matematiksel güvenli LB
+  korunabilir. Geometri ve giyotin aşamaları gevşetildi:
+  bu **genel fiziksel exact optimizer değildir**.
+- **Fiziksel bağımsız örnek:** 2×70×70, 15×40×40 ve
+  14×20×20 mm parça; 3 mm kerf, 2 mm trim.
+  Fiyat/ölçü/adet: A 50×900 / 61 TL / 5;
+  B 600×77 / 78 TL / 1;
+  C 200×200 / 90 TL / 4.
+  Tam kenarlı kesim ağaçları solver kullanılmadan
+  kuruldu, `production-audit.js` ikisini kabul etti.
+  Fiyat optimum plan A+B = **139 TL**, brüt alan
+  **91.200 mm²**; alan optimum plan C+C =
+  **80.000 mm²**, fiyat **180 TL**.
+  Ayrı oracle ve yeni alt sınır her hedef için
+  aynı minimumu verdi. Önceki ortak tek eşikli
+  LB'ler sırasıyla sadece 78 TL ve 46.200 mm² idi.
+  Zıt hedefte kanıtlanmamış iyileşmenin maksimumu
+  41 TL (180 TL'nin %22,78'i) ve 11.200 mm²
+  (91.200 mm²'nin %12,28'i); gerçekleşeceği garantisi yok.
+- **Holdout:** `tests/motor-multi-threshold.cjs`,
+  64 deterministik iş, her birinde 6 farklı ölçü/fiyat
+  stok türü ve 4 heterojen parça sınıfı, 3 ayrı amaç:
+  **192/192** tamamlanan karşılaştırılabilir bağımsız
+  tam stok-multiset oracle sonucu; güvenli alt sınırı
+  aşan **0**. Bu oracle kesim ağacı çözmez, yalnız
+  stok kapasitesi için matematiksel gevşetmeyi ölçer;
+  fiziksel plan testleri ayrı `production-audit.js`
+  denetiminde. Kesim ağacı tahrifi reddedildi; eksik
+  fiyat için maliyet UNKNOWN; sıfır bütçe UNKNOWN.
+  Önceki PR #24'ün 150 parça/30 levha fiziksel
+  planted regresyonu da Optimizer test kapısında.
+- **Reprodüksiyon:** `node tests/motor-multi-threshold.cjs`;
+  sonuçlar ve literatür kapsamı:
+  `tests/MOTOR-MULTI-THRESHOLD-RESULTS.md`.
+  PWA önbelleği `beythaus-cut-v37-multi-threshold-cover`;
+  `.github/workflows/optimization-verification.yml` yeni bağımsız
+  testi koşuyor. PR son head `2f1a715a8c4468a2c9cc1e40f3b8d4111b9bbd66`
+  üzerinde Optimizer `44931069420`, Geometry
+  `44931069631`, WebKit **emülasyonu** `44931069416`,
+  Uncapped Scale `44931069486`: **dörtte dört SUCCESS**.
+  Aynı motor merge SHA'sında master Optimizer
+  `44931195005`, Geometry `44931195003`,
+  WebKit **emülasyonu** `44931194959` ve Pages
+  `44931193875`: **dörtte dört SUCCESS**.
+  Canlı URL'den JS bayt karşılaştırması bu tur
+  yapılamadı. Gerçek iPhone ve saha üretim UAT
+  yapılmış sayılmaz.
+- **Kapsam dışı:** Supabase projesinin şeması/migration'ı,
+  Auth, canlı stok ve üretim kayıtları değiştirilmedi.
+  Bilinmeyen fiyat 0 sayılmıyor; parça/stok sayısına
+  kullanıcı tavanı getirilmedi; panel/masif yön kuralı
+  korunuyor. Motorun genel optimumluğu **mühürlenmedi**.
+- **Sonraki görev:** Mevcut kanıtın *açık* kaldığı
+  büyük ve çeşitli fiziksel giyotin örnekleri bulup
+  iki hedefte boşluk dağılımlarını ve bellek/zaman
+  maliyetini ayrı ölç. Sonra gerektiğinde birden fazla
+  eşik + dual-feasible alt sınır veya yalnız doğrulanabilir
+  özel fiziksel kesim sınıfında MILP/CP-SAT/branch-and-price
+  prototipini küçük PR ile değerlendir.
