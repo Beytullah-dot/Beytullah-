@@ -128,7 +128,7 @@ for(let i=0;i<30;i++){
  const renamed=bin.placed.map(p=>({...p,id:p.id+'-'+i,
   label:p.label+'-'+i}));
  largePieces.push(...renamed.map(p=>({
-  id:p.id,label:p.label,l:p.l,w:p.w,t:p.t,material:p.material,
+  id:p.id,label:p.label,l:p.l,w:p.h,t:p.t,material:p.material,
   category:p.category,rotate:p.rotate,grain:p.grain,order:i*5+p.order
  })));
  largeWitnessBins.push({...bin,stock,placed:renamed});
@@ -136,7 +136,7 @@ for(let i=0;i<30;i++){
 const largeData={parts:largePieces,stocks:[...stockById.values()],
  trim:3-1,kerf:3,m3:25000};
 const fullArea=largeWitnessBins.reduce((n,b)=>n+b.placed.reduce(
- (sum,p)=>sum+p.l*p.w,0),0);
+ (sum,p)=>sum+p.w*p.h,0),0);
 const fullStock=largeWitnessBins.reduce((n,b)=>n+b.stock.l*b.stock.w,0);
 const fullCost=largeWitnessBins.reduce((n,b)=>n+b.stock.price,0);
 const largeWitness={bins:largeWitnessBins,unplaced:[],placedCount:150,
