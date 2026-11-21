@@ -1883,8 +1883,14 @@ Geometry [44951473267](https://github.com/Beytullah-dot/Beytullah-/actions/runs/
 Scale [44951473139](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44951473139),
 iPhone WebKit **emülasyonu**
 [44951473133](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44951473133):
-**4/4 SUCCESS**. Master merge sonrası CI/Pages ayrıca gerçek run
-numaralarıyla doğrulanmalı.
+**4/4 SUCCESS**. PR #44 master merge `59f385dc4d913f12f25f51d76f7cf66eeed7fac0`
+sonrası gerçek master Optimizer
+[44951584481](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44951584481),
+Geometry [44951584495](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44951584495),
+iPhone WebKit **emülasyonu**
+[44951584502](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44951584502)
+ve Pages [44951584094](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44951584094):
+**4/4 SUCCESS**.
 
 **YAPICI ADAY ENTEGRASYONU HENÜZ YAPILMADI.**
 Bu enumerator 8 farklı enli parçada dahi `UNKNOWN` kalabildiğinden
