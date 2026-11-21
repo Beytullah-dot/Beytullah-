@@ -158,10 +158,9 @@
    const stocks=data.stocks.filter(s=>groupKey(s)===key);
    const r=cover(stocks,demand,{objective,trim:data.trim,priceMode,m3,
      maxStates,maxMs});
-   const cardinality=cardinalityTypes(parts,stocks,data.trim,
-    Number.isFinite(data.kerf)?data.kerf:0);
-   const c=cardinality?cover(cardinality,parts.length,{
-    objective,trim:data.trim,priceMode,m3,maxStates,maxMs}):null;
+   const c=thresholdCardinalityCover(parts,stocks,data.trim,
+    Number.isFinite(data.kerf)?data.kerf:0,{
+     objective,priceMode,m3,maxStates,maxMs});
    const certifiedBounds=[r,c].filter(b=>b?.status==='optimal-relaxation');
    const best=certifiedBounds.length?
     Math.max(...certifiedBounds.map(b=>b.lowerBound)):null;
@@ -203,12 +202,61 @@
     gap:Math.max(0,incumbent-totalBound),
     status:proven?'optimal':'gap',method:'integer-area-cover'};
  }
- function countBoundForGroup(parts,stocks,trim,kerf){
-  const types=cardinalityTypes(parts,stocks,trim,kerf);
-  if(!types)return {status:'not-applicable',lowerBound:null};
-  return cover(types,parts.length,{objective:'count',trim,maxMs:700,maxStates:50000});
+ // Every subset of pieces with minimum edge >= threshold must fit into
+ // the same physical stock collection. For that subset, inscribed
+ // threshold-squares give an independent kerf-aware count relaxation.
+ // We take the MAXIMUM of the exact relaxed objective minima: this is
+ // still a lower bound on the whole cutting job, not a cut pattern.
+ // A timeout only ends threshold exploration; a bound already computed
+ // from a finished relaxation remains mathematically sound.
+ function thresholdCardinalityCover(parts,stocks,trim,kerf,options={}){
+  const unknown={status:'unknown-limit',lowerBound:null,
+   tested:0,total:0,complete:false};
+  if(!parts.length||!Number.isFinite(kerf)||kerf<0||
+     !Number.isFinite(trim)||trim<0||
+     parts.some(p=>!Number.isFinite(p.l)||!Number.isFinite(p.w)||
+      p.l<=0||p.w<=0))return unknown;
+  const thresholds=[...new Set(parts.map(p=>Math.min(p.l,p.w)))];
+  // Keep the previous all-pieces bound first, even under a tight budget.
+  // Test more selective thresholds from largest to smallest afterwards.
+  const smallest=thresholds.reduce((low,t)=>Math.min(low,t),Infinity);
+  thresholds.sort((a,b)=>b-a);
+  const sequence=[smallest,...thresholds.filter(t=>t!==smallest)];
+  const started=Date.now(),maxMs=options.maxMs??2500,deadline=started+maxMs;
+  let best=null,tested=0,interrupted=false;
+  for(const threshold of sequence){
+   const left=deadline-Date.now();
+   if(left<=0){interrupted=true;break}
+   // No epsilon here: including a piece with a smaller minimum edge
+   // would invalidate the square-containment argument.
+   const subset=parts.filter(p=>Math.min(p.l,p.w)>=threshold);
+   const types=cardinalityTypes(subset,stocks,trim,kerf);
+   if(!types)continue;
+   const result=cover(types,subset.length,{...options,trim,maxMs:left});
+   if(result.status==='unknown-price')
+    return {status:'unknown-price',lowerBound:null,tested,
+     total:sequence.length,complete:false};
+   if(result.status==='unknown-limit'){
+    interrupted=true;break
+   }
+   if(result.status==='optimal-relaxation'){
+    tested++;
+    best=best===null?result.lowerBound:Math.max(best,result.lowerBound)
+   }
+   // An infeasible relaxation may disprove the physical job, but this
+   // certifier is only called after a verified feasible incumbent;
+   // never reinterpret it as a finite objective bound.
+  }
+  return {status:best===null?'unknown-limit':'optimal-relaxation',
+   lowerBound:best,tested,total:sequence.length,
+   complete:!interrupted&&tested===sequence.length,
+   method:'heterogeneous-threshold-kerf-cover'};
  }
- const api=Object.freeze({version:1,cover,certify,countBoundForGroup});
+ function countBoundForGroup(parts,stocks,trim,kerf){
+  return thresholdCardinalityCover(parts,stocks,trim,kerf,{
+   objective:'count',maxMs:700,maxStates:50000});
+ }
+ const api=Object.freeze({version:1,cover,certify,countBoundForGroup,thresholdCardinalityCover});
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
  root.BeythausOptimalityCertificate=api;
 })(typeof self!=='undefined'?self:typeof window!=='undefined'?window:globalThis);
