@@ -158,7 +158,10 @@ masaüstü uyumlu bir web/PWA; yalın, işlev odaklı arayüz.
 
 ## D. Güncel teknik durum — 21 Kasım 2026
 
-**Güncel master (PR #17 sonrası):** `f06bb23d8aefc52796f0a19910978d8efcba4a8e`.
+**Son motor birleştirmesi (PR #19):** `770c356bef88bf497600b702a1a1fd9a31a17629`.
+PR #18 (`ba49e9cb3230da110a390cb3b56420d51012458b`) CI hazırlık yarışı
+onarımını içerir. Aşağıdaki PR #17 açıklaması aynı motor hattının önceki
+adımıdır; GitHub'da daha yeni `master` HEAD her oturumda ayrıca okunmalıdır.
 Seçilen **minimum brüt fire** / **minimum kayıtlı stok maliyeti** hedefi
 kullanıcının hesaplama öncesi tercihi olarak UI/heuristic/Worker akışında
 çalışıyor. Brüt alan, kayıtlı fiyat ve minimum stok adet kanıtları birbirinden
@@ -390,7 +393,22 @@ Gerçek iPhone/Safari ve canlı JS içerik baytları ayrıca doğrulanmadı.
 
 ## E. Son tamamlanan adım / sıradaki adım
 
-**Son tamamlanan (21 Kasım):** PR #17, `master` birleştirme
+**Son tamamlanan motor adımı (21 Kasım):** PR #19, `master` birleştirme
+`770c356bef88bf497600b702a1a1fd9a31a17629`.
+Farklı ölçülü ve farklı fiyatlı stoklarda pozitif kerf için tüm parçaların
+içine çizilebilen en küçük kareye dayalı güvenli stok-başı kapasite sınırı
+eklendi; sabit eksenli özdeş parça sınırı da korunuyor. 27 farklı ölçü/yön
+satırlı parça, iki stok ölçüsü/fiyatı, kerf=3 mm ve kenar payı=2 mm ile
+bağımsız denetlenmiş fiziksel kesim planları elde edildi. Kayıtlı maliyette
+2.700 TL / 27 levha, brüt alanda 269.325 mm² / 27 levha ayrı ayrı kanıtlı;
+bu iki optimum birbirinin yerine geçmez. 27 genel bir üst sınır değildir.
+PR CI dörtte dört SUCCESS; üretim stokları/Supabase değişmedi.
+**Sıradaki geliştirme:** 20–25+ levha, yüksek tekrar, çoklu fiyat ve pozitif
+kerf için gerçek giyotin desenlerini üreten ve `UNKNOWN` arama sonlarını
+koruyan pattern generation/dominance; seçili alan ve maliyet için ayrı
+güvenli alt sınır ve açık optimality gap; bağımsız oracle ve süre/bellek testleri.
+
+**Önceki tamamlanan (21 Kasım):** PR #17, `master` birleştirme
 SHA `f06bb23d8aefc52796f0a19910978d8efcba4a8e`.
 Ana kesim hesaplama hedefi artık `area` veya `cost` olarak seçiliyor;
 hızlı plan ve karma otomatik dağıtım hedefi izliyor, kesin Worker
@@ -868,3 +886,55 @@ kullanıcıya sunulan bir özellik olduğu iddia edilmemeli.
   açık optimality gap; zaman/bellek/iPhone ölçümü.
   Motor henüz mühürlenmedi. Supabase şeması/üretim kayıtları,
   fiziksel stoklar ve gerçek müşteri verileri **değiştirilmedi**.
+
+## H. 21 Kasım 2026 — Heterojen ölçülü kerf kapasitesi, PR #19
+
+- **Kod PR'ı:** https://github.com/Beytullah-dot/Beytullah-/pull/19
+  **birleştirildi**. Merge SHA:
+  `770c356bef88bf497600b702a1a1fd9a31a17629`.
+- `docs/engine/optimality-certificate.js` artık aynı boyuttaki
+  parçalara özgü `cardinalityTypes` sertifikasına ek olarak farklı
+  parçaların en küçük kenarını kullanır. Her parça bu kenar
+  uzunluğunda bir eksene paralel kare içerir. Kesimler k kadar
+  ayrıldığından stokun kullanılabilir W,H ölçülerinde
+  `floor((W+k)/(minEdge+k))*floor((H+k)/(minEdge+k))`
+  parça kapasitesi **üst sınırdır**. Yön ve döndürme kısıtlarını
+  gevşetir; dolayısıyla gerçek optimuma karşı güvenli alt sınır
+  üretir. Özdeş/sabit eksenli parçaların mevcut daha güçlü
+  kapasitesi korunur.
+- Sayısal örnek: 27 parça, dört ayrı 70–71 mm parça ölçüsü,
+  serbest/boyuna/enine yönler, 3 mm kerf, 2 mm kenar payı;
+  100×100 mm (100 TL) ve 95×105 mm (160 TL) stoklardan
+  her biri fiziksel olarak en fazla bir parça taşır.
+  İki ayrı tamamlanmış ve bağımsız giyotin denetiminden
+  geçmiş plan: minimum **kayıtlı stok maliyeti 2.700 TL**
+  (27 büyük/ucuz stok) ve minimum **brüt stok alanı
+  269.325 mm²** (27 küçük/pahalı stok). Ters hedefe ait
+  kanıtlar özellikle reddedilir; fiyatı bilinmeyen alternatif
+  maliyet sertifikasını engeller.
+- Regresyon: `tests/motor-heterogeneous-capacity.cjs`; CI
+  `.github/workflows/optimization-verification.yml`. PWA cache:
+  `beythaus-cut-v33-heterogeneous-kerf-proof`.
+- PR head `dd6554f42b0db58b39de46cffdb7230b9727ca0d`
+  üzerinde dört Actions kapısı **SUCCESS**:
+  Optimizer `44913350480`, Geometry `44913350471`,
+  uncapped scale `44913350564`,
+  iPhone WebKit **emülasyonu** `44913350514`.
+- Master merge SHA'sında Pages `44913469271` ve
+  Geometry `44913469970`, Optimizer `44913470026` SUCCESS.
+  Master WebKit `44913470150` ayrıca son durumundan
+  kontrol edilmelidir. Ham canlı JS bayt eşleşmesi ve gerçek
+  iPhone/Safari kullanıcı testi bu CI ile kanıtlanmış değildir.
+- Matematiksel kapsam: Bu **sınıfa özgü alt sınırdır**,
+  27 levhadan büyük girişlere bir sınır getirilemez. Eksik plan
+  mümkün değil demek değildir; geçerli plan ile matematiksel
+  optimumluğu ve `count`/`area`/`cost` sertifikalarını ayır.
+  Akademik tek stok aşamasız kesin arama (Fleszar 2016) ile
+  iki aşamalı arc-flow/branch-and-price (Macedo; Mrad vb.)
+  *aynı kısıt sınıfı değildir*. Sonraki gerçek uygulama önce
+  kesilebilir tam karma giyotin desenler, sonra hedefe özgü
+  üst/alt sınırlar ve kaynak kesintisinde `UNKNOWN` olmalıdır.
+- **Değişmeyen güvenlik:** Supabase, müşteri/atölye stokları,
+  üretim tamamlanması ve şema değiştirilmedi; yalnız
+  kesim kanıt kodu, test/CI ve cache güncellendi.
+  Motor henüz genel anlamda mühürlenmedi.
