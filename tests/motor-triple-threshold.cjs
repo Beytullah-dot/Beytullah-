@@ -205,7 +205,54 @@ for(let seed=1;seed<=24;seed++){
 }
 assert.equal(overbound,0);
 assert(comparable>0,'At least one all-threshold independent oracle comparison');
+
+// Resource pressure holdout: 305 pieces on five independently constructed
+// long-stock guillotine patterns, with twelve additional competing stocks.
+// Exponential stock combinations are NOT enumerated here: these are audited
+// feasible upper bounds and resource-budget/UNKNOWN measurements only.
+const stressSpecs=[[85,85,20],[60,60,35],[40,40,50],
+ [22,22,80],[12,12,120]];
+const stressParts=stressSpecs.flatMap(([l,w,n],i)=>
+ pieces('R'+i,n,l,w));
+const stressBase=stressSpecs.map(([l,w,n],i)=>
+ stock('long'+i,l+15,n*w+(n-1)*3+15,1,110+45*i));
+const competing=[
+ [100,230,8,54],[110,270,8,61],[95,330,8,64],
+ [125,240,8,70],[155,255,8,88],[180,300,8,103],
+ [95,600,8,95],[230,180,8,76],[145,420,8,96],
+ [180,400,8,125],[250,350,8,144],[310,240,8,130]
+].map(([l,w,qty,price],i)=>stock('competitor'+i,l,w,qty,price));
+const stressStocks=[...stressBase,...competing];
+const stressBins=stressSpecs.map((_,i)=>plantedBin(stressBase[i],
+ stressParts.filter(p=>p.id.startsWith('R'+i+'-'))));
+const stressPlan={bins:stressBins,unplaced:[],placedCount:stressParts.length,
+ partArea:stressParts.reduce((v,p)=>v+p.l*p.w,0),
+ stockArea:stressBins.reduce((v,b)=>v+b.stock.l*b.stock.w,0),
+ cost:stressBins.reduce((v,b)=>v+b.stock.price,0),unknownCostBins:0};
+const stressData={parts:stressParts,stocks:stressStocks,trim:2,kerf:3,m3:25000};
+const stressAudit=engine.auditCutPlan(stressPlan,stressData);
+assert.equal(stressAudit.ok,true,'305-part independent physical tree '+stressAudit.issues);
+assert.equal(stressAudit.checkedParts,305);
+const stressStats={parts:305,stockTypes:17,usedSheets:5,
+ fullEdgeCuts:stressBins.reduce((v,b)=>v+b.cuts.length,0),
+ statuses:[],audited:true};
+for(const objective of ['cost','area','count']){
+ const incumbent=objective==='cost'?stressPlan.cost:
+  objective==='area'?stressPlan.stockArea:stressPlan.bins.length;
+ for(const [maxMs,maxStates] of [[50,35],[250,700],[1000,3000]]){
+  const result=triple(stressParts,stressStocks,objective,maxMs,maxStates);
+  assert(['optimal-relaxation','unknown-limit'].includes(result.status));
+  assert(result.status!=='optimal-relaxation'||
+   result.lowerBound<=incumbent+1e-7,
+   'Stress LB must not exceed independently audited physical UB');
+  stressStats.statuses.push({objective,maxMs,maxStates,status:result.status,
+   lowerBound:result.lowerBound,incumbent,peakStates:result.peakStates,
+   elapsedMs:result.elapsedMs,tested:result.tested,total:result.total});
+ }
+}
+
 const report={strict,strictPairCost:pair.lowerBound,physical:physicalStats,
+ stress:stressStats,
  holdout:{seeds:24,objectives:72,comparable,unknown,infeasible,
   overbound,peakStates,maxElapsedMs,wallMs:Date.now()-started,
   oracleEnumerations,heapBefore,heapAfter:process.memoryUsage().heapUsed,
