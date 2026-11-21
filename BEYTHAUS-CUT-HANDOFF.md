@@ -1824,3 +1824,96 @@ Supabase uçtan uca UAT, sunucu bağımsız kesim ağacı audit'i,
 gerçek stok güvenliği halen açık.
 
 **GENEL FİZİKSEL GİYOTİN OPTİMUMLUĞU MÜHÜRLENMEDİ.**
+
+
+## T. 22 Kasım 2026 — PR #44 üç aşamalı exact kaynak-bütçeli ölçek / gerçek RSS araştırması
+
+**Birleştirildi:** [PR #44](https://github.com/Beytullah-dot/Beytullah-/pull/44), master merge
+`59f385dc4d913f12f25f51d76f7cf66eeed7fac0`. PR #42'nin
+`docs/engine/three-stage-nested-exact.js` araştırma modülüne yalnız
+tanısal sayaçlar (`shelvesCreated`, `stripsCreated`, `boardGenerations`,
+`dpTransitions`) eklendi. `nodes`, `patternsCreated`,
+`states` ve `peakMemo` korunuyor. **Arama semantiği, üretim Worker'ı,
+genel optimumluk sertifikası ve aktif stoklar değiştirilmedi.**
+
+Yeni bağımsız izole Node test:
+`tests/motor-three-stage-scale.cjs`. Deney raporu:
+`tests/MOTOR-THREE-STAGE-SCALE-RESULTS.md`. CI JSON artifact:
+`three-stage-scale-report.json`. 24 ayrı Linux Node 22 işlemi;
+8/40/200 parça, tekrarlı veya farklı enli, 2 mm pozitif kerf,
+1 mm kenar payı, 52×36 / 54×38 / 56×40 / 60×42 mm stok
+kataloğu (kayıtlı fiyat 100/114/129/157), maliyet ve brüt alan
+için iki kaynak bütçesi. **8 parçalık küçük vakada tek stok
+türünün; 40/200 parçada dört stok türünün pozitif adedi vardır.**
+Her işi bilinen fiziksel V-H-V dikey şerit/yatay bant/iç dikey
+parça kesim tanığı ile üretmek mümkündür. Test bütçeleri dar:
+800ms, 12.000 düğüm, 1.500 desen, 2.500 DP durumu; geniş:
+1.600ms, 80.000 düğüm, 12.000 desen, 12.000 DP durumu.
+**Bu bütçeler kullanıcıya konmuş parça/levha üst sınırı değildir.**
+
+**Gerçek ölçüm:** 24 deneyden **8'i bu özel üç aşamalı sınıfta
+exact tamamlandı ve hem üretim hem bağımsız kesim ağacı audit'inden
+geçti; 16'sı `unknown-limit`.** Bu oran genel kullanıcı işleri
+için başarı istatistiği değildir. Tekrarlı 8 parçalık işte
+8 desen / 8 exact DP durumu ve yaklaşık 3–4 ms;
+40 tekrarlı parçalık işte 32 desen / 443 exact DP durumu /
+6.240 DP geçişi ve ~17–23 ms. Tekrarlı 200 parçalık
+geniş bütçede desen enumerasyonu tamamlanıp 4.767
+memo durumu / 78.427 DP geçişi sonunda 80.001 düğüm
+nedeniyle `UNKNOWN` döndü. Farklı enli **8 parçalık**
+geniş bütçede 6.224 şerit / 188 levha deseni /
+0 DP durumu; 80.001 düğüm ve ~1.021 ms ardından
+`UNKNOWN`. Farklı enli 40 ve 200 parçada 12.001 şerit
+bütçesi tüketilip DP başlamadı. **Önemli darboğaz:
+parça adedinden bağımsız şerit deseni çoğalması;
+tekrarlı yüksek adette ayrıca çoklu stok DP patlaması.**
+Süreleri basit UNKNOWN dönmeyi optimum çözüm olarak yorumlama.
+
+**Gözlenen tepe gerçek Linux Node süreç RSS** 67.060 KiB
+(~65,49 MiB). Çocuk işlem başına `process.resourceUsage().maxRSS`
+ölçülüyor; Node/V8 başlangıcı ve test/doğrulama kodu da dahildir,
+algoritmanın bağımsız belleği veya gelecek işler için üst sınır
+değildir. Her deneyin RSS/heap/elapsed/node/pattern/shelf/strip/memo
+kaydı CI artifact içindedir. Gerçek Safari cihaz zamanı değildir.
+
+**PR son HEAD** `51b82b898c12e9f7274cdf2b67f75e9714b3a28a`.
+PR CI: Optimizer
+[44951473141](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44951473141),
+Geometry [44951473267](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44951473267),
+Scale [44951473139](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44951473139),
+iPhone WebKit **emülasyonu**
+[44951473133](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44951473133):
+**4/4 SUCCESS**. PR #44 master merge `59f385dc4d913f12f25f51d76f7cf66eeed7fac0`
+sonrası gerçek master Optimizer
+[44951584481](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44951584481),
+Geometry [44951584495](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44951584495),
+iPhone WebKit **emülasyonu**
+[44951584502](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44951584502)
+ve Pages [44951584094](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44951584094):
+**4/4 SUCCESS**.
+
+**YAPICI ADAY ENTEGRASYONU HENÜZ YAPILMADI.**
+Bu enumerator 8 farklı enli parçada dahi `UNKNOWN` kalabildiğinden
+onu üretim Worker'ında koşulsuz başlatmak uygun değil. Sonraki
+ayrı küçük PR: fiziksel yapıcı adayları tamamlanmış/audit edilmiş
+olmadan serbest bırakmayan budgetlı **anytime/lazy** desen
+yöntemini ve mobil kaynak bütçesini araştır; üretim için yalnız
+bağımsız denetimli tam kenarlı kesim planı adayı oluştur,
+**optimumluk sertifikası çıkarma**. Unsafe count-vector dominance
+yok. Alternatif olarak özel sınıfa uygun pricing/column generation,
+MILP/CP-SAT ve branch-and-price yöntemlerini ayrı araştırma
+PR'larında gerçek RSS, süre ve oracle'la karşılaştır. Genel 2D
+matematiksel kapsam kanıtlanmadan bunları genel exact ilan etme.
+
+**Açık büyük bağımsız problem:** PR #32'nin fiziksel optimumluğu
+bilinen **farklı** 305 parçalık holdout'unda brüt alan optimumu
+499.224 mm², genel güvenli alt sınır 208.692 mm²;
+aralık halen açık. PR #30 ve PR #37'nin farklı 44/305
+örnekleriyle karıştırılmayacak. UNKNOWN ne imkânsızlık
+ne optimumluk kanıtıdır.
+
+Supabase `pdqgpupdqgrxejvjpdzs` Auth/gerçek stok/migration/
+üretim kayıtları değiştirilmedi; gerçek iPhone Safari,
+iki kullanıcılı bulut saha UAT, gerçek canlı JavaScript byte
+eşleşmesi ve sunucuda bağımsız kesim ağacı audit'i **AÇIK**.
+**GENEL GİYOTİN OPTİMUMLUĞU MÜHÜRLENMEDİ.**
