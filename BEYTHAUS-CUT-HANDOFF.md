@@ -1098,10 +1098,11 @@ gerçek Safari ve iki kullanıcı cloud E2E halen açık.
   Optimizer `44926321893`, Geometry `44926321761`,
   Uncapped scale `44926321743`, WebKit emülasyonu
   `44926321831` dört CI **SUCCESS**.
-  Master merge sonrası Optimizer `44926439253`, Geometry
-  `44926439228` SUCCESS; Pages `44926438361` ve
-  WebKit `44926439265` durumu handoff merge öncesinde
-  ayrıca doğrulanacak.
+  Master merge sonrası Optimizer `44926439253`,
+  Geometry `44926439228`, Pages `44926438361` ve
+  iPhone WebKit **emülasyonu** `44926439265` dört
+  kontrol **SUCCESS**. Canlı Safari baytları ve gerçek
+  iPhone saha kabulü bu kontrollerle doğrulanmış değildir.
 - Supabase veri, şema, migration, kayıtlı kullanıcı stokları
   ve fiziksel üretim hareketlerine **dokunulmadı**.
   Arama sonuçları yeni üretim tamamlanması yaratmaz.
