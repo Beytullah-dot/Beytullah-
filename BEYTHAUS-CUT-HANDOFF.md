@@ -922,8 +922,7 @@ kullanıcıya sunulan bir özellik olduğu iddia edilmemeli.
   iPhone WebKit **emülasyonu** `44913350514`.
 - Master merge SHA'sında Pages `44913469271` ve
   Geometry `44913469970`, Optimizer `44913470026` SUCCESS.
-  Master WebKit `44913470150` ayrıca son durumundan
-  kontrol edilmelidir. Ham canlı JS bayt eşleşmesi ve gerçek
+  Master iPhone WebKit emülasyonu `44913470150` SUCCESS. Ham canlı JS bayt eşleşmesi ve gerçek
   iPhone/Safari kullanıcı testi bu CI ile kanıtlanmış değildir.
 - Matematiksel kapsam: Bu **sınıfa özgü alt sınırdır**,
   27 levhadan büyük girişlere bir sınır getirilemez. Eksik plan
