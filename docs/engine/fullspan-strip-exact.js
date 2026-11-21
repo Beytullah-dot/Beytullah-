@@ -201,10 +201,10 @@ function solve(parts,stocks,{trim=0,kerf=0,objective='cost',
    let r;
    if(!last||leaf.h>p.w){
     r=split(p.w);
-   }else r=leaf;
+   }else {r=leaf;leaf=null}
    bin.placed.push({...p,x:r.x,y:r.y,w:p.l,h:p.w,rotated:false});
   }
-  if(leaf.h>0)bin.free.push(leaf);
+  if(leaf&&leaf.h>0)bin.free.push(leaf);
   bins.push(bin);
  }
  const plan={bins,unplaced:[],placedCount:parts.length,
