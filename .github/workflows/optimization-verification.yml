@@ -39,6 +39,8 @@ jobs:
         run: node tests/engine-contract.cjs
       - name: Verify analytical geometric lower bounds
         run: node tests/geometric-bounds.cjs
+      - name: Verify heterogeneous 27-sheet kerf bounds and distinct exact objectives
+        run: node tests/motor-heterogeneous-capacity.cjs
       - name: Verify fractional kerf bounds and unused independent cases
         run: node tests/motor-fractional-oracle.cjs
       - name: Diagnose independent small-job optimum proof gaps

@@ -19,24 +19,48 @@
  // identical axis-aligned rectangles, a grid-point argument bounds count by
  // floor((W+k)/(pieceW+k))*floor((H+k)/(pieceH+k)).
  function cardinalityTypes(parts,stocks,trim,kerf){
-  if(!parts.length||!Number.isFinite(kerf)||kerf<0)return null;
+  if(!parts.length||!Number.isFinite(kerf)||kerf<0||
+     !Number.isFinite(trim)||trim<0)return null;
+  // Any orthogonal part, independently of grain or rotation, contains an
+  // axis-aligned square whose side is the smallest dimension in the demand.
+  // Kerf-separated parts imply kerf-separated inscribed squares. The usual
+  // grid-point bound therefore also holds for HETEROGENEOUS dimensions:
+  // floor((usableW+k)/(minSide+k))*floor((usableH+k)/(minSide+k)).
+  // This relaxes geometry; it is not a feasible cut pattern.
+  let minSide=Infinity;
+  for(const p of parts){
+   if(!(Number.isFinite(p.l)&&p.l>0&&Number.isFinite(p.w)&&p.w>0))
+    return null;
+   minSide=Math.min(minSide,p.l,p.w);
+  }
   const first=parts[0],square=Math.abs(first.l-first.w)<EPS;
-  if(!(first.l>0&&first.w>0)||parts.some(p=>
-    Math.abs(p.l-first.l)>EPS||Math.abs(p.w-first.w)>EPS))return null;
+  const sameDimensions=parts.every(p=>
+   Math.abs(p.l-first.l)<EPS&&Math.abs(p.w-first.w)<EPS);
   function direction(p){
    if(square)return false;
    if(p.grain==='width')return p.rotate?true:null;
    if(p.grain==='length'||p.rotate===false)return false;
    return null
   }
-  const d=direction(first);
-  if(d===null||parts.some(p=>direction(p)!==d))return null;
-  const partW=d?first.w:first.l,partH=d?first.l:first.w;
+  const d=sameDimensions?direction(first):null;
+  const fixed=d!==null&&parts.every(p=>direction(p)===d);
+  const partW=fixed?(d?first.w:first.l):0;
+  const partH=fixed?(d?first.l:first.w):0;
+  // Cap to the demand count before multiplication: a single type's
+  // capacity beyond all remaining pieces carries no additional information.
+  const axisCount=(span,edge)=>
+   Math.min(parts.length,Math.max(0,Math.floor((span+kerf+EPS)/(edge+kerf))));
   return stocks.map(stock=>{
    const W=stock.l-2*trim,H=stock.w-2*trim;
-   const columns=Math.max(0,Math.floor((W+kerf+EPS)/(partW+kerf)));
-   const rows=Math.max(0,Math.floor((H+kerf+EPS)/(partH+kerf)));
-   return {...stock,_proofCapacity:columns*rows}
+   let capacity=0;
+   if(W>0&&H>0){
+    capacity=Math.min(parts.length,
+     axisCount(W,minSide)*axisCount(H,minSide));
+    // Preserve the stronger fixed-axis bound for congruent pieces.
+    if(fixed)capacity=Math.min(capacity,
+     axisCount(W,partW)*axisCount(H,partH));
+   }
+   return {...stock,_proofCapacity:capacity}
   });
  }
  const cap=(x,target)=>Math.min(target,x);
