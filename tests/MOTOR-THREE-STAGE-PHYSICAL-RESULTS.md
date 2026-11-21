@@ -74,8 +74,33 @@ This pattern is physically valid but neither canonical VH nor HV
 60 and a `32×24` panel with recorded price 90 establish different
 single-panel minimum-cost versus minimum-gross-area choices.
 
-All empirical counts, runner RSS and timing must come from **actual
-GitHub Actions**. Do not transfer historic two-stage figures to this run.
+### Real GitHub Actions observations (research head `c1bcc441f867071b7ba7d4fe392e1b21715749e2`)
+
+[Optimizer Verification run 44950125750](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44950125750):
+**SUCCESS** including the separate three-stage oracle step. The actual
+Linux/Node 22 CI process reported:
+
+| Metric | Verified |
+|---|---:|
+| Independent seeded jobs | 6 |
+| Independent seeded comparisons | 18 (6 x 3 objectives) |
+| Additional witness comparisons | 4 |
+| Identity-based stock assignments | 2,946 |
+| Independent recursive integer-coordinate cut-tree calls | 9,144,808 |
+| Incorrect class optimum assertions | 0 |
+| Strict VH-V and transposed HV-H witness | Both audit, 4 cuts each |
+| All comparisons and safeguard tests elapsed | 315.287564 ms |
+| Node process peak RSS (`maxRSS`) | 63,692 KiB (~62.2 MiB) |
+
+These counts measure this CI fixture and runner only; they are **not**
+universal capacity or performance guarantees. General physical
+guillotine optimum claims remain prohibited. The full-edge audit checks
+cut lines on the current leaf and rejects a deliberately shortened line.
+
+The source code and independent oracle use different enumeration
+strategies. This is strong small-sample corroboration, not a formal
+proof of implementation correctness for all inputs. The mathematical
+completeness argument is restricted to the canonical class above.
 
 ## Limits and unresolved cases
 
