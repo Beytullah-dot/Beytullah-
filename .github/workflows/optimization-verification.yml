@@ -59,6 +59,8 @@ jobs:
         run: MOTOR_THREE_STAGE_JSON=three-stage-report.json node tests/motor-three-stage-exact.cjs
       - name: Profile bounded three-stage exact enumeration and isolated Linux RSS
         run: MOTOR_THREE_STAGE_SCALE_JSON=three-stage-scale-report.json node tests/motor-three-stage-scale.cjs
+      - name: Verify lazy three-stage physical candidates and exact UNKNOWN comparison
+        run: MOTOR_THREE_STAGE_LAZY_JSON=three-stage-lazy-report.json node tests/motor-three-stage-lazy.cjs
       - name: Verify new physical exact full-span bound in deployed proof worker
         run: MOTOR_FULLSPAN_CERT_JSON=fullspan-certificate-report.json node tests/motor-fullspan-certificate.cjs
       - name: Verify physical stock-geometry compatibility with independent oracle
@@ -103,4 +105,5 @@ jobs:
             two-stage-report.json
             three-stage-report.json
             three-stage-scale-report.json
+            three-stage-lazy-report.json
           if-no-files-found: warn
