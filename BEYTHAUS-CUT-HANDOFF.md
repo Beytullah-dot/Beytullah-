@@ -159,7 +159,22 @@ masaüstü uyumlu bir web/PWA; yalın, işlev odaklı arayüz.
 
 ## D. Güncel teknik durum — 21 Kasım 2026
 
-**Son motor birleştirmesi (PR #28):**
+**Son motor birleştirmesi (PR #30):**
+\`fc12cb792ca4baf236e6d815e7874992a798064d\`.
+\`docs/engine/optimality-certificate.js\` içine kullanılabilir stok
+alanı ile **üç farklı minimum kenar eşiğini tek tamsayılı stok
+kombinasyonunda** zorunlu tutan bütçeli güvenli Pareto örtüsü eklendi.
+\`tripleThresholdAreaCover\` yalnız tamamlanan gevşetmelerden alt sınır
+alır; kısmi/UNKNOWN sonuçları asla imkânsızlık veya genel optimumluk
+kanıtı sayılmaz. Önceki tek/iki eşikli sertifikalar korunur.
+\`tests/motor-triple-threshold.cjs\` bağımsız oracle,
+44 ve 305 parçalık bağımsız gerçek tam-kenarlı giyotin ağacı,
+kaynak bütçeleri ve maliyet/alan farkları için CI testi ekledi.
+Rapor \`tests/MOTOR-TRIPLE-THRESHOLD-RESULTS.md\`.
+PR: https://github.com/Beytullah-dot/Beytullah-/pull/30.
+**Motorun genel fiziksel optimumluğu mühürlenmedi.**
+
+**Önceki motor birleştirmesi (PR #28):**
 `fe674da755efa7770f41a62996a9522258648b5a`.
 Toplam kullanılabilir stok alanıyla **iki farklı parça-boyutu
 eşiğinin** güvenli kerf'li kapasitesi aynı stok kombinasyonunda
@@ -1336,3 +1351,83 @@ bağımsız kesim ağacı denetimi açık. **MOTOR HENÜZ MÜHÜRLENMEDİ.**
   eşik + dual-feasible alt sınır veya yalnız doğrulanabilir
   özel fiziksel kesim sınıfında MILP/CP-SAT/branch-and-price
   prototipini küçük PR ile değerlendir.
+
+
+## M. 21 Kasım 2026 — PR #30 üç eşik ve büyük fiziksel holdout
+
+- **Kod PR:** https://github.com/Beytullah-dot/Beytullah-/pull/30.
+  Başlangıç master HEAD:
+  \`198b511e65cfe27ca7c6a7aadf540ed027b2ef37\`.
+  Birleştirme: \`fc12cb792ca4baf236e6d815e7874992a798064d\`.
+- \`docs/engine/optimality-certificate.js\` mevcut alan, eşik başına
+  tekli/ikili Pareto kaynaklarını koruyor ve **aynı stok kombinasyonunda
+  alan + üç farklı minimum kenar eşiği** zorunluluğunu yeni bir
+  dört-kaynaklı stok-cover gevşetmesinde çözüyor. Durum
+  \`(area,slots1,slots2,slots3,objective)\`; yalnız her kaynakta daha
+  yüksek/eşit kapasite ve daha düşük/eşit amaç değeri güvenli
+  dominance sayılıyor. Tam kenarlı kesim fizibilitesinin veya
+  unrestricted genel giyotin optimumluğunun **kanıtı değil**.
+- Kanıtlayıcı kaynak bütçesi dolduğunda \`UNKNOWN\` dönüyor; önceden
+  bütünüyle tamamlanmış alt gevşetmelerin geçerli alt sınırı
+  korunabiliyor. Bu bütçeler kullanıcıya parça/levha/stock sayısı
+  sınırı getirmiyor. Maliyet, brüt stok alanı, adet ayrı hedefler.
+  Bilinmeyen fiyat 0 sayılmıyor; masif/panel damar ve yön kısıtları
+  mevcut motor/denetimde değişmedi.
+- Bağımsız üç-eşik ayrıştırma: 1×80×80, 2×50×50, 25×25×25 mm parça;
+  2 mm trim, 3 mm kerf, 5 çeşit stok. En güçlü ikili gevşetme
+  **176 TL**, üç eşik ortak **208 TL**, bağımsız stok-multiset
+  brute-force doğrulaması 208 TL. Bu rakam fiziksel optimumluk
+  kanıtı **değil**.
+- **44 parça / beş kullanılan stok / 49 tam-kenarlı kesim**
+  bağımsız fiziksel ağaç: üretim audit PASS.
+  Kayıtlı maliyet incumbent 500 TL, güvenli LB 220 TL,
+  **açık fark 280 TL (%56)**; brüt alan incumbent 99.174 mm²,
+  LB 71.544 mm², **açık fark 27.630 mm² (%27,86)**.
+  Fiziksel minimumlar bağımsız exact giyotin oracle ile
+  **kanıtlanmış değildir**; gap olası iyileştirmenin üst sınırıdır.
+- **305 parça / 17 uygun heterojen stok tipi / 5 kullanılan stok /
+  310 tam kenarlı kesim** ayrı bağımsız ağaç ve üretim audit PASS.
+  Kayıtlı maliyet incumbent **1.000 TL**, güvenli LB **409 TL**,
+  açık fark **591 TL (%59,1)**. Brüt alan incumbent
+  **585.753 mm²**, güvenli LB **419.200 mm²**,
+  açık fark **166.553 mm² (%28,43)**.
+  Bunlar \`gap\` statüsündedir, \`optimal\` değil.
+  Test kasten kısaltılmış tam-kenar kesimi reddeder.
+- 24 deterministik senaryo, 8 heterojen stok tipi ve 5 parça
+  sınıfı, üç amaç: **72/72** bitmiş bağımsız tam stok-multiset
+  oracle kıyası, **0 güvenli olmayan aşım, 0 UNKNOWN**.
+  Bu senaryolarda en fazla 11 Pareto durumu görüldü;
+  bu nedenle tek başına durum patlaması için yeterli stres değil.
+  305-parça stresinde 700-durum/250ms bütçesinde alan
+  **UNKNOWN**, 3.000-durum/1.000ms ile alan alt sınırı
+  419.200 mm² ve **2.038 tepe Pareto durumu** görüldü;
+  en son koşumda 10 üçlünün yalnız **3'ü** tamamlandı.
+  Tamamlanma adedi zaman/sunucu yüküyle değişebilir.
+- CI test raporu: \`tests/MOTOR-TRIPLE-THRESHOLD-RESULTS.md\`;
+  çalıştır: \`node tests/motor-triple-threshold.cjs\`.
+  JSON artifact: \`triple-threshold-report.json\`.
+  PR #30 head \`bb1f2f0e8da6f97a67bb084d85af6087ce234dba\`
+  Optimizer \`44933876022\`, Geometry \`44933876042\`,
+  Uncapped scale \`44933876084\`, iPhone WebKit emülasyonu
+  \`44933876014\` **SUCCESS**.
+  Master merge sonrasında CI ve Pages koşumları ayrıca
+  doğrulanmalı; PR SHA testleri master SHA testleri sayılmaz.
+- Supabase \`pdqgpupdqgrxejvjpdzs\` bağlanırken salt-okunur
+  proje durumu \`ACTIVE_HEALTHY\` görüldü. Şema, migration,
+  Auth, fiziksel stok, kullanıcı kayıtları ve tamamlanan
+  üretimler **değiştirilmedi**. Gerçek iPhone Safari,
+  canlı JS bayt karşılaştırması, iki cihaz bulut E2E ve
+  sunucu tarafında bağımsız fiziksel ağaç doğrulaması açık.
+- **Sonraki matematiksel görev:** yalnız güçlü/bitmiş alt
+  sınırları biriktirerek 44/305 parçalık açık gap vakalarında
+  maliyet ve alan incumbent kalitesini ayrı geliştirmek;
+  gerçek giyotin optimumuna bağımsız exact referans üretilebilen
+  yeni orta ölçekli planted/holdout sınıfları, durum patlaması
+  için bellek/RSS örnekleyicisi ve 4+ eşikte güvenli baskınlık
+  stratejisini araştır. Dual-feasible fonksiyonların kerf,
+  rotasyon, yön ve karma stok için güvenli uygulamasını
+  ispatlamadan canlı sertifikaya ekleme. MILP/CP-SAT veya
+  branch-and-price ancak fiziksel giyotin pattern sınıfı,
+  exact oracle kapsamı ve bağımsız audit açıkça tanımlanırsa
+  küçük ayrı PR olarak uygulanmalı.
+- **MOTOR HENÜZ GENEL OPTİMUMLUK İÇİN MÜHÜRLENMEDİ.**
