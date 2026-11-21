@@ -1014,12 +1014,17 @@ kullanıcıya sunulan bir özellik olduğu iddia edilmemeli.
   Optimizer `44925236021`; uncapped scale `44925235935`;
   iPhone WebKit **emülasyonu** `44925235934`. Optimizer adımında
   `motor-mixed-strip` ve `motor-threshold-kerf` PASS.
-- PR #22 master merge sonrası test/Pages run sonuçları, bu handoff
-  commit'i açıldığı anda ayrıca teyit edilir; doküman birleştirme
+- PR #22 master merge SHA `4d4c19543296df5b997018d102a5729a2f901af2`
+  üzerinde Pages `44925409342`, Geometry `44925409717`,
+  Optimizer `44925409703` ve WebKit emülasyonu
+  `44925409660` **SUCCESS**. Doküman birleştirme
   yeni HEAD oluşturduğundan her yeni sohbette canlı HEAD yenilenmelidir.
 - Supabase migration, fiziksel stok ve kullanıcı üretim kayıtları
   değiştirilmedi; tüm değişiklikler sadece GitHub kod, test,
   browser modül referansı, cache ve dokümantasyondadır.
+  Bağlı gerçek Supabase projesi `pdqgpupdqgrxejvjpdzs`
+  salt okunur durum sorgusunda `ACTIVE_HEALTHY` idi;
+  DB tablolarına / Auth kayıtlarına erişilmedi, SQL çalıştırılmadı.
 
 **Eksikler ve güvenilirlik sınırları:** Birçok farklı parça/levha
 kombinasyonunda tüm alan ve maliyet optimumluğu kanıtlanmış değildir.
