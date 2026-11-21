@@ -3,7 +3,8 @@
  * Proof uses relaxed exact integer stock quantity-cover optimization.
  */
 'use strict';
-importScripts('./engine/material-policy.js','./engine/optimality-certificate.js');
+importScripts('./engine/material-policy.js','./engine/fullspan-strip-exact.js',
+ './engine/optimality-certificate.js');
 self.onmessage=event=>{
  const job=event.data||{};
  if(job.type!=='certify')return;
