@@ -97,6 +97,29 @@ function solve(parts,stocks,opts={}){
   boards.push({stock:s,W,H,unit,qty:Math.min(s.qty,parts.length),patterns:[]});
  }
  if(!boards.length)return bail('infeasible-two-stage-class');
+ // Compare objectives in a common EXACT decimal integer grid. IEEE-754
+ // addition must not silently decide an alleged mathematical optimum.
+ let unitScale=1;
+ for(const board of boards){
+  const value=board.unit;
+  let factor=1,exact=false;
+  for(let exp=0;exp<=6;exp++,factor*=10){
+   const encoded=Math.round(value*factor);
+   if(Number.isSafeInteger(encoded)&&encoded/factor===value){
+    unitScale=Math.max(unitScale,factor);exact=true;break;
+   }
+  }
+  if(!exact)return bail('unknown-precision');
+ }
+ let maxObjective=0;
+ for(const board of boards){
+  const encoded=Math.round(board.unit*unitScale);
+  if(!Number.isSafeInteger(encoded)||encoded/unitScale!==board.unit)
+   return bail('unknown-precision');
+  board.unitInt=encoded;
+  maxObjective+=board.unitInt*board.qty;
+  if(!Number.isSafeInteger(maxObjective))return bail('unknown-precision');
+ }
  const vectorKey=a=>a.join(',');
  const fitsResidual=r=>r===0||r>=k;
  // Two orientations; an identical count vector on one stock is interchangeable
@@ -189,7 +212,7 @@ function solve(parts,stocks,opts={}){
     q[b]--;
     const sub=cover(next,q);
     if(sub===null)return null;
-    const val=boards[b].unit+sub.value;
+    const val=boards[b].unitInt+sub.value;
     if(val<best.value)best={value:val,choice:{b,pattern}};
    }
   }
@@ -260,7 +283,7 @@ function solve(parts,stocks,opts={}){
   partArea:parts.reduce((acc,p)=>acc+p.l*p.w,0),
   stockArea:bins.reduce((acc,b)=>acc+b.stock.l*b.stock.w,0),cost,
   unknownCostBins:bins.filter(b=>POLICY.stockPrice(b.stock,{priceMode,m3})===null).length};
- return {status:'optimal-two-stage-class',objectiveValue:solution.value,plan,
+ return {status:'optimal-two-stage-class',objectiveValue:solution.value/unitScale,plan,
   model:'two-stage-canonical-strips-VH-or-HV',...meta()};
 }
 const api=Object.freeze({version:1,solve});
