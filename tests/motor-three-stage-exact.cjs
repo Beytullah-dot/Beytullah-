@@ -257,7 +257,7 @@ const report={scope:'exact only within canonical three-stage VH-V/HV-H nested ph
  independentOracle:{seedCases,comparisons,assignments:oracleAssignments,
   partitions:oraclePartitions,unsafeClaims:0},
  deliberateWitness:{costOptimum:byCost.objectiveValue,
-  areaOptimum:byArea.objectiveValue,nestedFullEdgeCuts:byCost.plan.bins[0].cuts.length},
+  areaOptimum:byArea.objectiveValue,nestedFullEdgeCuts:compact.plan.bins[0].cuts.length},
  safeguards:{unknownPrice:true,rotationExcluded:true,kerfSliverRejected:true,
   tamperedCutRejected:true,materialThickness:true,masifPrice:true,distinctStageWitness:true},
  elapsedMs:performance.now()-started,
