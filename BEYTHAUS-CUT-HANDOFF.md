@@ -1500,3 +1500,76 @@ bağımsız kesim ağacı denetimi açık. **MOTOR HENÜZ MÜHÜRLENMEDİ.**
   Auth, kullanıcı stokları ve üretim hareketleri değişmedi.
   Tam kenarlı kesim, damar, bilinmeyen fiyat ve UNKNOWN
   ilkeleri korundu. **MOTOR GENEL OPTİMUMLUK İÇİN MÜHÜRLENMEDİ.**
+
+
+## O. 21 Kasım 2026 — PR #32 merge ve gerçek GitHub Actions / Pages doğrulaması
+
+Bu bölüm, üstteki N bölümünün **CI bekliyor** kaydından sonradır;
+N bölümündeki PR bekleme statüsünün yerini alır.
+
+- Matematiksel motor PR **#32 MERGED**:
+  https://github.com/Beytullah-dot/Beytullah-/pull/32.
+  Master merge `aaccc74ba4429b55872d8d98f4b8a910c5685220`.
+  Kaynak PR HEAD `9d7828a00ab7eea60324503a046eb55f8ecfe216`.
+- Yeni kerf-genişletilmiş alan gerekliliği
+  `docs/engine/optimality-certificate.js` içinde
+  maliyet, brüt stok alanı ve adet hedefleri için bağımsız
+  kaynak-bütçeli kanıt ailesi. `docs/sw.js` PWA cache anahtarı
+  `beythaus-cut-v39-kerf-expanded-proof`.
+- **Master merge SHA'sında 4/4 SUCCESS**:
+  Optimizer `44939079866`, Geometry `44939079961`,
+  iPhone WebKit **emülasyonu** `44939079982`,
+  Pages build/deployment `44939079731`.
+  PR son head üzerinde 4/4 SUCCESS: Optimizer
+  `44938954744`, Geometry `44938954690`,
+  WebKit emülasyonu `44938954696`,
+  Uncapped Scale `44938954689`.
+- Gerçek master Node 22 Linux test kaydında 28 seed x 3
+  hedef **84/84** bağımsız stock-multiset oracle ile eşleşme,
+  0 unsafe overbound, toplam 9.072 enumerasyon.
+  Tam kenarlı guillotine ağaçlarından bağımsız oluşturulan
+  **YENİ** 44 ve 305 parçalık optimum tanıklar iki ayrı
+  audit'ten geçti ve tahrif edilen kesimler reddedildi.
+  44 parçalık fiziksel maliyet/alan optimumu 1.530 TL /
+  69.564 mm²; 305 parçalık 10.980 TL / 499.224 mm².
+  Her ikisindeki pozitif maliyet sertifika farkı gerçek
+  tasarruf değil; bu örneklerin fiziksel optimumluğu
+  bağımsız alan ve fiyat eşitsizliğiyle kanıtlandı.
+- Eski PR #30'un 44-parçalı fiziksel planında mevcut
+  incumbent 500 TL / 99.174 mm² değişmedi;
+  alt sınırlar yeni yöntemle **255 TL / 78.399 mm²**.
+  305-parçalı eski planda incumbent 1.000 TL /
+  585.753 mm² değişmedi; LB **485 TL / 467.000 mm²**.
+  Bunlarda **fiziksel optimum bilinmiyor**; alt sınır
+  ilerledi, fiziksel planın iyileştiği iddia edilmez.
+  Geometrik gevşetme ile gerçek fiziksel kalite ayrıştırılmalı.
+- Node/Linux `process.resourceUsage().maxRSS` veri
+  okuması: test süreci en yüksek RSS **97.772 KiB**
+  (yaklaşık 95,48 MiB); heap son örnek 15.905.640 byte.
+  305-parçalı yeni holdout maliyet/alan sertifikası
+  239,93 / 218,05 ms, 44-parça 19,80 / 97,66 ms
+  (bu CI runner'a ait, evrensel süre garantisi değil).
+  Kaynak ve metodoloji:
+  `tests/MOTOR-KERF-EXPANDED-RESULTS.md`,
+  JSON artifact `kerf-expanded-report.json`.
+- **Devam görevi:** (1) 44/305 eski planted vakalarında
+  fiziksel *incumbent* ve LB ayrıştırmasını devam ettir;
+  (2) mevcut stoklar arasında parça yönünden dolayı
+  fiziksel olarak hiçbir parçayı barındıramayan stok
+  türleri için yalnız güvenli geometri uyumluluğu
+  filtresini bağımsız oracle ve fiziksel audit ile araştır;
+  (3) dört veya daha fazla eşiğin Pareto skyline
+  durum patlamasını, RSS ve süreyle bağımsız oracle
+  üzerinde ölç, kesintide UNKNOWN koru;
+  (4) DFF, exact pattern pricing/MILP/CP-SAT ancak
+  özel fiziksel guillotine sınıfı ispatlanırsa ayrı PR yap.
+- Supabase `pdqgpupdqgrxejvjpdzs` salt-okunur
+  kontrol `ACTIVE_HEALTHY`; mevcut migration sürümleri
+  `20261118212836` ve `20261119202121` olduğu görüldü.
+  Şema/migration, gerçek stoklar, Auth ve üretim
+  hareketleri değiştirilmedi. Panel/masif damarları,
+  belirsiz stok fiyatları ve UNKNOWN ilkesi korundu.
+- Gerçek iPhone/Safari, canlı Pages JS bayt karşılaştırması,
+  iki-kullanıcı cloud E2E ve server-side üretim-ağacı
+  tekrardan denetleme yapılmış sayılmaz.
+  **MOTOR GENEL OPTİMUMLUK İÇİN MÜHÜRLENMEDİ.**
