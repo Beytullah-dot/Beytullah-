@@ -89,8 +89,9 @@ masaüstü uyumlu bir web/PWA; yalın, işlev odaklı arayüz.
   **maliyeti minimize et / brüt fireyi minimize et** hedefini seçtir.
   Seçilen birincil hedef için arama ve matematiksel kanıt çalışsın;
   seçilmemiş hedef ve minimum stok sayısı bilgi amaçlı raporlansın.
-  **Bu hedef seçimi henüz arayüze ve esas arama stratejisine uygulanmadı.**
-  Mevcut V2 hâlen ekonomik ve minimum-stok alternatiflerini barındırır.
+  **PR #17 ile uygulandı:** hesaplama öncesi hedef arayüze, motor
+  sıralamasına ve hedefe özel kesin Worker çağrısına bağlandı. PR #26
+  ayrıca iki hedefe özgü güvenli optimumluk sınırlarını güçlendirdi.
   Fiyat bilinmiyorsa maliyetin optimumluğu kanıtlanamaz.
 - Üretime uygulanabilirliği bağımsız kesim ağacı denetimi doğrular.
   Geometrik serbest yerleşim varsa üretim talimatı olarak sunulamaz.
@@ -158,7 +159,18 @@ masaüstü uyumlu bir web/PWA; yalın, işlev odaklı arayüz.
 
 ## D. Güncel teknik durum — 21 Kasım 2026
 
-**Son motor birleştirmesi (PR #24):** `a722ce5d30df59a1f8893cad2c9f1ee42325a77a`.
+**Son motor birleştirmesi (PR #26):** `2886b99beb750cd677bed90a014e9a2addd72ce7`.
+PR #26 mevcut `docs/engine/optimality-certificate.js` içindeki
+tamsayılı stok örtüsü kanıtına **toplam parça alanı + eşik-boyutlu
+parça kapasitesini aynı stok kombinasyonunda zorunlu tutan**
+iki kaynaklı gevşetmeyi ekledi. Pozitif kerf ve trim ile güvenli;
+ayrı `cost`, `area`, `count` sınırları üretir. Arayüzde
+kanıtlanmamış olası iyileştirme için mutlak ve göreli **üst sınır**
+gösterilir; bu bir tahmin veya garantili iyileştirme değildir.
+Fiyatı bilinmeyen ilgili herhangi bir stok varken maliyet
+optimumluğu ilan edilmez. PR: https://github.com/Beytullah-dot/Beytullah-/pull/26.
+**Önceki fiziksel plan geliştirmesi (PR #24):**
+`a722ce5d30df59a1f8893cad2c9f1ee42325a77a`.
 Önce mevcut hızlı giyotin şerit yerleşimi çalışır; eksik plan kalırsa
 artık yapraklarda farklı ölçülü parçalar için **daha derin, tam kenarlı
 kesim ağacı** denenir. Her aday bağımsız denetlenir. Bu, yeni optimality
@@ -406,8 +418,26 @@ Gerçek iPhone/Safari ve canlı JS içerik baytları ayrıca doğrulanmadı.
 
 ## E. Son tamamlanan adım / sıradaki adım
 
-**Son tamamlanan motor adımı (21 Kasım):** PR #24, `master` birleştirme
-`a722ce5d30df59a1f8893cad2c9f1ee42325a77a`.
+**Son tamamlanan motor adımı (21 Kasım):** PR #26,
+`master` birleştirme
+`2886b99beb750cd677bed90a014e9a2addd72ce7`.
+Kerf ve kenar paylı bütün parçaların **toplam alanı** ile
+büyük parça alt kümelerinin aynı stoklardan karşılanması
+gereken **sayı kapasitesi** iki boyutlu Pareto tamsayı
+örtüsü olarak birlikte çözülüyor. Maliyet ve brüt alan
+kanıtları farklı fiziksel planlar için bağımsız ve doğrulanabilir.
+Kanıtlanmamış kalan mutlak fark ve mevcut maliyet/brüt alan
+ölçeğine göre yüzde fark arayüzde gösterilir. `UNKNOWN`
+halen optimumluk veya imkânsızlık kanıtı değildir.
+
+**Sonraki araştırma:** 20–25+ çok farklı parça ve stok tipiyle
+bağımsız optimality-gap dağılımlarını ölç; fiyat/alan kanıtı
+açık vakalarda çok-eşikli eşzamanlı LP/MILP veya doğrulanmış
+guillotine pattern pricing geliştir. Tam kesim ağacı ve
+üretim sınıfının matematiksel eşdeğerliği doğrulanmadan
+genel branch-and-price veya CP-SAT kesin optimum iddiası
+kurma; mobil süre/bellek, canlı baytlar ve gerçek Safari
+kabulünü ayrıca yap.
 Karışık şeritlerin yanında kalan serbest dikdörtgenlerde farklı boyuttaki
 parçalar için tam kenardan kesilen yeni fiziksel alt ağaçlar kuruluyor.
 18 bağımsız planted 4-kesimli benchmarkta önce **0/18 tam**,
@@ -1120,3 +1150,83 @@ MILP/CP-SAT veya exact pricing yapılmalı.
 Gerçek iPhone/Safari, canlı baytların doğrulanması,
 iki kullanıcı Supabase cloud UAT ve sunucu tarafında
 bağımsız kesim ağacı denetimi açık. **MOTOR HENÜZ MÜHÜRLENMEDİ.**
+
+
+## K. 21 Kasım 2026 — PR #26 eşzamanlı alan + büyük parça kapasitesi kanıtı
+
+- Kod PR: https://github.com/Beytullah-dot/Beytullah-/pull/26,
+  `master` merge `2886b99beb750cd677bed90a014e9a2addd72ce7`.
+  Başlangıç HEAD `4de1119d25f81cedf996b83dab17bf90170a4bbf`.
+  `docs/engine/optimality-certificate.js` içinde
+  `pairedAreaCardinalityCover` ve tamsayılı `pairedCover` eklendi.
+- Matematiksel gerekçe: Her fiziksel guillotine plan aynı stok
+  seçiminde toplam parça alanını karşılayacak **kullanılabilir stok
+  alanına** VE eşiği aşan parçaların **kerf-ayrımlı maksimum kare
+  sayısı** kapasitesine sahip olmalıdır. İki zorunlu eşitsizlik
+  birlikte uygulanır. Stok tipi/adedi ve ilgili kullanıcının
+  kayıtlı fiyatı korunur; geometri, parça yönü ve kesim sırası
+  yalnız **gevşetildiği** için optimum alt sınırı güvenlidir.
+  Alan, sayı ve maliyet amaçları ayrı ayrı hesaplanır.
+  Aynı parça/levha işinde farklı eşikler için bulunan bitmiş
+  alt sınırların maksimumu kullanılır; kesilen arama
+  hiçbir zaman optimum sertifikası olarak kabul edilmez.
+- Tamsayılı dinamik programda `(usable-area, threshold-count,
+  selected-objective)` Pareto durumları kullanılır. Azalan
+  alan sırası ve sayı boyutunda Fenwick prefix-min üzerinden
+  yalnız güvenli `>= capacity, <= objective` dominance uygulanır.
+  Dahili `maxStates`/`maxMs` giriş limitleri değildir.
+  `certify` tek işte tüm malzeme grupları ve bound aileleri
+  arasında **ortak süre bütçesi** uygular; Worker'daki üç
+  hedefin toplamı mobil UI watchdog altında tutulmaya çalışılır.
+  Kesin uçtan uca süre garantisi yoktur.
+- Aynı test işinde 4 adet **70×70** ve 44 adet **20×20 mm**
+  parça, 3 mm kerf, 2 mm trim:
+  A=47×1000 mm / 40 TL / 1 adet;
+  B=100×100 mm / 100 TL / en çok 5 adet.
+  Tamamen ayrı **elle kurulan fiziksel guillotine kesim ağaçları**
+  `production-audit.js` ile kabul edildi:
+  - Maliyet optimum tanığı: 4 B + 1 A, **440 TL**,
+    87.000 mm² brüt alan. Önceki bağımsız maliyet gevşetmeleri
+    40 ve 400 TL, **yeni ortak alt sınır 440 TL**.
+  - Brüt alan optimum tanığı: 5 B, **50.000 mm²**, 500 TL.
+    Önceki bağımsız brüt alan gevşetmeleri 47.000 ve
+    40.000 mm², **yeni ortak alt sınır 50.000 mm²**.
+  - Zıt hedefle değerlendirme: 500 TL planda maliyet
+    ispatlanmamış fark 60 TL (**mevcut maliyetin %12'si**);
+    87.000 mm² planda alan farkı 37.000 mm² (mevcut
+    brüt alanın yaklaşık %42,5'i). Bu farklar mümkün
+    iyileştirmenin **kanıtlı üst sınırlarıdır**, kazanç vaadi
+    veya büyük işler için genel istatistik değildir.
+- `tests/motor-paired-cover.cjs`: çözüm kodunu kullanmayan
+  stok çoklu küme brute-force alt sınır oracle'ı, iki bağımsız
+  fiziksel plan, üç amaçla 36 deterministik ayrı vaka,
+  **90** sonlu/karşılaştırılabilir oracle sonucu içinde
+  aşırı yüksek güvensiz alt sınır 0. Tahrif edilmiş kısa
+  kesim reddi, fiyatı bilinmeyen alternatif stokun maliyet
+  ispatını engellemesi, sıfır bütçe `UNKNOWN` ve UI
+  görecek kanıtlı farkın testleri. Ortak DP bir MILP veya
+  genel guillotine exact pricing çözücüsü değildir.
+- `docs/index.html`: kanıtlanmamış iki hedefte alt sınır
+  ile **olası iyileşmenin kanıtlı maksimumu** görünür.
+  `status='unknown-price'` özellikle ele alınıyor.
+  `docs/sw.js`: `beythaus-cut-v36-paired-area-threshold-cover`.
+  Optimizer CI'da yeni test kapısı eklendi.
+- PR head `5906813ec46066075e6bebcfc97ee6a22192284a`
+  dört Actions kontrolü **SUCCESS**:
+  Optimizer `44929446267`,
+  Geometry `44929446239`,
+  Uncapped Scale `44929446197`,
+  iPhone WebKit **emülasyonu** `44929446211`.
+  `master` merge SHA `2886b99beb750cd677bed90a014e9a2addd72ce7`
+  üzerinde Optimizer `44929573922`,
+  Geometry `44929573976`,
+  iPhone WebKit **emülasyonu** `44929574059`
+  ve Pages `44929573983` dört kontrol **SUCCESS**.
+  Belge PR'ı yeni bir SHA oluşturacağı için son Pages
+  dağıtımı ayrıca doğrulanacaktır.
+- Supabase şeması, Auth, canlı stok ve kullanıcıya ait
+  üretim kayıtları bu adımda hiç değiştirilmedi.
+  Gerçek iPhone/Safari cihaz kabulü, canlı Pages JS bayt
+  doğrulaması, iki kullanıcı/çok cihaz Supabase ve sunucu
+  tarafında kesim ağacı tekrar kontrolü yapılmış sayılmaz.
+  **Motor genel optimumluk için henüz mühürlenmedi.**
