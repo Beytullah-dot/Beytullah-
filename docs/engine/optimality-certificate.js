@@ -255,11 +255,25 @@
      group.stocks.some(s=>s.qty>0&&s.l>2*data.trim&&
       s.w>2*data.trim&&costOf(s,{priceMode,m3})===null)))
    return {...base,status:'unknown-price'};
-  let totalBound=0,allExact=true,pairedImproved=false,multiImproved=false,tripleImproved=false,kerfImproved=false;
+  let totalBound=0,allExact=true,pairedImproved=false,multiImproved=false,tripleImproved=false,kerfImproved=false,stripImproved=false;
   for(const [key,parts] of groups){
    const demand=parts.reduce((sum,p)=>sum+p.l*p.w,0);
    const eligible=eligibleByKey.get(key);
    const stocks=eligible.stocks;
+   // Physical exact optimum is proven only for nonrotatable pieces which
+   // span the usable width of EVERY eligible stock. The separate solver
+   // rejects wider boards, mixed materials and unsupported precision.
+   // If the extra family is missing or runs out of budget, old bounds
+   // continue unchanged; UNKNOWN is never promoted to a certificate.
+   const stripSolver=!allowMaterialAssignment&&
+    root.BeythausFullSpanPatternExact?.solve;
+   const strip=stripSolver?stripSolver(parts,stocks,{
+    objective,trim:data.trim,kerf:data.kerf,priceMode,m3,
+    maxStates:Math.min(maxStates,25000),maxNodes:750000,
+    maxMs:Math.min(remaining(),400)
+   }):{status:'unknown-class',objectiveValue:null};
+   const stripBound=strip.status==='optimal-physical-class'&&
+    Number.isFinite(strip.objectiveValue)?strip.objectiveValue:null;
    const r=cover(stocks,demand,{objective,trim:data.trim,priceMode,m3,
      maxStates,maxMs:remaining()});
    const expanded=kerfExpandedAreaCover(parts,stocks,data.trim,
@@ -286,8 +300,12 @@
    const oldBest=oldBounds.length?Math.max(...oldBounds):null;
    const certifiedBounds=[r,expanded,c,paired,multi,triple].filter(b=>
     b?.status==='optimal-relaxation');
-   const best=certifiedBounds.length?
-    Math.max(...certifiedBounds.map(b=>b.lowerBound)):null;
+   const completed=certifiedBounds.map(b=>b.lowerBound);
+   if(stripBound!==null)completed.push(stripBound);
+   const best=completed.length?Math.max(...completed):null;
+   if(stripBound!==null&&
+      stripBound>Math.max(-Infinity,...certifiedBounds.map(b=>b.lowerBound))+EPS)
+    stripImproved=true;
    const legacyBounds=[r,c,paired,multi,triple].filter(b=>
     b?.status==='optimal-relaxation').map(b=>b.lowerBound);
    if(expanded.status==='optimal-relaxation'&&
@@ -314,7 +332,10 @@
     status:best===null?'unknown-bound':'optimal-relaxation',lowerBound:best,
     areaRelaxation:r,kerfExpandedAreaRelaxation:expanded,
     cardinalityRelaxation:c,pairedRelaxation:paired,
-    multiThresholdRelaxation:multi,tripleThresholdRelaxation:triple});
+    multiThresholdRelaxation:multi,tripleThresholdRelaxation:triple,
+    fullSpanPhysicalRelaxation:{status:strip.status,
+     lowerBound:stripBound,states:strip.states||0,
+     patterns:strip.patternsCreated||0}});
    if(best===null){allExact=false;continue}
    totalBound+=best;
   }
@@ -350,7 +371,8 @@
   return {...base,proven,lowerBound:totalBound,
     gap,gapPercent:incumbent>0?100*gap/incumbent:0,
     status:proven?'optimal':'gap',
-    method:kerfImproved?'kerf-expanded-area-cover':
+    method:stripImproved?'physical-fullspan-strip-exact':
+    kerfImproved?'kerf-expanded-area-cover':
      tripleImproved?'triple-threshold-area-cover':
      multiImproved?'multi-threshold-area-cover':
      pairedImproved?'paired-area-threshold-cover':'integer-area-cover'};
