@@ -61,12 +61,46 @@ Successful reconstruction is an **upper bound** (an actual usable
 candidate) for the selected minimization objective. No lower-bound
 or class-optimum claim is made.
 
-## CI measurements
+## Verified GitHub Actions measurements (research HEAD `5bdda14d6c658b48777bbafdba331624a0b81f71`)
 
-Pending real GitHub Actions execution; fill with measured status,
-elapsed time, audited case counts and Linux process RSS from the
-`three-stage-lazy-report.json` artifact. Do not report a success
-count before the actual workflow finishes.
+[Optimizer Verification run #44952409212](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44952409212):
+the isolated lazy research test step **SUCCESS**. All **10/10** planted
+cost/area research cases returned `feasible-uncertified` with **two**
+physical guillotine auditors accepting each full cut tree, including
+**11** independently audited best-so-far callback emissions.
+The extended regression checks cover masif m³ pricing, fractional
+dimensions, count objective and no inventory quantity oversubscription.
+No false optimum claims were emitted. All counts below refer solely
+to this designed experiment, **not** a population success percentage.
+
+| Width family / parts / objective | Physical result | Stock copies | Recorded objective | Cuts | Wall time |
+| --- | --- | ---: | ---: | ---: | ---: |
+| mixed / 8 / cost | audited feasible | 1 | 100 TL | 7 | 4.728 ms |
+| mixed / 40 / cost | audited feasible | 5 | 600 TL | 48 | 12.880 ms |
+| mixed / 200 / cost | audited feasible | 24 | 2,943 TL | 199 | 79.001 ms |
+| repeated / 200 / cost | audited feasible | 25 | 3,100 TL | 253 | 44.246 ms |
+| mixed / 40 / area | audited feasible | 5 | 10,556 mm² | 48 | 10.496 ms |
+
+The ten research cases and physical audits consumed approximately
+**190.76 ms** together in one Linux/Node 22 process, excluding the
+other test steps in the CI workflow. Observed process `maxRSS`:
+**67,592 KiB (~66.0 MiB)**, including Node/V8 startup, fixtures,
+both auditors and test code; not an algorithm-only memory metric,
+a bound on other jobs or a mobile benchmark. The JSON report contains
+individual nodes, board probes, counts, cut totals, objective values and
+wall times. No real stock or Supabase records were used.
+
+Under the previous PR #44 **different** budgeted exact experiments:
+the mixed 8/40/200 cases and repeated 200 case reached `UNKNOWN`;
+the repeated 8/40 cases completed class-exact enumeration. Here the
+known **mixed-eight tight-budget exact baseline was again UNKNOWN**
+(12,000-node / 1,500-pattern class budget), whereas this lazy study
+constructed one independently audited board in the same planted case.
+The mixed-200 24-sheet result is an **upper-bound witness**, not a
+certified minimum: 25 planted copies were available, and the selected
+24 cost 2,943 TL in this synthetic fixture. Do not compare wall times
+as if the exact and heuristic methods had identical work or limits.
+No arbitrary user-facing piece/board ceiling has been added.
 
 ## Unresolved and non-goals
 
