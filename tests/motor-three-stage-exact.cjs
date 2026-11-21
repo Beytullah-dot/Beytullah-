@@ -230,6 +230,22 @@ const corrupted=JSON.parse(JSON.stringify(compact.plan));
 corrupted.bins[0].cuts[0].y2-=1;
 assert.throws(()=>auditFullEdge(corrupted,job,[small],0,2),
  'A shortened full-edge cut must be rejected');
+// Exact transposition: the compulsory physical first cut is horizontal
+// (HV-H), with the same strict third-stage-only obstruction for two stages.
+const mirrored=job.map(p=>({...p,id:'T-'+p.id,label:'T-'+p.id,l:p.w,w:p.l}));
+const mirroredStock=stock('mirroredArea',24,32,1,80);
+const mirror=check(mirrored,[mirroredStock],0,2,'count');
+assert.equal(mirror.plan.bins[0].cuts[0].axis,'horizontal');
+assert.equal(window.BeythausTwoStageStripExact.solve(mirrored,
+ [mirroredStock],{trim:0,kerf:2,objective:'count',maxMs:10000,
+ maxNodes:2000000}).status,'infeasible-two-stage-class');
+assert.equal(solver.solve([part('wrongMaterial',8,10,
+ {material:'panel|other'})],[small],{trim:0,kerf:2}).status,
+ 'infeasible-three-stage-class');
+assert.equal(solver.solve([part('wrongThickness',8,10,{t:19})],
+ [small],{trim:0,kerf:2}).status,'infeasible-three-stage-class');
+assert.equal(solver.solve(job,[small],{trim:0,kerf:2,maxPatterns:1}).status,
+ 'unknown-limit');
 const onlyUnknown=stock('missingPrice',32,24,1,null);
 assert.equal(solver.solve(job,[onlyUnknown],{trim:0,kerf:2,objective:'cost'}).status,'unknown-price');
 const areaUnknown=solver.solve(job,[onlyUnknown],{trim:0,kerf:2,objective:'area'});
@@ -254,10 +270,10 @@ assert.equal(solidPlan.status,'optimal-three-stage-class');
 assert.equal(solidPlan.objectiveValue,22*11*20/1e9*50000);
 auditFullEdge(solidPlan.plan,solid,[solidStock],1,2);
 const report={scope:'exact only within canonical three-stage VH-V/HV-H nested physical trees, NOT general guillotine',
- independentOracle:{seedCases,comparisons,assignments:oracleAssignments,
+ independentOracle:{seedCases,comparisons,witnessChecks:4,assignments:oracleAssignments,
   partitions:oraclePartitions,unsafeClaims:0},
  deliberateWitness:{costOptimum:byCost.objectiveValue,
-  areaOptimum:byArea.objectiveValue,nestedFullEdgeCuts:compact.plan.bins[0].cuts.length},
+  areaOptimum:byArea.objectiveValue,nestedFullEdgeCuts:compact.plan.bins[0].cuts.length,hvHFullEdgeCuts:mirror.plan.bins[0].cuts.length},
  safeguards:{unknownPrice:true,rotationExcluded:true,kerfSliverRejected:true,
   tamperedCutRejected:true,materialThickness:true,masifPrice:true,distinctStageWitness:true},
  elapsedMs:performance.now()-started,
