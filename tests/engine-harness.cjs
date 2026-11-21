@@ -10,6 +10,9 @@ const source=fs.readFileSync(filename,'utf8');
 const auditSource=fs.readFileSync(path.join(__dirname,'../docs/engine/production-audit.js'),'utf8');
 const windowLike={};
 new Function('window',auditSource)(windowLike);
+const stripSource=fs.readFileSync(path.join(__dirname,
+ '../docs/engine/mixed-strip-patterns.js'),'utf8');
+new Function('window',stripSource)(windowLike);
 const blockRepairSource=fs.readFileSync(path.join(__dirname,
  '../docs/engine/guillotine-block-repair.js'),'utf8');
 new Function('window',blockRepairSource)(windowLike);
