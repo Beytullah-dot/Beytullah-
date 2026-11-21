@@ -221,6 +221,10 @@ const zero=proof.pairedAreaCardinalityCover(data.parts,stocks,2,3,
  {objective:'cost',maxMs:0});
 assert.equal(zero.status,'unknown-limit');
 assert.equal(zero.lowerBound,null);
+const zeroProof=proof.certify(cheapest,data,{
+ objective:'cost',auditOK:true,priceMode:'panel',maxMs:0});
+assert.equal(zeroProof.proven,false,
+ 'A zero proof budget cannot invent a cost optimum certificate');
 const forged=JSON.parse(JSON.stringify(cheapest));
 forged.bins[4].cuts[0].y2-=1;
 assert.equal(engine.auditCutPlan(forged,data).ok,false);
