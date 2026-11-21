@@ -234,6 +234,11 @@ function solve(parts,stocks,opts={}){
   }
   return true;
  }
+ // Exhaust ALL admissible stock patterns before attempting cross-stock DP.
+ // A truncated enumeration is UNKNOWN, never infeasible or an optimum.
+ for(const board of boards){
+  if(Date.now()>=deadline||!generate(board))return bail('unknown-limit');
+ }
  const memo=new Map(),key=(rest,quantities)=>
   vectorKey(rest)+'|'+vectorKey(quantities);
  function cover(rest,quantities){
