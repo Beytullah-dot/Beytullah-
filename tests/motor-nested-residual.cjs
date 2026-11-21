@@ -141,8 +141,10 @@ const fullStock=largeWitnessBins.reduce((n,b)=>n+b.stock.l*b.stock.w,0);
 const fullCost=largeWitnessBins.reduce((n,b)=>n+b.stock.price,0);
 const largeWitness={bins:largeWitnessBins,unplaced:[],placedCount:150,
  partArea:fullArea,stockArea:fullStock,cost:fullCost,unknownCostBins:0};
-assert.equal(engine.auditCutPlan(largeWitness,largeData).ok,true,
- 'Independent physically feasible 30-board/150-piece reference');
+const largeReferenceAudit=engine.auditCutPlan(largeWitness,largeData);
+assert.equal(largeReferenceAudit.ok,true,
+ 'Independent physically feasible 30-board/150-piece reference: '+
+ JSON.stringify(largeReferenceAudit.issues));
 const bigBaseline=solver.construct(largePieces,largeData.stocks,cfg,
  {timeBudgetMs:1500,residualFill:false});
 const bigNested=solver.construct(largePieces,largeData.stocks,cfg,
