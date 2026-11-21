@@ -110,12 +110,16 @@ function solve(parts,stocks,opts={}){
    if(!usable.length)return null;
    usable.sort((x,y)=>reverse?x.a-y.a||x.b-y.b||x.i-y.i:
     y.a-x.a||y.b-x.b||x.i-y.i);
-   const seeds=[],distinct=new Set();
+   // Geometry buckets avoid rescanning duplicate piece identities on every
+   // seed step. Each selected object still represents a distinct piece id.
+   const byGeometry=new Map();
    for(const p of usable){
     const key=p.a+':'+p.b;
-    if(!distinct.has(key)){seeds.push(p);distinct.add(key);}
-    if(seeds.length>=maxSeeds)break;
+    if(!byGeometry.has(key))byGeometry.set(key,[]);
+    byGeometry.get(key).push(p);
    }
+   const types=[...byGeometry.values()];
+   const seeds=types.slice(0,maxSeeds).map(group=>group[0]);
    let winner=null;
    for(const seed of seeds){
     tick();
@@ -123,9 +127,10 @@ function solve(parts,stocks,opts={}){
     let used=seed.a;
     for(;;){
      let add=null;
-     for(const p of usable){
+     for(const group of types){
       tick();
-      if(p.b!==seed.b||local.has(p.i))continue;
+      const p=group.find(entry=>!local.has(entry.i));
+      if(!p||p.b!==seed.b)continue;
       const next=used+k+p.a,rest=target-next;
       if(next>target||rest!==0&&rest<k)continue;
       if(!add||p.a>add.a||(p.a===add.a&&p.i<add.i))add=p;
