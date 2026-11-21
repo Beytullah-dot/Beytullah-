@@ -1217,12 +1217,13 @@ bağımsız kesim ağacı denetimi açık. **MOTOR HENÜZ MÜHÜRLENMEDİ.**
   Geometry `44929446239`,
   Uncapped Scale `44929446197`,
   iPhone WebKit **emülasyonu** `44929446211`.
-  `master` merge sonrası run'lar:
-  Optimizer `44929573922`,
+  `master` merge SHA `2886b99beb750cd677bed90a014e9a2addd72ce7`
+  üzerinde Optimizer `44929573922`,
   Geometry `44929573976`,
-  WebKit emülasyonu `44929574059`,
-  Pages `44929573983`; handoff PR merge öncesinde
-  durumları tekrar sorgulanmalı.
+  iPhone WebKit **emülasyonu** `44929574059`
+  ve Pages `44929573983` dört kontrol **SUCCESS**.
+  Belge PR'ı yeni bir SHA oluşturacağı için son Pages
+  dağıtımı ayrıca doğrulanacaktır.
 - Supabase şeması, Auth, canlı stok ve kullanıcıya ait
   üretim kayıtları bu adımda hiç değiştirilmedi.
   Gerçek iPhone/Safari cihaz kabulü, canlı Pages JS bayt
