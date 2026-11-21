@@ -18,7 +18,9 @@ function solve(parts,stocks,opts={}){
   maxMs=2000,maxNodes=500000,maxStates=15000,maxPatterns=18000}=opts;
  const began=Date.now(),deadline=began+maxMs;
  let nodes=0,patternsCreated=0,states=0,peakMemo=0,limited=false;
- const meta=()=>({nodes,patternsCreated,states,peakMemo,elapsedMs:Date.now()-began});
+  let shelvesCreated=0,stripsCreated=0,boardGenerations=0,dpTransitions=0;
+ const meta=()=>({nodes,patternsCreated,shelvesCreated,stripsCreated,
+   boardGenerations,dpTransitions,states,peakMemo,elapsedMs:Date.now()-began});
  const bail=status=>fail(status,meta());
  if(!POLICY||!Array.isArray(parts)||!parts.length||!Array.isArray(stocks)||
   !['cost','area','count'].includes(objective)||
@@ -156,7 +158,7 @@ function solve(parts,stocks,opts={}){
      if(!tick())return false;
      if(pos===indices.length){
       if(count&&used<=primary){
-       shelves.push({height,used,counts:vector.slice(),count});
+       shelves.push({height,used,counts:vector.slice(),count});shelvesCreated++;
        if(shelves.length>maxPatterns){limited=true;return false;}
       }
       return true;
@@ -184,7 +186,7 @@ function solve(parts,stocks,opts={}){
       const key=width+':'+vectorKey(vector);
       if(!stripSeen.has(key)){
        stripSeen.add(key);
-       strips.push({width,shelves:picked.slice(),counts:vector.slice(),count});
+       strips.push({width,shelves:picked.slice(),counts:vector.slice(),count});stripsCreated++;
        if(strips.length>maxPatterns){limited=true;return false;}
       }
      }
@@ -237,7 +239,8 @@ function solve(parts,stocks,opts={}){
  // Exhaust ALL admissible stock patterns before attempting cross-stock DP.
  // A truncated enumeration is UNKNOWN, never infeasible or an optimum.
  for(const board of boards){
-  if(Date.now()>=deadline||!generate(board))return bail('unknown-limit');
+  boardGenerations++;
+   if(Date.now()>=deadline||!generate(board))return bail('unknown-limit');
  }
  const memo=new Map(),key=(rest,quantities)=>
   vectorKey(rest)+'|'+vectorKey(quantities);
@@ -253,7 +256,8 @@ function solve(parts,stocks,opts={}){
    if(!quantities[b])continue;
    for(const pattern of boards[b].patterns){
     if(!pattern.counts[pivot]||pattern.counts.some((c,j)=>c>rest[j]))continue;
-    const next=rest.map((r,j)=>r-pattern.counts[j]),q=quantities.slice();
+    dpTransitions++;
+     const next=rest.map((r,j)=>r-pattern.counts[j]),q=quantities.slice();
     q[b]--;
     const sub=cover(next,q);
     if(sub===null)return null;
