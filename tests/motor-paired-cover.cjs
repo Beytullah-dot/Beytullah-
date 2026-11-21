@@ -158,7 +158,8 @@ function grid(stock,pieces,columns,rows){
  const x=builder(stock);
  let widthTail=x.root,index=0;
  for(let col=0;col<columns;col++){
-  const [block,right]=x.cut(widthTail,'vertical',20);
+  const [block,right]=widthTail.w===20?[widthTail,null]:
+   x.cut(widthTail,'vertical',20);
   let heightTail=block;
   for(let row=0;row<rows;row++){
    const [cell,down]=x.cut(heightTail,'horizontal',20);
