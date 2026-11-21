@@ -219,7 +219,7 @@
   const thresholds=[...new Set(parts.map(p=>Math.min(p.l,p.w)))];
   // Keep the previous all-pieces bound first, even under a tight budget.
   // Test more selective thresholds from largest to smallest afterwards.
-  const smallest=Math.min(...thresholds);
+  const smallest=thresholds.reduce((low,t)=>Math.min(low,t),Infinity);
   thresholds.sort((a,b)=>b-a);
   const sequence=[smallest,...thresholds.filter(t=>t!==smallest)];
   const started=Date.now(),maxMs=options.maxMs??2500,deadline=started+maxMs;
