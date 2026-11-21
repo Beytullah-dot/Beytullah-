@@ -1921,8 +1921,8 @@ eşleşmesi ve sunucuda bağımsız kesim ağacı audit'i **AÇIK**.
 
 ## U. 22 Kasım 2026 — PR #46 lazy/anytime üç aşamalı fiziksel yapıcı aday araştırması
 
-**Araştırma PR:** [#46](https://github.com/Beytullah-dot/Beytullah-/pull/46) (taslak,
-CI sonuçları bekleniyor; master'a henüz birleştirilmedi).
+**Araştırma PR:** [#46](https://github.com/Beytullah-dot/Beytullah-/pull/46).
+Merge ve master Pages doğrulaması için GitHub'daki güncel durumu esas al.
 Kod: `docs/engine/three-stage-lazy-research.js`.
 Test: `tests/motor-three-stage-lazy.cjs`.
 Rapor: `tests/MOTOR-THREE-STAGE-LAZY-RESULTS.md`.
@@ -1937,8 +1937,25 @@ uyumu korunacak. Tamamlanmış adayların iki BAĞIMSIZ fiziksel denetimi
 CI'da zorunlu. `feasible-uncertified` optimumluk demek değil.
 `unknown-limit` ve `unknown-no-candidate` imkânsızlık demek değil.
 Yanlış fiyat sıfırlaması, farklı-vetör unsafe dominance, keyfî kullanıcı
-parça/levha limiti yok. Sonuçlanan gerçek CI ve RSS ölçümleri geldikten
-sonra bu bölüm güncellenecek. Üretime entegrasyon bu PR'nin KAPSAMI DIŞINDA.
+parça/levha limiti yok. Üretime entegrasyon bu PR'nin KAPSAMI DIŞINDA.
+
+**PR #46 gerçek CI:** Optimizer araştırma adımı
+[44952409212](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44952409212)
+SUCCESS, `5bdda14d6c658b48777bbafdba331624a0b81f71` kaynak HEAD.
+Farklı/tekrarlı enli 8/40/200 parça içeren 10 deneyin **10/10'u
+fiziksel uygulanabilir tam plan** buldu; üretim ve ikinci bağımsız
+giyotin ağacı audit'inden geçti; **11** callback adayı ayrı denetlendi.
+Karma 200 parça için 24 levha, sentetik fiyatla toplam 2.943 TL,
+199 fiziksel kesim; 79,001 ms. Bu yalnız aday üst sınırıdır,
+**24 levhanın veya 2.943 TL'nin minimum olduğu kanıtlanmadı.**
+Tüm test sürecinin Node/Linux tepe RSS'i 67.592 KiB
+(~66,0 MiB, auditor + Node dahil); 10 vaka + denetimler
+yaklaşık 190,76 ms. Mobil/Safari kapasitesi değildir.
+Masif m³ fiyatı, kesirli geometriler, count hedefi ve stok adedi
+regresyonları ayrıca doğrulandı. PR #44 exact karma 8/40/200
+vakalarında kaynak sebebiyle UNKNOWN dönerken bu ayrı araştırmada
+fiziksel aday bulunması optimumluk sertifikasına dönüştürülemez.
+İzole deneyin kapsamı ve tüm ölçümler yukarıdaki test raporunda.
 
 **Bağımsız açık araştırma:** PR #32'nin fiziksel optimumluğu kanıtlı,
 farklı 305-parça holdout'unda 499.224 mm² optimuma karşı genel
