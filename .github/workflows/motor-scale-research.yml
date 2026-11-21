@@ -21,6 +21,8 @@ jobs:
           node-version: '22'
       - name: Research safe four and five threshold Pareto skylines (isolated)
         run: MOTOR_FOURPLUS_JSON=fourplus-pareto-report.json node tests/motor-fourplus-pareto-experiment.cjs
+      - name: Verify full-span physical guillotine exact patterns against independent oracle
+        run: MOTOR_FULLSPAN_JSON=fullspan-exact-report.json node tests/motor-fullspan-exact.cjs
       - name: Profile shipped engine against planted physical guillotine projects
         run: node tests/motor-scalability-profile.cjs
       - name: Test randomized shapes, variable sizes and real leftover strips
@@ -43,4 +45,5 @@ jobs:
             tests/motor-scalability-profile-results.json
             tests/motor-repair-stress-results.json
             fourplus-pareto-report.json
+            fullspan-exact-report.json
           if-no-files-found: warn
