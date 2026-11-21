@@ -49,6 +49,8 @@ jobs:
         run: node tests/motor-paired-cover.cjs
       - name: Verify simultaneous multi-threshold area and cost bounds with independent oracle
         run: node tests/motor-multi-threshold.cjs
+      - name: Verify three simultaneous size thresholds and larger independent holdouts
+        run: MOTOR_TRIPLE_JSON=triple-threshold-report.json node tests/motor-triple-threshold.cjs
       - name: Verify mixed-size threshold kerf area and cost lower bounds
         run: node tests/motor-threshold-kerf.cjs
       - name: Verify fractional kerf bounds and unused independent cases
@@ -82,4 +84,5 @@ jobs:
             optimization-report.json
             proof-gaps.json
             nested-kerf-report.json
+            triple-threshold-report.json
           if-no-files-found: warn
