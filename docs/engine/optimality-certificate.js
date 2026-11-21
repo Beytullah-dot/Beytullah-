@@ -166,7 +166,7 @@
   // maxMs into unbounded cumulative delays on large mixed jobs.
   const deadline=Date.now()+Math.max(0,maxMs);
   const remaining=()=>Math.max(0,deadline-Date.now());
-  let totalBound=0,allExact=true,pairedImproved=false,multiImproved=false;
+  let totalBound=0,allExact=true,pairedImproved=false,multiImproved=false,tripleImproved=false;
   for(const [key,parts] of groups){
    const demand=parts.reduce((sum,p)=>sum+p.l*p.w,0);
    const stocks=data.stocks.filter(s=>groupKey(s)===key);
@@ -183,10 +183,14 @@
     Number.isFinite(data.kerf)?data.kerf:0,{
      objective,priceMode,m3,
      maxStates:Math.min(maxStates,2400),maxMs:Math.min(remaining(),350)});
+   const triple=tripleThresholdAreaCover(parts,stocks,data.trim,
+    Number.isFinite(data.kerf)?data.kerf:0,{
+     objective,priceMode,m3,
+     maxStates:Math.min(maxStates,700),maxMs:Math.min(remaining(),180)});
    const oldBounds=[r,c].filter(b=>b?.status==='optimal-relaxation')
     .map(b=>b.lowerBound);
    const oldBest=oldBounds.length?Math.max(...oldBounds):null;
-   const certifiedBounds=[r,c,paired,multi].filter(b=>
+   const certifiedBounds=[r,c,paired,multi,triple].filter(b=>
     b?.status==='optimal-relaxation');
    const best=certifiedBounds.length?
     Math.max(...certifiedBounds.map(b=>b.lowerBound)):null;
@@ -198,10 +202,17 @@
       (paired.status!=='optimal-relaxation'||
        multi.lowerBound>paired.lowerBound+EPS))
     multiImproved=true;
+   if(triple.status==='optimal-relaxation'&&
+      (oldBest===null||triple.lowerBound>oldBest+EPS)&&
+      (paired.status!=='optimal-relaxation'||
+       triple.lowerBound>paired.lowerBound+EPS)&&
+      (multi.status!=='optimal-relaxation'||
+       triple.lowerBound>multi.lowerBound+EPS))
+    tripleImproved=true;
    base.groups.push({key,parts:parts.length,stockTypes:stocks.length,
     status:best===null?'unknown-bound':'optimal-relaxation',lowerBound:best,
     areaRelaxation:r,cardinalityRelaxation:c,pairedRelaxation:paired,
-    multiThresholdRelaxation:multi});
+    multiThresholdRelaxation:multi,tripleThresholdRelaxation:triple});
    if(best===null){allExact=false;continue}
    totalBound+=best;
   }
@@ -237,7 +248,8 @@
   return {...base,proven,lowerBound:totalBound,
     gap,gapPercent:incumbent>0?100*gap/incumbent:0,
     status:proven?'optimal':'gap',
-    method:multiImproved?'multi-threshold-area-cover':
+    method:tripleImproved?'triple-threshold-area-cover':
+     multiImproved?'multi-threshold-area-cover':
      pairedImproved?'paired-area-threshold-cover':'integer-area-cover'};
  }
  // Every subset of pieces with minimum edge >= threshold must fit into
@@ -602,12 +614,133 @@
    method:'multi-threshold-area-cover',
    elapsedMs:Date.now()-started};
  }
+
+ // Three simultaneous kerf-aware threshold slots plus usable stock area.
+ // A finite multiset satisfying these NECESSARY conditions may still be
+ // impossible to cut: completion only proves an exact relaxation.
+ function tripleThresholdAreaCover(parts,stocks,trim,kerf,options={}){
+  const started=Date.now(),maxMs=options.maxMs??180,
+   maxStates=options.maxStates??700,objective=options.objective||'area';
+  const blank={status:'unknown-limit',lowerBound:null,tested:0,
+   total:0,complete:false,peakStates:0,method:'triple-threshold-area-cover'};
+  if(!['area','cost','count'].includes(objective)||
+     !parts.length||!Number.isFinite(trim)||trim<0||
+     !Number.isFinite(kerf)||kerf<0||
+     !Number.isFinite(maxMs)||maxMs<0||
+     (!(maxStates>0)&&maxStates!==Infinity)||
+     parts.some(p=>!Number.isFinite(p.l)||!Number.isFinite(p.w)||
+      p.l<=0||p.w<=0))return {...blank,status:'invalid'};
+  const edges=[...new Set(parts.map(p=>Math.min(p.l,p.w)))].sort((a,b)=>b-a);
+  if(edges.length<3)return blank;
+  const needArea=parts.reduce((sum,p)=>sum+p.l*p.w,0);
+  if(!Number.isFinite(needArea))return {...blank,status:'invalid'};
+  const total=edges.length*(edges.length-1)*(edges.length-2)/6;
+  let best=null,tested=0,peakStates=0,interrupted=false;
+  const deadline=started+maxMs;
+  // Widen the span of thresholds progressively; not a part-count limit.
+  for(let span=2;span<edges.length&&!interrupted;span++)
+   for(let first=0;first+span<edges.length&&!interrupted;first++)
+    for(let mid=first+1;mid<first+span;mid++){
+     if(Date.now()>=deadline){interrupted=true;break}
+     const thresholds=[edges[first],edges[mid],edges[first+span]];
+     const subsets=thresholds.map(t=>
+      parts.filter(p=>Math.min(p.l,p.w)>=t));
+     const caps=subsets.map(p=>cardinalityTypes(p,stocks,trim,kerf));
+     if(caps.some(x=>!x)){interrupted=true;break}
+     const needs=subsets.map(p=>p.length);
+     const types=[];
+     for(let j=0;j<stocks.length;j++){
+      const s=stocks[j];
+      if(!Number.isSafeInteger(s.qty)||s.qty<0||
+         !Number.isFinite(s.l)||!Number.isFinite(s.w))
+       return {...blank,status:'invalid'};
+      if(!s.qty)continue;
+      const W=s.l-2*trim,H=s.w-2*trim;
+      const area=W>0&&H>0?W*H:0;
+      const counts=caps.map((arr,i)=>Math.min(needs[i],arr[j]._proofCapacity));
+      if(!(area>0||counts.some(x=>x>0)))continue;
+      const unit=objective==='area'?s.l*s.w:
+       objective==='count'?1:costOf(s,options);
+      if(unit===null)return {...blank,status:'unknown-price',tested,total};
+      if(!Number.isFinite(unit)||unit<0)
+       return {...blank,status:'invalid'};
+      const qty=Math.min(s.qty,Math.max(
+       area>0?Math.ceil((needArea+EPS)/area):0,
+       ...counts.map((c,i)=>c>0?Math.ceil(needs[i]/c):0)));
+      if(qty>0)types.push({area,counts,unit,qty});
+     }
+     if(!types.length||
+        types.reduce((sum,s)=>sum+s.qty*s.area,0)+EPS<needArea||
+        needs.some((need,i)=>types.reduce((sum,s)=>
+         sum+s.qty*s.counts[i],0)<need)){
+      interrupted=true;break
+     }
+     types.sort((a,b)=>(b.area/(needArea||1)+b.counts.reduce((v,x,i)=>
+      v+x/(needs[i]||1),0))-
+      (a.area/(needArea||1)+a.counts.reduce((v,x,i)=>
+       v+x/(needs[i]||1),0))||a.unit-b.unit);
+     let states=[[0,0,0,0,0]],peak=1,limit=false;
+     for(const s of types){
+      if(Date.now()>=deadline){limit=true;break}
+      const expanded=[];
+      for(const st of states)for(let q=0;q<=s.qty;q++){
+       expanded.push([Math.min(needArea,st[0]+q*s.area),
+        ...st.slice(1,4).map((x,i)=>Math.min(needs[i],x+q*s.counts[i])),
+        st[4]+q*s.unit]);
+       if(expanded.length>maxStates*6||Date.now()>=deadline){
+        limit=true;break
+       }
+      }
+      if(limit)break;
+      expanded.sort((a,b)=>b[0]-a[0]||b[1]-a[1]||
+       b[2]-a[2]||b[3]-a[3]||a[4]-b[4]);
+      // Area is descending. Only <= cost and >= ALL slots dominates.
+      // A simple exact skyline scan prevents unsafe scalarization.
+      const frontier=[];
+      let checks=0;
+      for(const st of expanded){
+       let dominated=false;
+       for(const other of frontier){
+        if(other[1]>=st[1]&&other[2]>=st[2]&&
+           other[3]>=st[3]&&other[4]<=st[4]){
+         dominated=true;break
+        }
+        if((++checks&255)===0&&Date.now()>=deadline){
+         limit=true;break
+        }
+       }
+       if(limit)break;
+       if(dominated)continue;
+       frontier.push(st);
+       if(frontier.length>maxStates||Date.now()>=deadline){
+        limit=true;break
+       }
+      }
+      if(limit)break;
+      states=frontier;peak=Math.max(peak,states.length);
+     }
+     peakStates=Math.max(peakStates,peak);
+     if(limit){interrupted=true;break}
+     let optimum=Infinity;
+     for(const st of states)if(st[0]+EPS>=needArea&&
+        needs.every((need,i)=>st[i+1]>=need))
+      optimum=Math.min(optimum,st[4]);
+     if(!Number.isFinite(optimum)){interrupted=true;break}
+     tested++;best=best===null?optimum:Math.max(best,optimum);
+    }
+  return {status:best===null?'unknown-limit':'optimal-relaxation',
+   lowerBound:best,tested,total,complete:!interrupted&&tested===total,
+   peakStates,elapsedMs:Date.now()-started,
+   method:'triple-threshold-area-cover'};
+ }
+
  function countBoundForGroup(parts,stocks,trim,kerf){
   return thresholdCardinalityCover(parts,stocks,trim,kerf,{
    objective:'count',maxMs:700,maxStates:50000});
  }
  const api=Object.freeze({version:1,cover,certify,countBoundForGroup,
-  thresholdCardinalityCover,pairedAreaCardinalityCover,multipleThresholdAreaCover});
+  thresholdCardinalityCover,pairedAreaCardinalityCover,multipleThresholdAreaCover,
+   tripleThresholdAreaCover});
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
  root.BeythausOptimalityCertificate=api;
 })(typeof self!=='undefined'?self:typeof window!=='undefined'?window:globalThis);
