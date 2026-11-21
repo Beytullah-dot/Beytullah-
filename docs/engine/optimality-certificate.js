@@ -267,11 +267,18 @@
    // continue unchanged; UNKNOWN is never promoted to a certificate.
    const stripSolver=!allowMaterialAssignment&&
     root.BeythausFullSpanPatternExact?.solve;
-   const strip=stripSolver?stripSolver(parts,stocks,{
-    objective,trim:data.trim,kerf:data.kerf,priceMode,m3,
-    maxStates:Math.min(maxStates,25000),maxNodes:750000,
-    maxMs:Math.min(remaining(),400)
-   }):{status:'unknown-class',objectiveValue:null};
+   let strip={status:'unknown-class',objectiveValue:null};
+   if(stripSolver)try{
+    strip=stripSolver(parts,stocks,{
+     objective,trim:data.trim,kerf:data.kerf,priceMode,m3,
+     maxStates:Math.min(maxStates,25000),maxNodes:750000,
+     maxMs:Math.min(remaining(),400)
+    });
+   }catch(_error){
+    // An optional research-derived proof family must never prevent the
+    // existing safe relaxation families from completing.
+    strip={status:'unknown-limit',objectiveValue:null};
+   }
    const stripBound=strip.status==='optimal-physical-class'&&
     Number.isFinite(strip.objectiveValue)?strip.objectiveValue:null;
    const r=cover(stocks,demand,{objective,trim:data.trim,priceMode,m3,
