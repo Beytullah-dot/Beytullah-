@@ -105,6 +105,36 @@ assert.equal(self.last.requestId,77);
 assert.equal(self.last.cost.lowerBound,400);
 assert.equal(self.last.cost.proven,true);
 assert.equal(self.last.area.proven,true);
+// Deliberately conflicting exact objectives on the SAME physical job:
+// 4 small pieces fit one longer, cheaper sheet, but more compact gross
+// area is achieved with three-plus-one short boards.
+const choices={parts:Array.from({length:4},(_,i)=>piece('Q'+i,20)),
+ stocks:[stock('three',64,2,90),stock('four',88,1,96),
+  stock('one',20,4,50)],trim:1,kerf:2,m3:25000};
+const cheap=exact.solve(choices.parts,choices.stocks,
+ {objective:'cost',trim:1,kerf:2,maxMs:1500});
+const compact=exact.solve(choices.parts,choices.stocks,
+ {objective:'area',trim:1,kerf:2,maxMs:1500});
+assert.equal(cheap.objectiveValue,96);
+assert.equal(compact.objectiveValue,4*62*22);
+assert.equal(cheap.plan.stockArea,62*90);
+assert.equal(compact.plan.stockArea,4*62*22);
+assert(cheap.plan.cost<compact.plan.cost,
+ 'Minimum cost must be a different physical plan from minimum area');
+audit(cheap.plan,choices);audit(compact.plan,choices);
+const costChoice=proof.certify(cheap.plan,choices,{...budget,objective:'cost'});
+const areaChoice=proof.certify(compact.plan,choices,{...budget,objective:'area'});
+const costIsNotArea=proof.certify(cheap.plan,choices,{...budget,objective:'area'});
+const areaIsNotCost=proof.certify(compact.plan,choices,{...budget,objective:'cost'});
+assert.equal(costChoice.status,'optimal');
+assert.equal(areaChoice.status,'optimal');
+assert.equal(costIsNotArea.status,'gap');
+assert.equal(areaIsNotCost.status,'gap');
+const distinctObjectives={minimumCost:costChoice.lowerBound,
+ minimumArea:areaChoice.lowerBound,
+ costPlanArea:cheap.plan.stockArea,areaPlanCost:compact.plan.cost,
+ costPlanAreaUnproven:costIsNotArea.status,
+ areaPlanCostUnproven:areaIsNotCost.status};
 const largeResults={};
 for(const size of [44,305]){
  const big={parts:Array.from({length:size},(_,i)=>piece('p'+size+'-'+i,20)),
@@ -129,6 +159,7 @@ for(const size of [44,305]){
  largeResults[size]=certs;
 }
 const report={class:'fixed non-rotatable pieces spanning all eligible boards',
+ distinctObjectives,
  sixPartPhysical:{parts:6,physicalMinimumBoards:5,expandedAreaMinimumBoards:4,
  objectives,independentFullEdgeAudit:true,workerRoundTrip:true},
  safeguards:{unknownPriceGuard:unknownCost.status,
