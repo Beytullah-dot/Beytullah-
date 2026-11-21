@@ -1573,3 +1573,96 @@ N bölümündeki PR bekleme statüsünün yerini alır.
   iki-kullanıcı cloud E2E ve server-side üretim-ağacı
   tekrardan denetleme yapılmış sayılmaz.
   **MOTOR GENEL OPTİMUMLUK İÇİN MÜHÜRLENMEDİ.**
+
+## P. 21 Kasım 2026 — PR #34 fiziksel stok uyumluluğu filtresi / PR #35 dört-beş eşikli Pareto araştırması
+
+**En yeni doğrulanmış motor geliştirme:** PR [#34](https://github.com/Beytullah-dot/Beytullah-/pull/34),
+merge `5f94ff0bcc11ea4fe19a807fac1e849439fc1a99`.
+`docs/engine/optimality-certificate.js` içindeki
+`geometryCompatibleStockTypes`, tüm stok-kombinasyonu sertifika
+ailelerinden **önce**, bir parça bile barındıramayan stok türlerini
+yalnız fiziksel olarak güvenli durumlarda eliyor. Malzeme/category
+eşlemesi (otomatik atamada category gevşetmesi), parça kalınlığı,
+trim, yön (= enine/Ⅱ boyuna), parçaya özgü rotasyon izni korunuyor.
+Kerf, tek parça için ek artı boşluk gerektirerek **güvensiz eleme**
+yapmıyor. Bütçe dolduğunda/ölçüler belirsizse sonuç UNKNOWN; stok
+elemesinin kendisi fiziksel yerleşim sertifikası değil. Bilinmeyen
+fiyatlı ama geometrik olarak hiçbir parçayı barındıramayan stok,
+maliyet kanıtını gereksiz yere engellemiyor; kalan uygun bilinmeyen
+fiyat maliyet kanıtını yine engelliyor.
+PWA cache `beythaus-cut-v40-geometry-stock-filter`.
+
+Bağımsız tam stok-multiset oracle **72×3=216/216** karşılaştırma,
+**10.764** enumerasyon, **0 unsafe overbound**. 3 parçalı tanıkta
+iki tam kenarlı fiziksel giyotin kesim, üretim denetimi ve bağımsız
+audit; bozulan kesimler reddedildi. Parçanın doğrultusu ve fiyat
+bilinmiyor testleri geçti. Test:
+`tests/motor-geometry-stock-filter.cjs`; ayrıntı:
+`tests/MOTOR-GEOMETRY-COMPATIBILITY-RESULTS.md`.
+PR #34 kaynak HEAD `6ac621f4d0e81c8cc4d8cd8f0bd6b501e0b7b691`
+üzerinde Optimizer `44940766616`, Geometry `44940766407`,
+Scale `44940766387`, WebKit **emülasyonu** `44940766365`
+SUCCESS; PR #34 merge master üzerinde Optimizer `44940928987`,
+Geometry `44940928989`, WebKit emülasyonu `44940929029`,
+Pages `44940928297` **SUCCESS**.
+
+Bağımsız fiziksel optimumlu yeni PR #32 holdout sonuçları **yeni
+geometri filtresiyle tekrar ölçüldü**: 44 parça kayıtlı maliyet
+optimumu/LB **1.530/1.530 TL**, brüt alan optimumu/LB
+**69.564/69.564 mm²**; 305 parça maliyet optimumu/LB
+**10.980/10.980 TL**, alan optimumu **499.224 mm²**,
+kanıt LB **208.692 mm²** (**UNKNOWN optimumluk**).
+Eski PR #30 işlerinde geometrik olarak tümüyle elenen stok türü
+**0**, eski 44 için incumbent/LB maliyet **500/255 TL**, brüt alan
+**99.174/78.399 mm²**; eski 305 için **1.000/485 TL**,
+brüt alan **585.753/467.000 mm²**. Eski işlerin gerçek fiziksel
+optimumu BİLİNMİYOR; bu rakamlar fiziksel iyileşme değildir.
+Yeni 305-area optimumluğu, bağımsız ispatlı fiziksel planına rağmen
+sertifika süresi/gevşetme nedeniyle halen kanıtlanmıyor.
+
+**Ayrı araştırma PR [#35](https://github.com/Beytullah-dot/Beytullah-/pull/35)**,
+merge `dd64707462b5e4ea96adc30221defc7a636800c2`.
+`tests/motor-fourplus-pareto-experiment.cjs` **yalnız CI
+araştırmasıdır**, canlı optimumluk motoruna BAĞLANMADI.
+Dört/beş eşik + alan aynı stok kombinasyonunda; dominance
+yalnız **bütün kapasite koordinatları >= ve amaç <=** ise.
+Skaler ağırlıkla güvensiz durum silme YOK.
+Bağımsız tam multiset oracle: **18×2×3=108/108** tam eşleşme,
+**26.244** kombinasyon, 0 unsafe/UNKNOWN küçük test.
+Eski 44 maliyet/alan LB dört ve beş eşikte **220 TL / 71.544 mm²**,
+eski 305 maliyet **409 TL**; eski 305 brüt alan **UNKNOWN**.
+Bunlar üretim alt sınırlarından DAHA ZAYIF. 2.000-durum/900ms
+bütçesinde 305-area 4/5 eşikte **2.001** Pareto durumuna ulaşıp
+kesildi, ~**72,9–73,0 milyon** karşılaştırma yaptı;
+~**426/545 ms** ölçüldü. Araştırma işlemi gerçek Linux
+`process.resourceUsage().maxRSS` tepe değeri **102.532 KiB**
+(~100,13 MiB), süreç geneli, bellek garantisi değildir.
+Araştırma raporu `tests/MOTOR-FOURPLUS-PARETO-RESULTS.md`.
+PR #35 kaynak HEAD `99d44cfff55099a3a5d1505636fc39b432229ad3`:
+Scale CI `44940951812`, Geometry `44940951779`,
+Optimizer `44940951776`: SUCCESS. Merge `dd647074`
+master Optimizer `44941029496`, Geometry `44941029543`,
+Pages `44941029212`: **SUCCESS**. PR #35 kodu kullanıcı
+arayüzü/motoru değiştirmez.
+
+Supabase `pdqgpupdqgrxejvjpdzs` **salt-okunur doğrulandı**:
+`ACTIVE_HEALTHY`; migrationlar `20261118212836` ve
+`20261119202121`. Mevcut Auth, gerçek stoklar, şema,
+migration, envanter ve üretim kayıtları DEĞİŞMEDİ.
+
+**SIRADAKİ GÖREV:** Fiziksel tam kenarlı giyotin pattern
+generation için küçük ve kesin oracle ile denetlenmiş özel model
+geliştir; farklı hedeflere ayrı maliyet/brüt alan LB ve fiziksel
+incumbent üret. Mevcut 305 parçalık sertifika açığını, diğer
+işlerden AYRI olarak izle. Gerekirse araştırma PR'da skyline için
+güvenli indekslenmiş dominance/memory iyileştirmesi dene; UNKNOWN
+kanıt sayılmaz, tüm araştırma yalnız güvenli koşullarda canlıya
+aktarılır. DFF veya branch-and-price/MILP/CP-SAT ancak ilgili
+fiziksel pattern sınıfı ve kaynak bütçesi bağımsız ispatlanırsa
+küçük ayrı PR. Genel optimumluk iddiası, sabit kullanıcı
+parça/levha limiti ve fiyatı sıfır varsayımı YOK.
+Gerçek iPhone Safari, canlı JS bayt denetimi, iki gerçek kullanıcıyla
+bulut E2E ve sunucu tarafı bağımsız kesim ağacı kontrolü
+**halen yapılmadı**.
+
+**MOTOR GENEL FİZİKSEL OPTİMUMLUK İÇİN MÜHÜRLENMEDİ.**
