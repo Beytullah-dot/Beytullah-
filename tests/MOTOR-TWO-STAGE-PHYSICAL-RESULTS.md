@@ -9,6 +9,7 @@ Bu araştırma **genel iki boyutlu giyotin optimumluğu değildir**. Önceki PR 
 - Önceki tek enli sınıfın tersine, farklı parçaların yatay uzanımları farklı olabilir; bağımsız şeritler farklı genişliktedir. Şerit içindeki parçalar ortak genişliği paylaşır.
 - Her stok için **iki aşamalı VH veya HV** desenlerinin tüm parça-adedi vektörleri kaynak bütçesi altında enumerate edilir. Aynı stokta aynı talep vektörüne sahip desenler birbiri yerine geçebildiğinden yalnız biri tutulur; farklı adet vektörlerinde güvenli olduğu kanıtlanmamış dominance uygulanmaz.
 - Stok kopyalarının sonlu adetleriyle **tam çoklu-stok örtüsü** aranır. Kayıtlı maliyet, brüt stok alanı ve levha adedi **ayrı ayrı** minimize edilir.
+- Objective karşılaştırması, parça/levha geometrisi ve kayıtlı fiyatların desteklenen en çok altı ondalık basamağı için ortak rasyonel BigInt ölçekte yapılır; sayısal hassasiyet karşılanamazsa `unknown-precision` döner. Fiyatı yuvarlayıp optimum kanıtına dönüştürmez.
 - Pozitif kerf ve trim **fiziksel testere kesimleriyle** hesaplanır. Kullanılmayan (R) boyutu için (0<R<k) kalan boşluk, ayrıştırıcı tam kenarlı kesim yapılamadığı için yasaktır.
 - Parça yönü değiştirilmez. Açıkça 90° dönüş gerektiren veya serbest rotasyonlu sınıflar **UNKNOWN-class** durumuna gider. Malzeme, category (varsa), parça/levha kalınlığı eşleştirilir; masif fiyatı m³ üzerinden hesaplanır.
 - Girilen çok yüksek adet veya levha sayısı için keyfî sabit sınır **yoktur**. Kaynak, bellek, durum veya zaman bütçesi tükenirse `unknown-limit` döner.
