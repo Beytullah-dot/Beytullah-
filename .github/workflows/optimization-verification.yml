@@ -47,6 +47,8 @@ jobs:
         run: MOTOR_NESTED_JSON=nested-kerf-report.json node tests/motor-nested-residual.cjs
       - name: Verify joint area and large-piece capacity bounds against independent oracles
         run: node tests/motor-paired-cover.cjs
+      - name: Verify simultaneous multi-threshold area and cost bounds with independent oracle
+        run: node tests/motor-multi-threshold.cjs
       - name: Verify mixed-size threshold kerf area and cost lower bounds
         run: node tests/motor-threshold-kerf.cjs
       - name: Verify fractional kerf bounds and unused independent cases
