@@ -36,7 +36,7 @@ The 44/305 tests here are **new uniform full-span jobs**, not the original PR #3
 
 The PR #38 final source HEAD `36acdf62472a14999a424be15f5d2756a4171e05` passed Optimizer `44943104123`, Geometry `44943104128`, scale `44943104120`, and iPhone WebKit **emulation** `44943104122`, all SUCCESS. Linux process peak RSS in the proof integration test was **68,768 KiB** (~67.16 MiB); this is whole-process peak, not isolated extra memory or a real-phone device guarantee. The update also tested optional solver exceptions and strict fallback.
 
-PR #38 merge `d9497b4bad51d7d1a6c33c787c78df52a636f899`: Optimizer `44943215498` SUCCESS; Geometry `44943215388` SUCCESS; Pages `44943215250` SUCCESS. iPhone WebKit emulation `44943215406` was still in progress **when this report was initially drafted**: re-check its final result and update the handoff before finalizing. Do not transpose source-PR checks into master status.
+PR #38 merge `d9497b4bad51d7d1a6c33c787c78df52a636f899`: Optimizer `44943215498` SUCCESS; Geometry `44943215388` SUCCESS; Pages `44943215250` SUCCESS. iPhone WebKit **emulation** `44943215406` SUCCESS. All four runs were independently verified on the **PR #38 master merge SHA**; emulation is not real-device acceptance.
 
 ## Limits and future work
 
