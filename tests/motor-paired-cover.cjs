@@ -245,4 +245,9 @@ for(let seed=1;seed<=36;seed++){
   }
  }
 }
+const html=fs.readFileSync(path.join(docs,'index.html'),'utf8');
+assert(html.includes('olası iyileştirmenin kanıtlı üst sınırı'),
+ 'The live interface must display certified absolute and percent gaps');
+assert(html.includes("cost?.status==='unknown-price'"),
+ 'An unknown recorded stock price must remain visible to the user');
 console.log('Paired stock-cover oracle PASS: cost 440 vs separate 40/400; area 50000 vs separate 47000/40000; two independently audited objective-specific witnesses; 36 seeded stock-multiset holdouts x3, '+randomCount+' certified comparisons; missing prices and UNKNOWN guarded.');
