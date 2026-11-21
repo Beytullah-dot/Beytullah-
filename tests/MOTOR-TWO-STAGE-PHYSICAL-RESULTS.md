@@ -21,7 +21,7 @@ Test: `tests/motor-two-stage-exact.cjs`. Motor: `docs/engine/two-stage-strip-exa
 
 - 16 deterministik küçük iş × 3 amaç = **48/48** aynı sınıf optimumu.
 - 21.090 bağımsız parça–stok ataması; 147.561 küme bölümlenmesi dalı.
-- Dört farklı enli parça için testere 2 mm, trim 1 mm örneği: kayıtlı maliyet optimumu **70 TL / bir levha**, brüt alan optimumu **1.620 mm² / iki levha**. Bu iki hedefin farklı planları vardır. İki eksende ardışık tam kenarlı kesimler uygulanır.
+- İki farklı en ve iki farklı boydaki dört parça için testere 2 mm, trim 1 mm örneği: kayıtlı maliyet optimumu **70 TL / bir levha**, brüt alan optimumu **1.620 mm² / iki levha**. Bu iki hedefin farklı planları vardır. İki eksende ardışık tam kenarlı kesimler uygulanır.
 - Test her planı ayrı canlı-yaprak kesim ağacı üzerinden tekrar yürütür. GitHub CI ortamında ayrıca mevcut `production-audit.js` ve bağımsız `optimization-oracle.cjs` denetimlerine sokar. Kasıtlı kısaltılmış tam-kenarlı kesimi reddeder.
 - Bilinmeyen fiyatı 0 kabul etme, sadece alan için fiyatı bilinmeyen stok seçilirse `cost:null` koru; bütçe 0; çok dar kerf artık; yasak rotasyon; malzeme/kalınlık ve masif m³ fiyatı korumaları.
 
