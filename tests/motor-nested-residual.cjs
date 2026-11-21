@@ -115,11 +115,56 @@ for(let i=0;i<18;i++){
 }
 assert.equal(invalid,0);
 assert(nestedComplete>baselineComplete,'Nested residual cuts must improve holdout');
+// A separate 30-sheet heterogeneous-stock planted job: six different
+// recorded stock sizes/costs, thirty manually witnessed cut trees, 150 items.
+// The witness is NEVER supplied to the heuristic. Only a completed,
+// independently audited plan counts as FEASIBLE; partial results are UNKNOWN.
+const stockById=new Map(),largePieces=[],largeWitnessBins=[];
+for(let i=0;i<30;i++){
+ const job=planted(200+i%6),original=job.data.stocks[0];
+ if(!stockById.has(original.id))
+  stockById.set(original.id,{...original,qty:5});
+ const stock=stockById.get(original.id),bin=job.witness.bins[0];
+ const renamed=bin.placed.map(p=>({...p,id:p.id+'-'+i,
+  label:p.label+'-'+i}));
+ largePieces.push(...renamed.map(p=>({
+  id:p.id,label:p.label,l:p.l,w:p.w,t:p.t,material:p.material,
+  category:p.category,rotate:p.rotate,grain:p.grain,order:i*5+p.order
+ })));
+ largeWitnessBins.push({...bin,stock,placed:renamed});
+}
+const largeData={parts:largePieces,stocks:[...stockById.values()],
+ trim:3-1,kerf:3,m3:25000};
+const fullArea=largeWitnessBins.reduce((n,b)=>n+b.placed.reduce(
+ (sum,p)=>sum+p.l*p.w,0),0);
+const fullStock=largeWitnessBins.reduce((n,b)=>n+b.stock.l*b.stock.w,0);
+const fullCost=largeWitnessBins.reduce((n,b)=>n+b.stock.price,0);
+const largeWitness={bins:largeWitnessBins,unplaced:[],placedCount:150,
+ partArea:fullArea,stockArea:fullStock,cost:fullCost,unknownCostBins:0};
+assert.equal(engine.auditCutPlan(largeWitness,largeData).ok,true,
+ 'Independent physically feasible 30-board/150-piece reference');
+const bigBaseline=solver.construct(largePieces,largeData.stocks,cfg,
+ {timeBudgetMs:1500,residualFill:false});
+const bigNested=solver.construct(largePieces,largeData.stocks,cfg,
+ {timeBudgetMs:1500});
+for(const attempt of [bigBaseline,bigNested]){
+ if(!attempt.plan)continue;
+ const checked=engine.auditCutPlan(attempt.plan,largeData);
+ assert.equal(checked.ok,true,'Every published partial/full plan has a valid cut tree');
+ assert.equal(attempt.status,attempt.plan.unplaced.length===0?
+  'feasible':'unknown','No false completion from a time-limited heuristic');
+}
+const large={knownFeasible:true,requiredPieces:150,availableBoards:30,
+ distinctStockTypes:6,kerfMm:3,trimMm:2,
+ priorUnplaced:bigBaseline.plan?.unplaced.length??150,
+ nestedUnplaced:bigNested.plan?.unplaced.length??150,
+ nestedStatus:bigNested.status,elapsedMs:bigNested.elapsedMs};
+
 const report={cases:rows.length,baselineComplete,nestedComplete,unknown,
  invalid,elapsedMs:Date.now()-started,
- heapDeltaBytes:process.memoryUsage().heapUsed-peakBefore,rows};
+ heapDeltaBytes:process.memoryUsage().heapUsed-peakBefore,large,rows};
 if(process.env.MOTOR_NESTED_JSON)
  fs.writeFileSync(process.env.MOTOR_NESTED_JSON,JSON.stringify(report,null,2));
 console.log('Physical 4-level kerf=3mm holdout: baseline complete '+baselineComplete+
  '/18; nested complete '+nestedComplete+'/18; UNKNOWN '+unknown+
- '; invalid '+invalid+'; elapsed '+report.elapsedMs+'ms');
+ '; invalid '+invalid+'; elapsed '+report.elapsedMs+'ms; 30-sheet planted old/new unplaced '+large.priorUnplaced+'/'+large.nestedUnplaced+' (status '+large.nestedStatus+')');
