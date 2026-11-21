@@ -160,19 +160,25 @@
      s.qty>0&&s.l>2*data.trim&&s.w>2*data.trim&&
      costOf(s,{priceMode,m3})===null))
    return {...base,status:'unknown-price'};
+  // Share one finite proof budget across ALL material groups and all
+  // relaxation families. The Web Worker has its own 8.5s UI watchdog;
+  // three independent objectives must not each multiply a per-group
+  // maxMs into unbounded cumulative delays on large mixed jobs.
+  const deadline=Date.now()+Math.max(0,maxMs);
+  const remaining=()=>Math.max(0,deadline-Date.now());
   let totalBound=0,allExact=true,pairedImproved=false;
   for(const [key,parts] of groups){
    const demand=parts.reduce((sum,p)=>sum+p.l*p.w,0);
    const stocks=data.stocks.filter(s=>groupKey(s)===key);
    const r=cover(stocks,demand,{objective,trim:data.trim,priceMode,m3,
-     maxStates,maxMs});
+     maxStates,maxMs:remaining()});
    const c=thresholdCardinalityCover(parts,stocks,data.trim,
     Number.isFinite(data.kerf)?data.kerf:0,{
-     objective,priceMode,m3,maxStates,maxMs});
+     objective,priceMode,m3,maxStates,maxMs:remaining()});
    const paired=pairedAreaCardinalityCover(parts,stocks,data.trim,
     Number.isFinite(data.kerf)?data.kerf:0,{
      objective,priceMode,m3,
-     maxStates:Math.min(maxStates,9000),maxMs:Math.min(maxMs,350)});
+     maxStates:Math.min(maxStates,9000),maxMs:Math.min(remaining(),350)});
    const oldBounds=[r,c].filter(b=>b?.status==='optimal-relaxation')
     .map(b=>b.lowerBound);
    const oldBest=oldBounds.length?Math.max(...oldBounds):null;
