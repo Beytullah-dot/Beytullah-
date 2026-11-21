@@ -69,7 +69,9 @@ function child(){
   independentlyAudited=true;
  }
  const mem=process.memoryUsage(),ru=process.resourceUsage();
- const row={family,boardCount,partCount:parts.length,stockTypes:4,
+ const row={family,boardCount,partCount:parts.length,
+  cataloguedStockTypes:stocks.length,
+  availableStockTypes:stocks.filter(s=>s.qty>0).length,
   positiveKerfMm:opts.kerf,trimMm:opts.trim,objective,budget:budgetName,
   status:result.status,wallMs:Math.round(wallMs*1000)/1000,
   maxRSSKiB:process.platform==='linux'?ru.maxRSS:null,
