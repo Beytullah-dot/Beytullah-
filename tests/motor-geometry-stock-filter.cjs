@@ -63,9 +63,9 @@ const specificParts=[item('fixed',60,20),
  item('free',32,18,{grain:'',rotate:true})];
 const specificStocks=[
  board('exact',62,22,1,50),board('rotatedOnly',27,52,1,80),
- board('narrow',24,300,1,1),board('wrongMaterial',200,200,1,1,
+ board('narrow',16,300,1,1),board('wrongMaterial',200,200,1,1,
  {material:'panel|different'}),board('wrongThickness',200,200,1,1,{t:12}),
- board('tooShortAfterTrim',61,22,1,1)];
+ board('tooShortAfterTrim',17,22,1,1)];
 const filter=proof.geometryCompatibleStockTypes(specificParts,specificStocks,1,2);
 assert.equal(filter.status,'complete');
 assert.deepEqual(Array.from(filter.stocks,x=>x.id),['exact','rotatedOnly']);
