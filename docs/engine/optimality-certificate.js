@@ -130,6 +130,39 @@
   return {status:'optimal-relaxation',lowerBound:optimum,states:peakStates,
     elapsedMs:Date.now()-start};
  }
+ // Kerf-expanded area is necessary for each audited full-edge cut tree.
+ // Expanding every part rightward and downward by k leaves all expanded
+ // pieces disjoint: any two finished leaves are separated by >= k in
+ // at least one axis. These expansions fit the usable stock enlarged by k
+ // on the right and bottom. Rotation does not change expanded area.
+ // The finite-stock cover optimum is a LOWER BOUND, not a cut pattern.
+ function kerfExpandedAreaCover(parts,stocks,trim,kerf,options={}){
+  const invalid={status:'invalid',lowerBound:null,states:0,
+   method:'kerf-expanded-area-cover'};
+  if(!Array.isArray(parts)||!parts.length||!Array.isArray(stocks)||
+     !Number.isFinite(trim)||trim<0||
+     !Number.isFinite(kerf)||kerf<0||
+     parts.some(p=>!Number.isFinite(p.l)||!Number.isFinite(p.w)||
+      p.l<=0||p.w<=0))
+   return invalid;
+  if(options.maxMs===0)return {...invalid,status:'unknown-limit'};
+  let demand=0;
+  for(const p of parts){
+   demand+=(p.l+kerf)*(p.w+kerf);
+   if(!Number.isFinite(demand))return invalid;
+  }
+  const types=[];
+  for(const s of stocks){
+   if(!Number.isFinite(s.l)||!Number.isFinite(s.w))
+    return invalid;
+   const W=s.l-2*trim,H=s.w-2*trim;
+   const usable=W>0&&H>0?(W+kerf)*(H+kerf):0;
+   if(!Number.isFinite(usable)||usable<0)return invalid;
+   types.push({...s,_proofCapacity:usable});
+  }
+  return {...cover(types,demand,{...options,trim}),
+   method:'kerf-expanded-area-cover'};
+ }
  function certify(plan,data,{objective='area',maxStates=120000,maxMs=2500,
     auditOK=false,allowMaterialAssignment=false,priceMode='panel',
     m3=25000}={}){
@@ -166,12 +199,16 @@
   // maxMs into unbounded cumulative delays on large mixed jobs.
   const deadline=Date.now()+Math.max(0,maxMs);
   const remaining=()=>Math.max(0,deadline-Date.now());
-  let totalBound=0,allExact=true,pairedImproved=false,multiImproved=false,tripleImproved=false;
+  let totalBound=0,allExact=true,pairedImproved=false,multiImproved=false,tripleImproved=false,kerfImproved=false;
   for(const [key,parts] of groups){
    const demand=parts.reduce((sum,p)=>sum+p.l*p.w,0);
    const stocks=data.stocks.filter(s=>groupKey(s)===key);
    const r=cover(stocks,demand,{objective,trim:data.trim,priceMode,m3,
      maxStates,maxMs:remaining()});
+   const expanded=kerfExpandedAreaCover(parts,stocks,data.trim,
+    Number.isFinite(data.kerf)?data.kerf:0,{
+     objective,priceMode,m3,maxStates:Math.min(maxStates,14000),
+     maxMs:Math.min(remaining(),300)});
    const c=thresholdCardinalityCover(parts,stocks,data.trim,
     Number.isFinite(data.kerf)?data.kerf:0,{
      objective,priceMode,m3,maxStates,maxMs:remaining()});
@@ -190,10 +227,16 @@
    const oldBounds=[r,c].filter(b=>b?.status==='optimal-relaxation')
     .map(b=>b.lowerBound);
    const oldBest=oldBounds.length?Math.max(...oldBounds):null;
-   const certifiedBounds=[r,c,paired,multi,triple].filter(b=>
+   const certifiedBounds=[r,expanded,c,paired,multi,triple].filter(b=>
     b?.status==='optimal-relaxation');
    const best=certifiedBounds.length?
     Math.max(...certifiedBounds.map(b=>b.lowerBound)):null;
+   const legacyBounds=[r,c,paired,multi,triple].filter(b=>
+    b?.status==='optimal-relaxation').map(b=>b.lowerBound);
+   if(expanded.status==='optimal-relaxation'&&
+      (!legacyBounds.length||
+       expanded.lowerBound>Math.max(...legacyBounds)+EPS))
+    kerfImproved=true;
    if(paired.status==='optimal-relaxation'&&
       (oldBest===null||paired.lowerBound>oldBest+EPS))
     pairedImproved=true;
@@ -211,7 +254,8 @@
     tripleImproved=true;
    base.groups.push({key,parts:parts.length,stockTypes:stocks.length,
     status:best===null?'unknown-bound':'optimal-relaxation',lowerBound:best,
-    areaRelaxation:r,cardinalityRelaxation:c,pairedRelaxation:paired,
+    areaRelaxation:r,kerfExpandedAreaRelaxation:expanded,
+    cardinalityRelaxation:c,pairedRelaxation:paired,
     multiThresholdRelaxation:multi,tripleThresholdRelaxation:triple});
    if(best===null){allExact=false;continue}
    totalBound+=best;
@@ -248,7 +292,8 @@
   return {...base,proven,lowerBound:totalBound,
     gap,gapPercent:incumbent>0?100*gap/incumbent:0,
     status:proven?'optimal':'gap',
-    method:tripleImproved?'triple-threshold-area-cover':
+    method:kerfImproved?'kerf-expanded-area-cover':
+     tripleImproved?'triple-threshold-area-cover':
      multiImproved?'multi-threshold-area-cover':
      pairedImproved?'paired-area-threshold-cover':'integer-area-cover'};
  }
@@ -741,7 +786,7 @@
   return thresholdCardinalityCover(parts,stocks,trim,kerf,{
    objective:'count',maxMs:700,maxStates:50000});
  }
- const api=Object.freeze({version:1,cover,certify,countBoundForGroup,
+ const api=Object.freeze({version:1,cover,kerfExpandedAreaCover,certify,countBoundForGroup,
   thresholdCardinalityCover,pairedAreaCardinalityCover,multipleThresholdAreaCover,
    tripleThresholdAreaCover});
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
