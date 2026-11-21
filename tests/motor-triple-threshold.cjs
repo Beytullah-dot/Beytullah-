@@ -234,8 +234,20 @@ const stressAudit=engine.auditCutPlan(stressPlan,stressData);
 assert.equal(stressAudit.ok,true,'305-part independent physical tree '+stressAudit.issues);
 assert.equal(stressAudit.checkedParts,305);
 const stressStats={parts:305,stockTypes:17,usedSheets:5,
+ objectives:{},
  fullEdgeCuts:stressBins.reduce((v,b)=>v+b.cuts.length,0),
  statuses:[],audited:true};
+for(const objective of ['cost','area']){
+ const cert=proof.certify(stressPlan,stressData,{objective,auditOK:true,
+  priceMode:'panel',maxStates:12000,maxMs:2500});
+ assert(cert.status!=='inconsistent-bound','Certified LB exceeds audited UB');
+ assert(!cert.proven||cert.lowerBound<=
+  (objective==='cost'?stressPlan.cost:stressPlan.stockArea)+1e-7);
+ stressStats.objectives[objective]={incumbent:objective==='cost'?
+  stressPlan.cost:stressPlan.stockArea,lowerBound:cert.lowerBound,
+  status:cert.status,gap:cert.gap,gapPercent:cert.gapPercent,
+  proven:cert.proven,method:cert.method};
+}
 for(const objective of ['cost','area','count']){
  const incumbent=objective==='cost'?stressPlan.cost:
   objective==='area'?stressPlan.stockArea:stressPlan.bins.length;
@@ -247,7 +259,8 @@ for(const objective of ['cost','area','count']){
    'Stress LB must not exceed independently audited physical UB');
   stressStats.statuses.push({objective,maxMs,maxStates,status:result.status,
    lowerBound:result.lowerBound,incumbent,peakStates:result.peakStates,
-   elapsedMs:result.elapsedMs,tested:result.tested,total:result.total});
+   elapsedMs:result.elapsedMs,tested:result.tested,total:result.total,
+   complete:result.complete});
  }
 }
 
