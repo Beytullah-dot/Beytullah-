@@ -9,6 +9,7 @@ const policySource=fs.readFileSync(path.join(docs,'engine/material-policy.js'),'
 const allocationSource=fs.readFileSync(path.join(docs,'engine/material-allocator.js'),'utf8');
 const auditSource=fs.readFileSync(path.join(docs,'engine/production-audit.js'),'utf8');
 const repairSource=fs.readFileSync(path.join(docs,'engine/guillotine-block-repair.js'),'utf8');
+const stripSource=fs.readFileSync(path.join(docs,'engine/mixed-strip-patterns.js'),'utf8');
 const engineSource=fs.readFileSync(path.join(docs,'engine/cutting-engine.js'),'utf8');
 const html=fs.readFileSync(path.join(docs,'index.html'),'utf8');
 const sw=fs.readFileSync(path.join(docs,'sw.js'),'utf8');
@@ -17,12 +18,16 @@ vm.runInNewContext(archiveSource,{window:win},{filename:'production-archive.js'}
 vm.runInNewContext(policySource,{window:win},{filename:'material-policy.js'});
 vm.runInNewContext(allocationSource,{window:win},{filename:'material-allocator.js'});
 vm.runInNewContext(auditSource,{window:win},{filename:'production-audit.js'});
+vm.runInNewContext(stripSource,{window:win},{filename:'mixed-strip-patterns.js'});
 vm.runInNewContext(repairSource,{window:win},{filename:'guillotine-block-repair.js'});
 vm.runInNewContext(engineSource,{window:win},{filename:'cutting-engine.js'});
 assert.equal(win.BeythausCutEngine.contractVersion,1);
 assert.equal(win.BeythausGuillotineBlockRepair.version,1);
+assert.equal(win.BeythausMixedStripPatterns.version,1);
 assert.ok(html.includes('<script src="./engine/guillotine-block-repair.js"></script>'));
+assert.ok(html.includes('<script src="./engine/mixed-strip-patterns.js"></script>'));
 assert.ok(sw.includes('./engine/guillotine-block-repair.js'));
+assert.ok(sw.includes('./engine/mixed-strip-patterns.js'));
 assert.equal(win.BeythausCutProductionAudit.contractVersion,1);
 const expectedMethods=['optimize','binCost','mkBin','collectOffcuts','auditCutPlan',
  'auditGuillotineCuts','certifyStockCount','minStockCountLowerBound',
