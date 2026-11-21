@@ -139,13 +139,14 @@ function auditFullEdge(plan,parts,stocks,trim,kerf){
  assert(equal(plan.partArea,partArea));assert(equal(plan.stockArea,boardArea));
  // Also run both EXISTING production and external independent auditors in CI.
  const engineModule=window.BeythausCutEngine;
- if(engineModule){
+ assert(engineModule,'Production auditor must load in CI');
+ {
   const engine=engineModule.createEngine({getState:()=>({mode:'guillotine'}),
    mkey:s=>String(s||'').toLowerCase(),val:Number,fmt:Number});
   const check=engine.auditCutPlan(plan,{parts,stocks,trim,kerf,m3:25000});
   assert.equal(check.ok,true,'Production audit: '+check.issues);
  }
- if(fs.existsSync(path.join(__dirname,'optimization-oracle.cjs'))){
+ {
   const independent=require('./optimization-oracle.cjs').audit;
   const check=independent({parts,stocks,trim,kerf},plan,'guillotine');
   assert.equal(check.ok,true,'Independent production-tree audit: '+check.issues);
