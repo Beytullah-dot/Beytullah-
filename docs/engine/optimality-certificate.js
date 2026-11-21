@@ -163,6 +163,54 @@
   return {...cover(types,demand,{...options,trim}),
    method:'kerf-expanded-area-cover'};
  }
+ // Necessary one-piece geometry filter. A stock type that cannot hold even
+ // ONE eligible part in any permitted orientation cannot appear in any
+ // physical guillotine tree. Kerf does not require spare space around a
+ // single exact-fit leaf; it cannot make a too-small board fit.
+ // On malformed inputs or time exhaustion, FAIL OPEN to the original stock
+ // list. This test does not claim the retained types can pack a whole job.
+ function geometryCompatibleStockTypes(parts,stocks,trim,kerf,options={}){
+  const fallback=status=>({stocks,removed:0,checks:0,status});
+  if(!Array.isArray(parts)||!parts.length||!Array.isArray(stocks)||
+     !Number.isFinite(trim)||trim<0||!Number.isFinite(kerf)||kerf<0||
+     parts.some(p=>!Number.isFinite(p.l)||p.l<=0||
+      !Number.isFinite(p.w)||p.w<=0)||
+     stocks.some(s=>!Number.isFinite(s.l)||!Number.isFinite(s.w)||
+      !Number.isSafeInteger(s.qty)||s.qty<0))
+   return fallback('unknown-input');
+  const deadline=options.deadline??Infinity;
+  if(Date.now()>=deadline)return fallback('unknown-limit');
+  const assignment=options.allowMaterialAssignment===true;
+  let checks=0;
+  const kept=[];
+  for(const s of stocks){
+   // Keep non-positive geometries for the existing relaxation's input
+   // validation; do not hide a malformed model by preprocessing.
+   if(!(s.l>0&&s.w>0)||s.qty===0){kept.push(s);continue}
+   const W=s.l-2*trim,H=s.w-2*trim;
+   let fits=false;
+   if(W>0&&H>0)for(const p of parts){
+    if((++checks&255)===0&&Date.now()>=deadline)
+     return fallback('unknown-limit');
+    if(assignment?
+       String(p.category||'panel')!==String(s.category||'panel'):
+       String(p.material||'')!==String(s.material||''))
+     continue;
+    // A specified part thickness cannot be cut from a stock with missing
+    // or different thickness. Unspecified/invalid thickness fails open.
+    if(Number.isFinite(p.t)&&p.t>0&&
+       (s.t===null||(Number.isFinite(s.t)&&Math.abs(p.t-s.t)>1e-6)))
+     continue;
+    const original=p.grain!=='width'&&p.l<=W+EPS&&p.w<=H+EPS;
+    const rotated=!!p.rotate&&p.grain!=='length'&&
+      p.w<=W+EPS&&p.l<=H+EPS;
+    if(original||rotated){fits=true;break}
+   }
+   if(fits)kept.push(s);
+  }
+  if(Date.now()>=deadline)return fallback('unknown-limit');
+  return {stocks:kept,removed:stocks.length-kept.length,checks,status:'complete'};
+ }
  function certify(plan,data,{objective='area',maxStates=120000,maxMs=2500,
     auditOK=false,allowMaterialAssignment=false,priceMode='panel',
     m3=25000}={}){
@@ -186,23 +234,32 @@
    if(!groups.has(key))groups.set(key,[]);
    groups.get(key).push(p);
   }
-  // A missing user-recorded price is never treated as zero or bypassed
-  // by a convenient threshold subset. Even if a known-price subset
-  // yields a bound, global cost optimality remains unverified.
-  if(objective==='cost'&&data.stocks.some(s=>groups.has(groupKey(s))&&
-     s.qty>0&&s.l>2*data.trim&&s.w>2*data.trim&&
-     costOf(s,{priceMode,m3})===null))
-   return {...base,status:'unknown-price'};
-  // Share one finite proof budget across ALL material groups and all
-  // relaxation families. The Web Worker has its own 8.5s UI watchdog;
-  // three independent objectives must not each multiply a per-group
-  // maxMs into unbounded cumulative delays on large mixed jobs.
+  // Share a single deadline between preprocessing and every relaxation.
+  // No geometry filter result is used if its assessment is interrupted.
   const deadline=Date.now()+Math.max(0,maxMs);
   const remaining=()=>Math.max(0,deadline-Date.now());
+  const eligibleByKey=new Map();
+  for(const [key,parts] of groups){
+   const pool=data.stocks.filter(s=>groupKey(s)===key);
+   const fit=geometryCompatibleStockTypes(parts,pool,data.trim,
+    Number.isFinite(data.kerf)?data.kerf:0,
+    {deadline,allowMaterialAssignment});
+   if(fit.status!=='complete')
+    return {...base,status:'unknown-bound'};
+   eligibleByKey.set(key,{...fit,original:pool.length});
+  }
+  // Unpriced stock physically incompatible with every eligible part
+  // cannot influence cost. Any remaining unpriced candidate still blocks
+  // cost optimality, rather than becoming a zero-price shortcut.
+  if(objective==='cost'&&[...eligibleByKey.values()].some(group=>
+     group.stocks.some(s=>s.qty>0&&s.l>2*data.trim&&
+      s.w>2*data.trim&&costOf(s,{priceMode,m3})===null)))
+   return {...base,status:'unknown-price'};
   let totalBound=0,allExact=true,pairedImproved=false,multiImproved=false,tripleImproved=false,kerfImproved=false;
   for(const [key,parts] of groups){
    const demand=parts.reduce((sum,p)=>sum+p.l*p.w,0);
-   const stocks=data.stocks.filter(s=>groupKey(s)===key);
+   const eligible=eligibleByKey.get(key);
+   const stocks=eligible.stocks;
    const r=cover(stocks,demand,{objective,trim:data.trim,priceMode,m3,
      maxStates,maxMs:remaining()});
    const expanded=kerfExpandedAreaCover(parts,stocks,data.trim,
@@ -253,6 +310,7 @@
        triple.lowerBound>multi.lowerBound+EPS))
     tripleImproved=true;
    base.groups.push({key,parts:parts.length,stockTypes:stocks.length,
+    excludedStockTypes:eligible.removed,originalStockTypes:eligible.original,
     status:best===null?'unknown-bound':'optimal-relaxation',lowerBound:best,
     areaRelaxation:r,kerfExpandedAreaRelaxation:expanded,
     cardinalityRelaxation:c,pairedRelaxation:paired,
@@ -268,7 +326,7 @@
      plan.stockProof.complete===true&&plan.stockProof.usedStockCount===plan.bins.length){
    let uniform=true;
    for(const [key] of groups){
-    const stockTypes=data.stocks.filter(s=>groupKey(s)===key&&s.qty>0);
+    const stockTypes=eligibleByKey.get(key).stocks.filter(s=>s.qty>0);
     if(!stockTypes.length){uniform=false;break}
     const unit=stock=>objective==='count'?1:objective==='area'?
       stock.l*stock.w:costOf(stock,{priceMode,m3});
@@ -786,7 +844,7 @@
   return thresholdCardinalityCover(parts,stocks,trim,kerf,{
    objective:'count',maxMs:700,maxStates:50000});
  }
- const api=Object.freeze({version:1,cover,kerfExpandedAreaCover,certify,countBoundForGroup,
+ const api=Object.freeze({version:1,cover,kerfExpandedAreaCover,geometryCompatibleStockTypes,certify,countBoundForGroup,
   thresholdCardinalityCover,pairedAreaCardinalityCover,multipleThresholdAreaCover,
    tripleThresholdAreaCover});
  if(typeof module!=='undefined'&&module.exports)module.exports=api;
