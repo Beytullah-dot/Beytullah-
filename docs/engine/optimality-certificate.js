@@ -683,12 +683,15 @@
      for(const s of types){
       if(Date.now()>=deadline){limit=true;break}
       const expanded=[];
-      for(const st of states)for(let q=0;q<=s.qty;q++){
+      for(const st of states){
+       if(limit)break;
+       for(let q=0;q<=s.qty;q++){
        expanded.push([Math.min(needArea,st[0]+q*s.area),
         ...st.slice(1,4).map((x,i)=>Math.min(needs[i],x+q*s.counts[i])),
         st[4]+q*s.unit]);
        if(expanded.length>maxStates*6||Date.now()>=deadline){
         limit=true;break
+       }
        }
       }
       if(limit)break;
