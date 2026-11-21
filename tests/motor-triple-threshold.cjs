@@ -158,7 +158,15 @@ for(const objective of ['cost','area']){
  assert(cert.gap===null||cert.gap>=0);
  physicalStats.objectives[objective]={incumbent,lowerBound:cert.lowerBound,
   status:cert.status,unprovenGap:cert.gap,relativeUpperGapPercent:cert.gapPercent,
-  proven:cert.proven,method:cert.method};
+  proven:cert.proven,method:cert.method,
+  familyBounds:cert.groups.map(g=>({
+   rawArea:g.areaRelaxation?.lowerBound,
+   expandedArea:g.kerfExpandedAreaRelaxation?.lowerBound,
+   cardinality:g.cardinalityRelaxation?.lowerBound,
+   paired:g.pairedRelaxation?.lowerBound,
+   twoThreshold:g.multiThresholdRelaxation?.lowerBound,
+   threeThreshold:g.tripleThresholdRelaxation?.lowerBound
+  }))};
 }
 assert.equal(triple(strictParts,strictStock,'cost',0).status,'unknown-limit');
 assert.equal(triple(strictParts,strictStock,'cost',0).lowerBound,null);
@@ -246,7 +254,15 @@ for(const objective of ['cost','area']){
  stressStats.objectives[objective]={incumbent:objective==='cost'?
   stressPlan.cost:stressPlan.stockArea,lowerBound:cert.lowerBound,
   status:cert.status,gap:cert.gap,gapPercent:cert.gapPercent,
-  proven:cert.proven,method:cert.method};
+  proven:cert.proven,method:cert.method,
+  familyBounds:cert.groups.map(g=>({
+   rawArea:g.areaRelaxation?.lowerBound,
+   expandedArea:g.kerfExpandedAreaRelaxation?.lowerBound,
+   cardinality:g.cardinalityRelaxation?.lowerBound,
+   paired:g.pairedRelaxation?.lowerBound,
+   twoThreshold:g.multiThresholdRelaxation?.lowerBound,
+   threeThreshold:g.tripleThresholdRelaxation?.lowerBound
+  }))};
 }
 for(const objective of ['cost','area','count']){
  const incumbent=objective==='cost'?stressPlan.cost:
