@@ -102,6 +102,39 @@ certified minimum: 25 planted copies were available, and the selected
 as if the exact and heuristic methods had identical work or limits.
 No arbitrary user-facing piece/board ceiling has been added.
 
+## Post-merge and deterministic fuzz verification
+
+Research PR [#46](https://github.com/Beytullah-dot/Beytullah-/pull/46)
+merged into `master` at
+`300187a29a3c73f3d0a9b901288f31aa62e092c5`.
+Master Actions: [Optimizer #44952654524](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44952654524),
+[Geometry #44952654649](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44952654649),
+[WebKit emulation #44952654606](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44952654606)
+and [Pages #44952654269](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44952654269):
+**all SUCCESS**. Real iPhone Safari is NOT inferred from emulation.
+
+After the initial 10 deterministic planted sample jobs, a distinct
+**96-case seeded fuzz suite** varies up to 14 part identities, geometry,
+positive/zero kerf, trim, stock quantity and all three objectives.
+Its direct execution produced **93 feasible completed plans**
+accepted by the production and independent full-edge tree audits,
+with **3 UNKNOWN** (no false infeasibility). The same executable
+suite is part of GitHub Optimizer Verification, not a user population
+claim. The more comprehensive GitHub
+[Optimizer #44952550336](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44952550336)
+also passed the fuzz and policy checks. Its attached research JSON
+reported Linux Node process maximum RSS **80,912 KiB (~79.0 MiB)**
+including the additional tests, auditors and runtime, and aggregate
+test wall time **329.06 ms**. This is distinct from the earlier
+67,592 KiB run *before* the 96-case extension.
+
+The subsequent PR [#47](https://github.com/Beytullah-dot/Beytullah-/pull/47)
+adds explicit `seededFuzz` and `policyRegressions` fields to the
+JSON artifact, for independently checkable per-run verification.
+These tests only validate candidate physical soundness when a
+complete plan is found. They provide **no exhaustive completeness,
+minimum-cost or minimum-board certificate**.
+
 ## Unresolved and non-goals
 
 There is no guarantee the greedy pass will find a plan despite one

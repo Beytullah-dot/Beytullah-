@@ -188,6 +188,10 @@ assert(fuzzFeasible>=80,'Most deterministic fuzz cases should construct');
 const report={scope:'lazy physical feasible three-stage research; NO optimum certificate',
  exactMixed8Baseline:old.status,attempted:cases,feasible:successful,
  unknown,independentlyAuditedUpdates:totalUpdates,totalCuts:allCuts,
+ seededFuzz:{cases:96,feasible:fuzzFeasible,unknown:fuzzUnknown,
+  invalidPhysicalPlans:0},
+ policyRegressions:{masifM3:true,fractionalGrid:true,countObjective:true,
+  stockAvailability:true},
  rows,elapsedMs:performance.now()-began,
  maxRSSKiB:process.platform==='linux'?process.resourceUsage().maxRSS:null};
 if(process.env.MOTOR_THREE_STAGE_LAZY_JSON)
@@ -197,4 +201,5 @@ for(const row of rows)console.log('LAZY-3ST '+JSON.stringify(row));
 console.log('LAZY-3ST-SUMMARY '+JSON.stringify({
  attempted:cases,feasible:successful,unknown,
  independentlyAuditedUpdates:totalUpdates,
+ seededFuzz:report.seededFuzz,policyRegressions:report.policyRegressions,
  elapsedMs:report.elapsedMs,maxRSSKiB:report.maxRSSKiB}));
