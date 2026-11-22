@@ -105,6 +105,8 @@ const summary={holdout:'alternate-six-leaf-five-cut topology',tests:rows.length,
  baselineComplete:rows.filter(x=>x.baseline).length,
  enhancedComplete:rows.filter(x=>x.enhanced).length,
  falseFullOnEmptyStock:0,rows};
+assert.equal(summary.enhancedComplete,12,
+ 'Six-leaf general pattern reconstruction regressed on independent holdout');
 console.log('SHAPE-HOLDOUT-SUMMARY '+JSON.stringify(summary));
 if(process.env.MOTOR_SHAPE_HOLDOUT_JSON)
  fs.writeFileSync(process.env.MOTOR_SHAPE_HOLDOUT_JSON,JSON.stringify(summary,null,2)+'\n');
