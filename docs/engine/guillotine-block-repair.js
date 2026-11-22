@@ -508,7 +508,7 @@
  // Local pattern depth/state/time caps imply UNKNOWN, never infeasibility.
  function stockShapeCover(items,stocks,cfg,deadline,binCost,auditCutPlan,compare,baseline){
   if(Date.now()>=deadline||!items.length)return null;
-  const classes=[],lookup=new Map(),byId=new Map();
+  const classes=[],lookup=new Map();
   const classKey=p=>JSON.stringify([p.l,p.w,p.t,p.material,p.grain||'',
    !!p.rotate,p.category||'']);
   for(const p of items){
@@ -598,7 +598,9 @@
      }
     }
     levels[n]=next;
-    if(!next.length)break;
+    // A six-leaf tree can join two three-leaf blocks with NO four-leaf
+    // intermediary. Missing one cardinality cannot stop larger joins.
+    if(!next.length)continue;
     // A complete full-stock pattern need not be expanded to larger local
     // subsets. Other stock types still receive independent pattern search.
     if(found.some(p=>p.exact&&p.count===n))break;
