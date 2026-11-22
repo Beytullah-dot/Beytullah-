@@ -2106,3 +2106,56 @@ yetki fonksiyon incelemesi zorunlu.
 doğrula; güvenli birleştir ve master/Pages'i yeniden doğrula.
 Ardından B ölçek/mobil performans testleri, C bulut
 sunucu-fiziksel-audit tehdidi ve D/E UAT kabul listesine geç.
+
+
+## Y. 22 Kasım 2026 — PR #50 birleşimi, B canlı Worker ölçek kabul araştırması
+
+**PR #50:** https://github.com/Beytullah-dot/Beytullah-/pull/50
+Merge `865ec2665ec7d0e99d3e95ba61dd3a521f1f3a10`.
+PR son HEAD `ef96c6dc4852f7b3ba0c99463393dc5b9a5de310`,
+PR Optimizer #44968813494, Geometry #44968813598,
+WebKit **emülasyonu** #44968813525 **3/3 SUCCESS**.
+Karma otomatikte yalnız seçili malzeme atamasının eksik planı
+kaynak bütçeli lazy Worker ile denenir. Olası stale seçili hedef,
+data veya plan kimliğinde sonuç reddedilir. Yapıcı sonuç sadece
+`feasible-uncertified`; otomatik atamaların küresel optimumluğu
+asla iddia edilmez. WebKit emülasyonunda gerçek Worker çalıştırılıp
+üretilen tam kesim ağacı ikinci kez audit edildi. Gerçek iPhone
+testi bu değildir. Merge sonrası master CI/Pages durumu
+yeni SHA için ayrıca kontrol edilmelidir.
+
+**B ilk dilim, ayrı araştırma PR/dalı:**
+`research/v1-b-live-worker-scale`, deney:
+`tests/motor-live-constructive-scale.cjs`,
+`tests/MOTOR-LIVE-WORKER-SCALE.md`.
+8/40/200/500/1000, karma/tekrarlı en ve heterojen stokla gerçek
+yayın Worker'ında bağımsız izole Linux Node çocuk süreçleri,
+`maxRSS`, 1300 ms/120000 node bütçeleri ve iki bağımsız fiziksel
+auditor. Her complete planı tekrar denetle, UNKNOWN'u false
+infeasible/optimum olarak etiketleme, çökme/child timeout test
+FAIL olsun. Bu kayıt yapılırken henüz B CI test sonucu yok.
+Büyük ilk yerleşimin ana thread'de çalışması ve >1500 tek-tip
+seri akış ayrımı, mobil ilk hesaplama için açık risk.
+
+**Hazır oluş %70 (+0 puan) olarak korunuyor**; A/B/C/D/E kabul
+paketlerinin hepsi henüz tamamlanmadı. Gerçek iPhone Safari, iki
+kullanıcılı Supabase UAT ve sunucu fiziksel ağacı audit'i AÇIK.
+
+**C salt-okunur ek güvenlik doğrulaması:** Bağlı Supabase
+`pg_class`/privilege metadata sorgusunda 10 Beythaus tablosu
+RLS açık, policy_count=0; `anon` ve `authenticated` rolleri için
+SELECT/INSERT/UPDATE/DELETE tablolarının tamamında **false**.
+Dolayısıyla RLS advisor 10 INFO yalnız başına doğrudan tablo
+erişimi açığı demek değil; kasıtlı RPC-only modelle uyumlu.
+Ancak `beythaus_cloud_production_v2` fonksiyonu mevcut
+kaynak SQL'de stok id/adet/sürüm ve artık toplam alanını kontrol
+ederken, kesim ağacını/yapraklarını bağımsız sunucu doğrulamasıyla
+tekrar oynatmıyor. Bu **üretime hazır v1 için açık yüksek
+öncelikli bütünlük riski**. Gerçek stok/üretim verisi okunmadı
+veya değiştirilmedi, migration uygulanmadı.
+
+**Sıradaki adım:** B CI'daki gerçek Linux RSS, başarı/UNKNOWN ve
+büyük iş süreleri raporunu kontrol et; güvenli PR'ı merge et;
+master/Pages doğrula. Sonra C için non-mutating SQL threat
+regresyonu, sunucu tam kenarlı fiziksel audit migration tasarımı
+ve gerçek stok kayıplarını önleyici atomik prova planı; D/E.
