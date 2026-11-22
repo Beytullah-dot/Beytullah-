@@ -181,9 +181,22 @@ function child(){
   'Main optimizer output malformed');
  verify(plan,data,engine); // audits partial results too; never call them production-ready.
  const baselineComplete=complete(plan,N);
- if(meta.mathematicallyImpossibleByArea)
+ const enhancedStarted=performance.now();
+ // This is the ACTUAL UI-mode first calculation, unlike the baseline
+ // above, which deliberately disables the physical repair/refinement.
+ const enhanced=engine.optimize(data,true,false,
+  objective==='area'?'area':objective==='count'?'minimum':'economic');
+ const enhancedMs=performance.now()-enhancedStarted;
+ assert(enhanced&&Array.isArray(enhanced.bins)&&Array.isArray(enhanced.unplaced),
+  'Enhanced UI-path produced malformed output');
+ verify(enhanced,data,engine);
+ const enhancedComplete=complete(enhanced,N);
+ if(meta.mathematicallyImpossibleByArea){
   assert.equal(baselineComplete,false,
-   'Impossible fixture returned a complete physical plan');
+   'Impossible fixture returned a complete baseline plan');
+  assert.equal(enhancedComplete,false,
+   'Impossible fixture returned a complete enhanced plan');
+ }
  const [worker,workerMs]=(()=>{const x=runWorker(data,objective);return [x.result,x.ms]})();
  if(worker.status==='feasible-uncertified'){
   assert(complete(worker.plan,N),'Worker leaked incomplete as full');
@@ -206,15 +219,43 @@ function child(){
     'Claimed certified optimum has nonzero gap');
   }
  }
+ let enhancedProof=null,enhancedProofMs=null;
+ if(enhancedComplete){
+  const proofStart=performance.now();
+  enhancedProof=window.BeythausOptimalityCertificate.certify(enhanced,data,{
+   objective,auditOK:true,priceMode:'panel',m3:25000,
+   maxMs:900,maxStates:30000,allowMaterialAssignment:false});
+  enhancedProofMs=performance.now()-proofStart;
+  if(enhancedProof.proven){
+   assert.equal(enhancedProof.status,'optimal');
+   assert(Number.isFinite(enhancedProof.lowerBound));
+   assert(Math.abs(enhancedProof.incumbent-enhancedProof.lowerBound)<1e-4,
+    'Enhanced claimed proof has nonzero gap');
+  }
+ }
  const incumbent=baselineComplete?metric(plan,objective):null;
  const witnessDominates=baselineComplete&&witnessValue!==null&&
   incumbent>witnessValue+Math.max(1e-7,Math.abs(witnessValue)*1e-9);
  if(cert?.proven&&witnessValue!==null)
   assert(cert.incumbent<=witnessValue+1e-6,
-   'Global OPTIMAL contradicted by known physical alternative');
+   'Baseline global OPTIMAL contradicted by known physical alternative');
+ if(enhancedProof?.proven&&witnessValue!==null)
+  assert(enhancedProof.incumbent<=witnessValue+1e-6,
+   'Enhanced global OPTIMAL contradicted by known physical alternative');
+ const enhancedIncumbent=enhancedComplete?metric(enhanced,objective):null;
+ const enhancedWitnessDominates=enhancedComplete&&witnessValue!==null&&
+  enhancedIncumbent>witnessValue+Math.max(1e-7,Math.abs(witnessValue)*1e-9);
+ const productionComplete=enhancedComplete||worker.status==='feasible-uncertified';
  const row={...meta,objective,baselineComplete,
   baselineStatus:baselineComplete?'complete-audited':'partial-audited',
   baselineUnplaced:plan.unplaced.length,baselineMs,
+  enhancedStatus:enhancedComplete?'complete-audited':'partial-audited',
+  enhancedComplete,enhancedUnplaced:enhanced.unplaced.length,enhancedMs,
+  productionComplete,enhancedIncumbent,enhancedWitnessDominates,
+  enhancedCertifiedOptimal:enhancedProof?.proven===true,
+  enhancedCertifiedStatus:enhancedProof?.status??'no-complete-plan',
+  enhancedCertifiedGapPercent:enhancedProof?.gapPercent??null,
+  enhancedProofMs,
   workerStatus:worker.status,workerComplete:worker.status==='feasible-uncertified',
   workerMs,workerNodes:worker.nodes??null,
   incumbent,witnessValue,witnessDominates,
@@ -318,30 +359,38 @@ function main(){
  const impossible=rows.filter(r=>r.mathematicallyImpossibleByArea);
  assert.equal(rows.length,families.length*sizes.length*objectives.length);
  assert(measured.every(r=>r.witnessValue!==null),'Planted physical witness missing');
- assert(impossible.every(r=>!r.baselineComplete&&!r.workerComplete),
+ assert(impossible.every(r=>!r.baselineComplete&&!r.enhancedComplete&&!r.workerComplete),
   'Area-impossible job reported production-ready');
  const grouped=families.map(family=>{
   const q=rows.filter(r=>r.family===family);
   return {family,cases:q.length,Ns:sizes,
    baselineComplete:q.filter(r=>r.baselineComplete).length,
+   enhancedComplete:q.filter(r=>r.enhancedComplete).length,
+   productionComplete:q.filter(r=>r.productionComplete).length,
+   enhancedGloballyCertified:q.filter(r=>r.enhancedCertifiedOptimal).length,
+   enhancedKnownWitnessLoss:q.filter(r=>r.enhancedWitnessDominates).length,
    workerComplete:q.filter(r=>r.workerComplete).length,
    globallyCertified:q.filter(r=>r.certifiedOptimal).length,
    demonstrablyWorseThanPhysicalWitness:q.filter(r=>r.witnessDominates).length,
    p95BaselineMs:percentile(q.map(r=>r.baselineMs),.95),
    peakRSSKiB:Math.max(...q.map(r=>r.maxRSSKiB||0))};
  });
- const report={schemaVersion:1,environment:{node:process.version,
+ const report={schemaVersion:2,environment:{node:process.version,
   platform:process.platform,arch:process.arch},
   source:'shipped production optimizer/constructive Worker and two independent physical auditors',
   fixturePolicy:'positive kerf=3mm, trim=2mm, planted 4-cut full-span trees, 5 stock dimension motifs; no universal input cap',
   objectives,Ns:sizes,families,independentCounterexample,
   result:{cases:rows.length,plantedFeasibleCases:measured.length,
    plantedBaselineComplete:measured.filter(r=>r.baselineComplete).length,
+   plantedEnhancedComplete:measured.filter(r=>r.enhancedComplete).length,
+   plantedProductionComplete:measured.filter(r=>r.productionComplete).length,
+   plantedEnhancedGloballyProven:measured.filter(r=>r.enhancedCertifiedOptimal).length,
+   plantedEnhancedWitnessLosses:measured.filter(r=>r.enhancedWitnessDominates).length,
    plantedWorkerComplete:measured.filter(r=>r.workerComplete).length,
    plantedGloballyProven:measured.filter(r=>r.certifiedOptimal).length,
    demonstrableHeuristicLosses:measured.filter(r=>r.witnessDominates).length,
    independentAreaImpossibleCases:impossible.length,
-   incorrectImpossibleFullPlans:impossible.filter(r=>r.baselineComplete||r.workerComplete).length,
+   incorrectImpossibleFullPlans:impossible.filter(r=>r.baselineComplete||r.enhancedComplete||r.workerComplete).length,
    p50BaselineMs:percentile(rows.map(r=>r.baselineMs),.5),
    p95BaselineMs:percentile(rows.map(r=>r.baselineMs),.95),
    maxRSSKiB:Math.max(...rows.map(r=>r.maxRSSKiB||0))},
