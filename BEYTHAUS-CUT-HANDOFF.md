@@ -2159,3 +2159,54 @@ büyük iş süreleri raporunu kontrol et; güvenli PR'ı merge et;
 master/Pages doğrula. Sonra C için non-mutating SQL threat
 regresyonu, sunucu tam kenarlı fiziksel audit migration tasarımı
 ve gerçek stok kayıplarını önleyici atomik prova planı; D/E.
+
+
+## Z. 22 Kasım 2026 — B master ve C sunucu fiziği için staging migration
+
+**PR #51** merge `3c6b3833d879b29a941258d9e9312f651622cf4a`.
+PR son SHA `c8483162e392b555a1794fb66776c6a4743df71b`:
+Optimizer #44969095190, Geometry #44969095208 ve
+uncapped motor scale #44969095217 3/3 **SUCCESS**.
+Merge sonrası master Optimizer #44969169379, Geometry
+#44969169362 ve Pages #44969169246 3/3 **SUCCESS**.
+
+Bağımsız canlı Worker ölçümü, CI Node Linux:
+16 sentetik vaka = **14 fiziksel tam/çift denetimli feasible,
+2 UNKNOWN** (1000 farklı en `unknown-limit`, fiyat bilinmeyen
+maliyet `unknown-price`). 1000 tekrarlı parça 125 stoklu
+tam kesim planı, `workerAndAuditWallMs=886.83`, maksimum
+RSS `88536 KiB` (yaklaşık 86.5 MiB). 500 tekrarlı
+`259.692 ms`, 200 tekrarlı `67.642 ms`, 1000 heterojen
+`270.638 ms` UNKNOWN. Bu Node/Linux süreç belleğidir,
+**iPhone ölçümü değildir**. Bunlar fiziksel yerleşim
+başarısı, **matematiksel optimumluk kanıtı değildir**.
+Rapor `tests/MOTOR-LIVE-WORKER-SCALE.md` ve PR51 CI artifact.
+
+**C staging adımı (yalnız depo, üretim Supabase şeması henüz
+DEĞİŞMEDİ):** `security/v1-c-physical-server-guard`.
+`supabase/migrations/20261122_000003_server_physical_cut_guard.sql`
+yeni kaydı atomik üretim RPC'si commit etmeden önce planın bütün
+canlı giyotin yapraklarını, pozitif kerf/trim, her parçanın kesim
+sonucuyla bire bir uyuşmasını ve her yeni artığın ayrı fiziksel
+rezidüel yapraktan gelmesini doğrulayan `BEFORE INSERT` trigger
+ekler. Varsayılan RPC stok sürümü ve kullanıcı üyelik kontrolü
+korunur. Yeni trigger için test fixture'ı fiziksel kesimlerle
+değiştirildi; geçersiz/kopya artık ve sahte parça gönderimlerinde
+**tam rollback** beklentisi PostgreSQL izole CI'a eklendi.
+Bu kayıt sırasında C CI sonucu henüz bekleniyor, **başarılı ilan
+edilmedi**. Üretim Supabase'i üzerine migration otomatik
+uygulanMAMALI: gerçek payload uyumluluk testi, rollback planı,
+staging gözetimi ve daha yüksek sayıda yaprak/negatif vaka
+gerekli. Kullanıcı stoğu ve kayıtları değiştirilmedi.
+
+**Hazır oluş %70 (değişim +0 puan)**: tamamlanan alt adımlar
+A/B/C'nin bütün kabul koşullarını kapatmıyor. A genel all-purpose
+optimumluğu kanıtsız, B gerçek mobil performansı açık,
+C üretime güvenli migration uygulanması/iki kullanıcı testi
+açık, D PDF-PWA uçtan uca ek kanıt ve E gerçek saha kabulü açık.
+
+Sıradaki adım: İzole C CI sonuçlarını incele, varsa hatayı düzelt;
+güvenli PR/merge ve master CI sonuçlarını doğrula. Gerçek
+Supabase migration uygulanması için production-readiness gate
+sağlanmadıkça DDL kullanma. Sonra D/E kabul raporu ve gerçek cihaz
+ile kullanıcı test blokerlerini netleştir.
