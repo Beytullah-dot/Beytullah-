@@ -2018,3 +2018,43 @@ Bu kayıt yazılırken **doğrulanan önceki master**
 `f3b4655fd5397bfd057059ee9254f16820812a7c`; Optimizer, Geometry ve Pages **SUCCESS**;
 açık PR **0**. Bu bölümün birleştirme commit'i ve yeni master CI
 sonraki işlemde tekrar doğrulanmalıdır.
+
+
+## W. 22 Kasım 2026 — v1 A paketi, ilk üretim yapıcı Worker adayı
+
+Aşama A için küçük PR dalı: `feat/v1-a-lazy-constructive-fallback`.
+Yeni `docs/constructive-worker.js`, PR #46/#47'deki
+`three-stage-lazy-research.js` modülünü kaynak bütçeli ayrı Web Worker
+olarak kullanır; çıktı yalnız `feasible-uncertified`, `proof:none`
+olabilir. Worker'ın bağımsız `production-audit.js` kesim ağacı
+denetimi ve ana sayfanın ayrı yeniden-audit kapısı olmadan tam plan
+kullanıcıya yayınlanamaz. Research UNKNOWN/timeout/precision/price
+sınırlamaları `infeasible` veya `optimal` olarak etiketlenmez.
+Stok adedi, kerf, trim, malzeme, kalınlık ve belirtilmiş parça damar
+yönü korunur; kullanıcı stoğu veya üretim kaydı değişmez.
+
+**Kapsam kontrollü:** Yalnız mevcut tek tip/karma özel modunda,
+ilk hesaplama tüm parçaları yerleştiremediyse tamamlanmış giyotin
+adayına otomatik kurtarma denemesi yapılır. Mevcut tam/kanıtlı plana
+dokunulmaz. Karma otomatik malzeme ataması ve döndürülebilir parçalar,
+yapıcı araştırmanın fiziksel sınıfı dışında olduğundan bu adımda
+entegre edilmedi. Mevcut küçük kesin Worker/proof ve maliyet/alan
+hedefleri korunur. İptal, sayfa gizlenmesi, girdi/hedef değişimi ve
+süre aşımı eski eksik planı değiştirmez. Üretime çıkarılan tam plan
+kesin optimum değildir; ayrı stok/alan/maliyet sertifika araması eski
+sınırlı kapsamda devam eder.
+
+Yeni test `tests/constructive-worker.cjs`: gerçek Worker kaynak
+kodunun izole Node/VM çalıştırması, ikinci bağımsız oracle,
+sahte optimumluk etiketleri, kesim ağaç tahrifi, stok kimliği ve
+fiyat manipülasyonu, bilinmeyen fiyat, UNKNOWN, auto/rotasyon
+reddi. Optimizer CI ve PWA cache sürümüne bağlandı.
+
+**Doğrulama durumu:** Bu satırlar PR CI ve master merge
+sonuçları kaydedilmeden yazıldı. Başarılı CI/Pages
+sonucu henüz bu bölümde iddia EDİLMİYOR. %70 tahmini
+başlangıç seviyesi, kabul koşulları doğrulanıncaya kadar
+arttırılmadı. Sırada PR CI ile olası düzeltmeler; ardından
+karma otomatik ve tam fakat maliyet/alan açısından yetersiz
+planlar için güvenli adaylaştırma; bağımsız mobil ölçüm,
+bulut audit/RLS ve UAT iş paketleri var.
