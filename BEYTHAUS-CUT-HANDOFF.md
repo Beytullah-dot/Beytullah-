@@ -2210,3 +2210,50 @@ güvenli PR/merge ve master CI sonuçlarını doğrula. Gerçek
 Supabase migration uygulanması için production-readiness gate
 sağlanmadıkça DDL kullanma. Sonra D/E kabul raporu ve gerçek cihaz
 ile kullanıcı test blokerlerini netleştir.
+
+
+## AA. 22 Kasım 2026 — PR #52 staging DB audit, gerçek motor çıktısı ile prova
+
+**PR #52** merge
+`931c500aa47a88710f728bfba728a02b49718677`:
+https://github.com/Beytullah-dot/Beytullah-/pull/52
+PR SHA `d95508e4c8a3ecec07417c9be5a695c7ff53db98`
+üzerinde Optimizer #44969568811 SUCCESS ve Geometry/izole
+gerçek PostgreSQL #44969568810 SUCCESS. Önceki SQL smoke
+koşuları sözdizimi ve test rolü doğrudan tabloya erişemediği
+için FAIL oldu; ikisi düzeltilip tekrar çalıştırıldı.
+Master Optimizer #44969634416, Geometry #44969634439,
+Pages #44969633957 3/3 SUCCESS.
+
+Repo'ya eklenen migration
+`20261122_000003_server_physical_cut_guard.sql`
+**gerçek Supabase veritabanına hâlâ uygulanmadı**.
+İzole PostgreSQL tetikleyici validasyonu, gerçek boyutlu
+iki malzeme/pozitif kerf örneği ve üç sahte kesim/offcut
+saldırısının tamamının transaction rollback'ini doğruladı.
+Ayrı güvenlik kabul riski: istemci gerçek iş isteklerini
+bulut kesim planıyla eşleştiren server-authoritative
+orijinal parça kataloğu yok; trigger gelen `pieces` ile
+`cuts` arasındaki fiziksel tutarlılığı kanıtlar, kullanıcının
+asıl sipariş listesinin doğruluğunu tek başına kanıtlamaz.
+
+**Sıradaki küçük PR/dal:**
+`test/v1-c-real-engine-payload-compatibility`.
+`tests/cloud-real-engine-payload.cjs`, dağıtımdaki
+gerçek `docs/engine/cutting-engine.js` üzerinden pozitif
+kerfli tam fiziksel kesim üretir, gerçek front-end
+`planSnapshot` ve yeni offcut formatını sentetik SQL
+RPC gövdesine çevirir. İzole PostgreSQL'de guard'lı
+`beythaus_cloud_production_v2` çalıştırılıp yeni
+kullanılabilir artık/stok versiyonu doğrulanır.
+Üretim verisine yazma yok; PR açıldığı anda gerçek CI
+henüz bekleniyor. Rollback rehearsal ve >1 kesim / karma
+malzeme / gerçek kullanıcılarla UAT hâlâ açık.
+
+**Hazır oluş %70 (+0 yüzde puan)**: geçerli alt çalışmalar
+sürümün A–E paketlerini bütün kabul ölçütleriyle kapatmadı.
+Bir sonraki görev bu PR'ın gerçek CI/merge/master kontrolleri,
+ardından D PDF/Pages/önbellek varlık eşleşmesi ve güvenli
+gerçek Supabase migration hazırlık kararı. Gerçek
+iPhone Safari ve iki kullanıcılı saha doğrulaması
+yapılmadı.
