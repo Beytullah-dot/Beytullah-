@@ -121,3 +121,50 @@ migration rollback güvenliği ve ispat/gap matrisi açık.
 
 Bir sonraki sohbette bu dosyadaki eski başlangıç HEAD'ini
 güncel sanma: GitHub `master` ref'ini ayrıca kontrol et.
+
+
+## 7. 22 Kasım 2026 — MOTOR tamamlanma eşiği yeniden tanımlandı
+
+Kullanıcının yeni önceliği: Tüm olası devasa giyotin işler için
+sınırsız exact aramaya bütçe harcama; gerçekçi proje ailesindeki
+**kanıtlı kapasiteyi**, **fiziksel plan başarı oranını** ve
+**performansı** ölç. Yeterli ticari kapsam sağlandığında
+**motor geliştirmeyi %100** ilan edebilirsin; bunun anlamı
+"her girdi optimum" veya "bütün ürün v1 %100" değildir.
+Bağlayıcı detay ve test tasarımı:
+`BEYTHAUS-CUT-ENGINE-CAPACITY-ACCEPTANCE.md`.
+
+Parça sayısı `N=sum(qty)` ile çeşitlilik `K`, stok sayıları/
+fiyatları, rotasyon/damar, kerf, kesim modeli ve optimumluk
+amacı birlikte değerlendirilmeli. "N<=X ise hep kanıtlı
+optimum" gibi kaynaklanmamış garanti verme. Tekrarlı 1000
+parça sonucu tam fiziksel kanıtsızdır, exact değil.
+Sertifika **her bir problem+seçili amaç** için geçerlidir.
+Mümkün olan büyük tekrarlı işlerde exact kullanmaya devam et;
+zor küçük işlerde de güvenli sezgisel kullan.
+
+Yeni öncelik sırası:
+1. Önce mevcut motorun **exact sertifika sınırı/kanıt
+   profili**, N/K sınıf matrisi, bağımsız oracle, maliyet/
+   brüt alan/levha ayrı hedefleri ve fiziksel başarı/UNKNOWN
+   örneklemesi; bu sonuç olmadan keyfî X belirleme.
+2. Ölçülen ticari kapsam yeterliyse büyük/kombinatoryal
+   sınıflarda zaman/bellek bütçeli yapıcı/sezgisel yaklaşımı
+   ve açık "optimumluk kanıtlanmadı" durumunu kurumsallaştır.
+   Kullanıcı proje girişi keyfî N ile kesilmesin.
+3. Motorun %100 tamamlanma kararı için tanımlı kapsamda
+   0 yanlış optimum etiketi, 0 hatalı fiziksel üretim
+   planı, hedef-maliyet-alan ve bilinmeyen fiyat
+   regresyonları, güvenilir performans ve açık
+   UNKNOWN belgelensin. Motor %100 olursa A/B'nin motor
+   işlerini kapatabilirsin; C/D/E ürün v1 güvenlik,
+   dağıtım ve UAT kalemleri ayrıca kalır.
+4. Motoru sonsuz exact genişletmek yerine verimli
+   olan geliştirmelere geç: mobil ana-thread, cloud
+   server audit, PDF/Pages/cache, güvenli canlı
+   Supabase geçişi ve gerçek cihaz/iki kullanıcı UAT.
+
+Bu *dokümantasyon hedef değişikliği* kod testi
+olmadan motorun veya ürünün hazır oluş yüzdesini
+artırmaz. Önceki ürün hazır oluş %70, güncel %70,
+görev değişiminden gerçekleşen artış +0.
