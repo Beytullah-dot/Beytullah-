@@ -29,13 +29,17 @@ select public.beythaus_cloud_production_v2(current_setting('test.ws2')::uuid,
   "usedFull":[{"id":"F-P","qty":1,"expectedVersion":1},
               {"id":"F-M","qty":1,"expectedVersion":1}],
   "consumed":[],
-  "created":[{"id":"R-PA","binIndex":0,"l":500,"w":500,"location":"Raf A"},
-             {"id":"R-MA","binIndex":1,"l":1000,"w":100,"location":"Raf B"}],
+  "created":[{"id":"R-PA","binIndex":0,"l":498.5,"w":500,"location":"Raf A"},
+             {"id":"R-MA","binIndex":1,"l":998.5,"w":100,"location":"Raf B"}],
   "planSnapshot":{"kerf":3,"trim":0,"bins":[
     {"sourceType":"full","sourceId":"F-P",
-     "stock":{"l":1000,"w":500,"t":18,"material":"Beyaz Meşe"},"cuts":[],"pieces":[]},
+     "stock":{"l":1000,"w":500,"t":18,"material":"Beyaz Meşe"},
+     "cuts":[{"axis":"vertical","source":{"x":0,"y":0,"w":1000,"h":500},"at":500}],
+     "pieces":[{"id":"P-P","x":0,"y":0,"w":498.5,"h":500,"rotated":false}]},
     {"sourceType":"full","sourceId":"F-M",
-     "stock":{"l":2000,"w":100,"t":40,"material":"Meşe"},"cuts":[],"pieces":[]}
+     "stock":{"l":2000,"w":100,"t":40,"material":"Meşe"},
+     "cuts":[{"axis":"vertical","source":{"x":0,"y":0,"w":2000,"h":100},"at":1000}],
+     "pieces":[{"id":"P-M","x":0,"y":0,"w":998.5,"h":100,"rotated":false}]}
   ]}
  }'::jsonb);
 do $$declare s jsonb;b jsonb;
@@ -46,16 +50,16 @@ begin
   raise exception 'Full stock not decremented/versioned';end if;
  b=s->'batches'->0;
  if b is null or (b->>'grossStockCost')::numeric<>1200 or
-  (b->>'offcutBookValue')::numeric<>600 or
-  (b->>'materialCost')::numeric<>600 or
-  (b->>'extraCost')::numeric<>50 or (b->>'totalCost')::numeric<>650 or
+  (b->>'offcutBookValue')::numeric<>598.35 or
+  (b->>'materialCost')::numeric<>601.65 or
+  (b->>'extraCost')::numeric<>50 or (b->>'totalCost')::numeric<>651.65 or
   (b->>'extraNote')<>'Bantlama' then
   raise exception 'Production cost or note mismatch';end if;
  if (select (p->>'bookValue')::numeric from jsonb_array_elements(s->'pieces') p
-  where p->>'id'='R-PA')<>500 then
+  where p->>'id'='R-PA')<>498.5 then
   raise exception 'Panel offcut value mismatch';end if;
  if (select (p->>'bookValue')::numeric from jsonb_array_elements(s->'pieces') p
-  where p->>'id'='R-MA')<>100 then
+  where p->>'id'='R-MA')<>99.85 then
   raise exception 'Solid wood offcut value mismatch';end if;
  if jsonb_array_length(s->'batches')<>1 or
   (s->'batches'->0->>'productionCompleted')<>'true' then
