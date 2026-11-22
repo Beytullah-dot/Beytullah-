@@ -501,6 +501,166 @@
    partArea:bins.reduce((sum,b)=>sum+
     b.placed.reduce((s,p)=>s+p.w*p.h,0),0)}
  }
+
+ // Quantity-aware, stock-sized bottom-up pattern repair. Search runs over
+ // SHAPES (not planted piece IDs), then instantiates each leaf from live demand.
+ // This shares repeated shapes across boards without an N-based user limit.
+ // Local pattern depth/state/time caps imply UNKNOWN, never infeasibility.
+ function stockShapeCover(items,stocks,cfg,deadline,binCost,auditCutPlan,compare,baseline){
+  if(Date.now()>=deadline||!items.length)return null;
+  const classes=[],lookup=new Map(),byId=new Map();
+  const classKey=p=>JSON.stringify([p.l,p.w,p.t,p.material,p.grain||'',
+   !!p.rotate,p.category||'']);
+  for(const p of items){
+   const key=classKey(p);
+   let c=lookup.get(key);
+   if(!c){c={index:classes.length,pieces:[],sample:p};lookup.set(key,c);classes.push(c)}
+   c.pieces.push(p);
+  }
+  const key=v=>Math.round(v*1e5);
+  const patterns=[];
+  let checks=0;
+  for(const stock of stocks){
+   if(Date.now()>=deadline)break;
+   if(!Number.isSafeInteger(stock.qty)||stock.qty<=0)continue;
+   const W=stock.l-2*cfg.trim,H=stock.w-2*cfg.trim;
+   if(!(W>0&&H>0))continue;
+   const levels=[[]],leafs=[];
+   for(const c of classes){
+    const p=c.sample;
+    if(p.material!==stock.material||
+       p.t!==null&&(stock.t===null||Math.abs(stock.t-p.t)>EPS))continue;
+    for(const rotated of p.rotate?[false,true]:[false]){
+     if(rotated&&eq(p.l,p.w))continue;
+     if(root.BeythausMaterialPolicy&&
+        !root.BeythausMaterialPolicy.grainAllows(p,stock,rotated))continue;
+     const w=rotated?p.w:p.l,h=rotated?p.l:p.w;
+     if(w>W+EPS||h>H+EPS)continue;
+     leafs.push({leaf:true,piece:p,shape:c.index,rotated,w,h,
+      slots:[c.index],count:1,firstOrder:p.order||0})
+    }
+   }
+   if(!leafs.length)continue;
+   levels[1]=leafs;
+   const found=[];
+   const remember=node=>{
+    const dw=W-node.w,dh=H-node.h,k=cfg.kerf;
+    if(dw< -EPS||dh< -EPS||
+       dw>Math.max(24,W*.025)||dh>Math.max(24,H*.025)||
+       dw>EPS&&dw<k-EPS||dh>EPS&&dh<k-EPS)return;
+    found.push({node,stock,slots:node.slots,count:node.count,
+     exact:dw<=EPS&&dh<=EPS,
+     occupancy:node.slots.reduce((s,i)=>s+
+      classes[i].sample.l*classes[i].sample.w,0)/(W*H)})
+   };
+   for(const node of leafs)remember(node);
+   const minArea=Math.min(...leafs.map(l=>l.w*l.h));
+   const maxDepth=Math.min(8,Math.floor(W*H/minArea));
+   let stopped=false;
+   for(let n=2;n<=maxDepth&&!stopped&&Date.now()<deadline;n++){
+    const next=[],seen=new Set(),cap=9000;
+    for(let leftCount=1;leftCount<=Math.floor(n/2)&&!stopped;leftCount++){
+     const A=levels[leftCount]||[],B=levels[n-leftCount]||[];
+     if(!A.length||!B.length)continue;
+     // Index equal cross-spans; only complementary full-edge joins matter.
+     for(const axis of ['x','y']){
+      const buckets=new Map(),dimension=axis==='x'?'h':'w';
+      for(const b of B){
+       const k=key(b[dimension]),list=buckets.get(k)||[];
+       list.push(b);buckets.set(k,list)
+      }
+      for(const a of A){
+       const list=buckets.get(key(a[dimension]))||[];
+       for(const b of list){
+        if(++checks%512===0&&Date.now()>=deadline){stopped=true;break}
+        if(checks>180000||next.length>=cap){stopped=true;break}
+        if(!eq(a[dimension],b[dimension]))continue;
+        const w=axis==='x'?a.w+b.w+cfg.kerf:a.w;
+        const h=axis==='y'?a.h+b.h+cfg.kerf:a.h;
+        if(w>W+EPS||h>H+EPS)continue;
+        const slots=a.slots.concat(b.slots).sort((i,j)=>i-j);
+        let valid=true,run=0,prev=-1;
+        for(const i of slots){
+         run=i===prev?run+1:1;prev=i;
+         if(run>classes[i].pieces.length){valid=false;break}
+        }
+        if(!valid)continue;
+        const signature=slots.join(',')+'|'+key(w)+'|'+key(h);
+        if(seen.has(signature))continue;
+        seen.add(signature);
+        const node={leaf:false,axis,a,b,w,h,slots,
+         count:n,firstOrder:Math.min(a.firstOrder,b.firstOrder)};
+        next.push(node);remember(node);
+       }
+       if(stopped)break
+      }
+      if(stopped)break
+     }
+    }
+    levels[n]=next;
+    if(!next.length)break;
+    // A complete full-stock pattern need not be expanded to larger local
+    // subsets. Other stock types still receive independent pattern search.
+    if(found.some(p=>p.exact&&p.count===n))break;
+   }
+   patterns.push(...found);
+  }
+  if(!patterns.length)return null;
+  // Only a complete disjoint multiset of input pieces may displace baseline.
+  // Try several deterministic policies for ties between stock dimensions.
+  const priorities=[0,1,2];
+  for(const variant of priorities){
+   if(Date.now()>=deadline)break;
+   const available=classes.map(c=>c.pieces.slice().reverse());
+   const usage=new Map(),bins=[];
+   let remaining=items.length;
+   while(remaining&&Date.now()<deadline){
+    let best=null,score=-Infinity;
+    for(const p of patterns){
+     if((usage.get(p.stock.id)||0)>=p.stock.qty)continue;
+     const counts=new Map();
+     for(const i of p.slots)counts.set(i,(counts.get(i)||0)+1);
+     if([...counts].some(([i,n])=>n>available[i].length))continue;
+     const unit=binCost(p.stock,cfg);
+     const scarcity=[...counts].reduce((s,[i,n])=>
+      s+n/Math.max(1,available[i].length),0);
+     const bonus=variant===0?p.count*.002:variant===1?
+      scarcity*.001:-p.stock.order*.00001;
+     const rank=p.occupancy+(p.exact?.1:0)+bonus-
+      (cfg.objective==='economic'&&unit!==null?unit*1e-11:0);
+     if(rank>score+EPS){best=p;score=rank}
+    }
+    if(!best)break;
+    const instantiated=node=>{
+     if(node.leaf){
+      const piece=available[node.shape].pop();
+      return {...node,piece}
+     }
+     return {...node,a:instantiated(node.a),b:instantiated(node.b)}
+    };
+    const rootNode=instantiated(best.node);
+    const bin=makeRootBlock(best.stock,rootNode,cfg);
+    if(!bin)break;
+    bins.push(bin);
+    usage.set(best.stock.id,(usage.get(best.stock.id)||0)+1);
+    remaining-=best.count
+   }
+   if(remaining)continue;
+   const candidate=expand({bins,unplaced:[]},items,cfg);
+   candidate.stockArea=candidate.bins.reduce((s,b)=>s+b.stock.l*b.stock.w,0);
+   candidate.unknownCostBins=candidate.bins.filter(b=>
+    binCost(b.stock,cfg)===null).length;
+   candidate.cost=candidate.unknownCostBins?null:
+    candidate.bins.reduce((s,b)=>s+binCost(b.stock,cfg),0);
+   if(candidate.placedCount!==items.length||
+      compare(candidate,baseline,cfg.objective)>=0)continue;
+   const audited=auditCutPlan(candidate,{
+    parts:items,stocks,kerf:cfg.kerf,trim:cfg.trim});
+   if(audited.ok)return candidate
+  }
+  return null
+ }
+
  function createRepair({packAttempt,auditCutPlan,compare,binCost}={}){
   if(typeof packAttempt!=='function'||typeof auditCutPlan!=='function'||
     typeof compare!=='function'||typeof binCost!=='function')
@@ -531,7 +691,15 @@
     info.elapsedMs=Date.now()-started;
     return {solution:best,info}
    }
-   const patternDeadline=Math.min(deadline,started+Math.round(timeBudgetMs*.75));
+   if(Date.now()<deadline){
+    const shaped=stockShapeCover(items,stocks,cfg,
+     Math.min(deadline,started+Math.round(timeBudgetMs*.65)),
+     binCost,auditCutPlan,compare,best);
+    if(shaped){best=shaped;info.status='improved';info.rescued=baseline.unplaced.length;
+     info.shapePatternCover=true;info.elapsedMs=Date.now()-started;
+     return {solution:best,info}}
+   }
+   const patternDeadline=Math.min(deadline,started+Math.round(timeBudgetMs*.85));
    const reconstructed=tryWholePatterns(items,stocks,cfg,0,patternDeadline,
     packAttempt,binCost,auditCutPlan,best,compare);
    info.patternCandidates=reconstructed.patterns;
