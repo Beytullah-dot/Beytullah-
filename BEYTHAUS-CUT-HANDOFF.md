@@ -2538,3 +2538,56 @@ bilinmeyen sonuç optimum veya imkânsız diye gösterilmez.
 Sonra mobil ilk \`optimize\` Worker'a taşıma ve
 Supabase izole server guard/atomik stok doğrulaması;
 gerçek iPhone ve 2 kullanıcı UAT hâlâ açık.
+
+## AF. 22 Kasım 2026 — Kıt stok kurtarma, genel blok şekil araması
+
+**PR #58** https://github.com/Beytullah-dot/Beytullah-/pull/58;
+test edilmiş kod HEAD `ee736f7076a115fe45a108a7f999bf43a09d8d02`. Ayrıntı:
+`MOTOR-TIGHT-STOCK-SHAPE-REPAIR-RESULTS.md`.
+Optimizer #45046398189, Geometry #45046398195, Uncapped Scale
+#45046398194, otomatik WebKit #45046398308: **PR HEAD 4/4 SUCCESS**.
+Birleştirme sonrasında master SHA ve master CI/Pages ayrıca doğrulanmalı.
+
+**Algoritma:** `docs/engine/guillotine-block-repair.js` stok
+ölçüsüne/miktarına göre parça *şekillerinden* tam kenarlı giyotin
+blokları kuruyor; aynı şeklin farklı parça kimliklerini yalnız
+deseni bulduktan sonra eşliyor. Stok sayısı, farklı stok ölçüleri,
+malzeme/kalınlık, damar/rotasyon, kerf/trim, maliyet ve üç ayrı
+hedef korunuyor. Sadece tüm parçalar yerleşince ve fiziksel
+production audit olumluysa benimseniyor. Hazır witness veya
+testteki parça kimlikleri üretim motoruna taşınmadı.
+
+Farklı holdout'ta dörtlü ara blok bulunmayınca aramanın durması
+**genel algoritmik hata** olarak tespit edildi: iki üçlü blok
+geçerli altılı blok oluşturabilir. Bu erken durdurma kaldırıldı.
+Sekiz parçalık yerel pattern derinliği ve süre/durum bütçesi
+kullanıcı girdi N tavanı değildir; başarısız arama UNKNOWN
+olarak kalır, matematiksel imkânsızlık iddiası yok.
+
+**Aynı PR #57 60 sentetik hedef-senaryosu:** 30 fiziksel mümkün
+içinde ana UI enhanced **15/30 → 30/30** tam, **30/30 bağımsız
+kesim ağacı + production audit** olumlu; 30/30 seçilen hedef için
+küresel **LB=UB sertifikası** (10 levha, 10 brüt alan, 10 maliyet).
+N=10/25/50/100/200: artık her biri 6/6 tam. Panel tight
+6/15→15/15, mixed grain tight 9/15→15/15. Alanı bağımsız
+yetersiz 30 negatifte yanlış tam **0**. Unenhanced 7/30 ve
+ayrı yapıcı Worker 3/30 değişmedi. Certifier ispatı seçili
+amaç ve sabit malzeme ataması içindir; bağımsız oracle fiziksel
+kesimleri denetler, global optimuma ikinci bağımsız ispat değildir.
+
+**Ayrı altı yapraklı holdout:** N=12/24/48/96 üçer hedef,
+baseline 3/12, yeni enhanced **12/12** tam ve iki denetimli,
+12 negatifte yanlış tam **0**. Holdout'ta global optimumluk
+kanıtı ayrıca yapılmadı. Bu seçilmiş testler genel ticari
+başarı yüzdesi değildir.
+
+**Motor %100 kabul DEĞİL; v1 yaklaşık %70 (+0 puan).**
+İlk senkron UI thread, gerçek iPhone Safari, iki kullanıcı
+bulut saha kabulü, PDF/fire/kesim sırası/maliyet/stok E2E
+ve canlı migration güvenliği açık. Canlı Supabase salt-okunur
+kontrol edildi, `20261122_000003_server_physical_cut_guard.sql`
+canlı migrasyonlarda YOK; kullanıcı stok/Auth/finans/üretim
+verilerine yazılmadı. Sıradaki güvenli adım PR #58 merge,
+master CI/Pages doğrulama, ana optimize Worker geçişi ve
+temsilî ticari iş yükü deneyleri; ardından izole server audit
+ve atomik stok yarışı testleri.
