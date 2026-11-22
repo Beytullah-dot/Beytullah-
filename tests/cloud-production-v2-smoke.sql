@@ -108,7 +108,7 @@ select public.beythaus_cloud_save_full_stock(current_setting('test.ws2')::uuid,
  'bbbbbbbb-0000-4000-8000-000000000006'::uuid,
  '{"id":"F-X","l":100,"w":100,"t":18,"qty":1,"category":"panel",
    "material":"Fizik Test","grain":"","price":100,"priceUnit":"panel"}'::jsonb);
-do $declare rejected boolean:=false;
+do $$declare rejected boolean:=false;
 begin
  begin
  perform public.beythaus_cloud_production_v2(current_setting('test.ws2')::uuid,
@@ -132,11 +132,11 @@ begin
  if exists(select 1 from public.beythaus_production_records
    where workspace_id=current_setting('test.ws2')::uuid and id='B-forged-offcut') then
   raise exception 'Rejected plan produced a durable batch';end if;
-end$;
+end$$;
 -- The original RPC stock-and-area checks would accept this attack:
 -- two 49x100 offcuts total 9800 <=10000. Physical leaves permit only ONE
 -- unused 49x100 leaf once the piece has been cut.
-do $declare rejected boolean:=false;
+do $$declare rejected boolean:=false;
 begin
  begin
  perform public.beythaus_cloud_production_v2(current_setting('test.ws2')::uuid,
@@ -155,9 +155,9 @@ begin
  if (select qty from public.beythaus_full_stocks
    where workspace_id=current_setting('test.ws2')::uuid and id='F-X')<>1 then
   raise exception 'Duplicate remnant attack consumed stock';end if;
-end$;
+end$$;
 -- Forging a part rectangle not generated as an exact guillotine leaf.
-do $declare rejected boolean:=false;
+do $$declare rejected boolean:=false;
 begin
  begin
  perform public.beythaus_cloud_production_v2(current_setting('test.ws2')::uuid,
@@ -172,7 +172,7 @@ begin
     }]}}'::jsonb);
  exception when sqlstate '22023' then rejected:=true;end;
  if not rejected then raise exception 'Phantom whole-board part accepted';end if;
-end$;
+end$$;
 select 'Physical tree guard: forged and duplicate offcuts / phantom cut pieces rejected, rollback PASS' as security_success;
 
 -- Only valid workspace members may read the new inventory or write its ledger.
