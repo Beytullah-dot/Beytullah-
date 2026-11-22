@@ -30,7 +30,7 @@ kademesi uygulanabilir.
 | [#50](https://github.com/Beytullah-dot/Beytullah-/pull/50) | `865ec2665ec7d0e99d3e95ba61dd3a521f1f3a10` | Master Optimizer #44968917352, Geometry #44968917408, WebKit emülasyonu #44968917346, Pages #44968916832: **4/4 SUCCESS** |
 | [#51](https://github.com/Beytullah-dot/Beytullah-/pull/51) | `3c6b3833d879b29a941258d9e9312f651622cf4a` | Master Optimizer #44969169379, Geometry #44969169362, Pages #44969169246: **3/3 SUCCESS** |
 | [#52](https://github.com/Beytullah-dot/Beytullah-/pull/52) | `931c500aa47a88710f728bfba728a02b49718677` | Master Optimizer #44969634416, Geometry/izole Postgres #44969634439, Pages #44969633957: **3/3 SUCCESS** |
-| [#53](https://github.com/Beytullah-dot/Beytullah-/pull/53) | `603c99d13793775ea846dd3e985d44f06a08c1a9` | PR Optimizer #44969856406 ve Geometry/izole Postgres #44969856403 **2/2 SUCCESS**. Master Optimizer #44969954330, Geometry #44969954352, Pages #44969953561 ayrıca kontrol edilmelidir; bu dosyanın ilk yazıldığı anda **henüz doğrulanmış değildi**. |
+| [#53](https://github.com/Beytullah-dot/Beytullah-/pull/53) | `603c99d13793775ea846dd3e985d44f06a08c1a9` | PR Optimizer #44969856406 ve Geometry/izole Postgres #44969856403 **2/2 SUCCESS**. Master Optimizer [#44969954330](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44969954330), Geometry [#44969954352](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44969954352), Pages [#44969953561](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44969953561): **3/3 SUCCESS** (ayrıca gerçek GitHub'da doğrulandı). |
 
 İlk PR49 testinin Worker VM ortamı yanlışlığı, PR51'in ölçüm
 scripti değişken hatası, PR52'nin SQL test blok ve yetki hataları,
