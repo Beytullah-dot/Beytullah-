@@ -46,7 +46,7 @@ function fixture(family,N){
     Math.floor(boardCount/4)+(i<boardCount%4?1:0),price,attrs));
  }else if(family==='unique'){
   const attrs=common('panel|capacity-unique');
-  for(let i=0;i<N;i++)add('p'+i,7+(i%20),10+(Math.floor(i/20)%20)+i/10000,attrs);
+  for(let i=0;i<N;i++)add('p'+i,7+(i%20),(100000+10000*(Math.floor(i/20)%20)+i)/10000,attrs);
   sheet('short',100,100,Math.ceil(N/3),180,attrs);
   sheet('long',110,102,Math.ceil(N/3),214,attrs);
  }else if(family==='multimaterial-rotation'){
@@ -75,8 +75,10 @@ function runChild(){
  const window={};
  for(const filename of [
   'engine/material-policy.js','engine/fullspan-strip-exact.js',
-  'engine/three-stage-nested-exact.js','engine/optimality-certificate.js',
-  'engine/production-audit.js','engine/cutting-engine.js']){
+  'engine/two-stage-strip-exact.js','engine/three-stage-nested-exact.js',
+  'engine/optimality-certificate.js','engine/production-audit.js',
+  'engine/mixed-strip-patterns.js','engine/guillotine-block-repair.js',
+  'engine/cutting-engine.js']){
   vm.runInNewContext(source(filename),{window},{filename});
  }
  const engine=window.BeythausCutEngine.createEngine({
@@ -144,7 +146,14 @@ function runChild(){
  let exactAudited=false;
  if(classOptimal)exactAudited=verify(exact.plan);
  else assert.equal(exact.plan,null,'Unproven exact search leaked plan');
- const candidate=workerAudited?w.plan:exactAudited?exact.plan:null;
+ const twoStage=(family==='nested8'||family==='strip4')?
+  window.BeythausTwoStageStripExact.solve(data.parts,data.stocks,{
+   objective,trim:data.trim,kerf:data.kerf,m3:data.m3,priceMode:'panel',
+   maxMs:350,maxNodes:40000,maxPatterns:6000,maxStates:6000}):null;
+ const twoStageClassOptimal=twoStage?.status==='optimal-two-stage-class';
+ const twoStageAudited=twoStageClassOptimal?verify(twoStage.plan):false;
+ const candidate=workerAudited?w.plan:exactAudited?exact.plan:
+  twoStageAudited?twoStage.plan:null;
  let globalProof=null,proofMs=null;
  if(candidate){
   const proofStart=performance.now();
@@ -182,9 +191,11 @@ function runChild(){
   exactStatus:exact.status,classScope,classOptimal,exactAudited,exactMs,
   exactNodes:exact.nodes??null,exactPatterns:exact.patternsCreated??null,
   exactStates:exact.states??null,exactPeakMemo:exact.peakMemo??null,
+  twoStageStatus:twoStage?.status??'not-applicable',
+  twoStageClassOptimal,twoStageAudited,
   completePhysicalPlan:!!candidate,
   planOrigin:workerAudited?'deployed-constructive-worker':
-   exactAudited?'research-exact-only':null,
+   exactAudited?'research-exact-only':twoStageAudited?'research-two-stage':null,
   usedStockCount:candidate?.bins.length??null,
   objectiveValue:globalProof?.incumbent??null,
   globalStatus:globalProof?.status??'no-complete-plan',
@@ -199,6 +210,56 @@ function runChild(){
  };
  console.log(JSON.stringify(row));
 }
+/* Separate watchdog process for the synchronous, shipped MAIN-THREAD
+ * optimizer. Timeouts are UNKNOWN, not infeasible; malformed physical
+ * trees FAIL CI.
+ */
+function baselineChild(){
+ const family=process.argv[3],N=Number(process.argv[4]),objective=process.argv[5];
+ assert(families.includes(family)&&sizes.includes(N)&&objectives.includes(objective));
+ const data=fixture(family,N),window={};
+ for(const filename of [
+  'engine/material-policy.js','engine/fullspan-strip-exact.js',
+  'engine/optimality-certificate.js','engine/production-audit.js',
+  'engine/mixed-strip-patterns.js','engine/guillotine-block-repair.js',
+  'engine/cutting-engine.js'])
+  vm.runInNewContext(source(filename),{window},{filename});
+ const engine=window.BeythausCutEngine.createEngine({
+  getState:()=>({mode:'guillotine',priceMode:'panel'}),
+  val:Number,mkey:x=>String(x||'').toLowerCase(),fmt:Number
+ });
+ const started=performance.now();
+ const plan=engine.optimize(data,false,false,
+  objective==='area'?'area':objective==='count'?'minimum':'economic');
+ const baselineMs=performance.now()-started;
+ const complete=!!plan&&plan.placedCount===N&&
+  Array.isArray(plan.unplaced)&&plan.unplaced.length===0;
+ let baselineGlobalProven=false,baselineGlobalStatus='no-complete-plan';
+ let baselineGapPercent=null,baselineLowerBound=null,baselineUsedStockCount=null;
+ if(complete){
+  assert.equal(engine.auditCutPlan(plan,data).ok,true,
+   'Baseline main engine failed production physical audit');
+  const independent=require('./optimization-oracle.cjs').audit(data,plan,'guillotine');
+  assert.equal(independent.ok,true,'Baseline main engine failed independent oracle');
+  const p=window.BeythausOptimalityCertificate.certify(plan,data,{
+   objective,auditOK:true,maxMs:900,maxStates:30000,
+   priceMode:'panel',m3:data.m3,allowMaterialAssignment:false});
+  baselineGlobalProven=p.proven===true;
+  baselineGlobalStatus=p.status;
+  baselineGapPercent=p.gapPercent;
+  baselineLowerBound=p.lowerBound;
+  baselineUsedStockCount=plan.bins.length;
+ }
+ console.log(JSON.stringify({
+  baselineStatus:complete?'complete-audited':'partial-unknown',
+  baselineComplete:complete,baselineGlobalProven,baselineGlobalStatus,
+  baselineGapPercent,baselineLowerBound,baselineUsedStockCount,
+  baselineMs,
+  baselineMaxRSSKiB:process.platform==='linux'?
+   process.resourceUsage().maxRSS:null
+ }));
+}
+
 function percentile(a,p){
  if(!a.length)return null;
  const s=[...a].sort((x,y)=>x-y);
@@ -218,6 +279,21 @@ function main(){
      'Benchmark child failed '+family+'/'+N+'/'+objective+'\n'+
      (child.stderr||'')+'\n'+(child.stdout||''));
     const row=JSON.parse(child.stdout.trim().split('\n').at(-1));
+    const baseline=spawnSync(process.execPath,
+     [__filename,'--baseline',family,String(N),objective],
+     {encoding:'utf8',timeout:4000,maxBuffer:3*1024*1024});
+    if(baseline.error?.code==='ETIMEDOUT'){
+     Object.assign(row,{baselineStatus:'unknown-watchdog',baselineComplete:false,
+      baselineGlobalProven:false,baselineGlobalStatus:'unknown-watchdog',
+      baselineMs:null,baselineMaxRSSKiB:null});
+    }else{
+     assert.equal(baseline.error,undefined,'Baseline process launch error: '+baseline.error);
+     assert.equal(baseline.status,0,'Synchronous baseline process failed '+family+'/'+N+'/'+objective+
+      '\n'+(baseline.stderr||'')+'\n'+(baseline.stdout||''));
+     Object.assign(row,JSON.parse(baseline.stdout.trim().split('\n').at(-1)));
+    }
+    row.anyCompletePhysical=row.completePhysicalPlan||row.baselineComplete;
+    row.anyGlobalProven=row.globalProven||row.baselineGlobalProven;
     rows.push(row);
     console.log('CAPACITY-ROW '+JSON.stringify(row));
    }
@@ -227,6 +303,10 @@ function main(){
   const sample=rows.filter(x=>x.family===family);
   return {family,rows:sample.length,
    completePhysical:sample.filter(x=>x.completePhysicalPlan).length,
+   baselineComplete:sample.filter(x=>x.baselineComplete).length,
+   combinedComplete:sample.filter(x=>x.anyCompletePhysical).length,
+   combinedGlobalProven:sample.filter(x=>x.anyGlobalProven).length,
+   baselineTimeout:sample.filter(x=>x.baselineStatus==='unknown-watchdog').length,
    deployedWorkerComplete:sample.filter(x=>x.workerAudited).length,
    globalProven:sample.filter(x=>x.globalProven).length,
    classOptimal:sample.filter(x=>x.classOptimal).length,
@@ -243,9 +323,16 @@ function main(){
    arch:process.arch,observedRunWallMs:performance.now()-started},
   fixedBudgets:{worker:'deployed code 1300ms/120000 nodes',
    exact:{maxMs:850,maxNodes:80000,maxPatterns:12000,maxStates:12000},
-   proof:{maxMs:900,maxStates:30000},childWatchdogMs:17000},
+   proof:{maxMs:900,maxStates:30000},childWatchdogMs:17000,
+   baselineWatchdogMs:4000},
   sample:{Ns:sizes,families,objectives,rows:rows.length},
   result:{completePhysical:rows.filter(x=>x.completePhysicalPlan).length,
+   baselineComplete:rows.filter(x=>x.baselineComplete).length,
+   combinedComplete:rows.filter(x=>x.anyCompletePhysical).length,
+   combinedGlobalProven:rows.filter(x=>x.anyGlobalProven).length,
+   baselineTimeout:rows.filter(x=>x.baselineStatus==='unknown-watchdog').length,
+   baselineP50Ms:percentile(rows.filter(x=>x.baselineMs!==null).map(x=>x.baselineMs),.50),
+   baselineP95Ms:percentile(rows.filter(x=>x.baselineMs!==null).map(x=>x.baselineMs),.95),
    deployedWorkerComplete:rows.filter(x=>x.workerAudited).length,
    classOptimal:rows.filter(x=>x.classOptimal).length,
    globalProven:rows.filter(x=>x.globalProven).length,
@@ -263,4 +350,5 @@ function main(){
  console.log('CAPACITY-SUMMARY '+JSON.stringify(report.result));
  console.log('CAPACITY-BY-CLASS '+JSON.stringify(grouped));
 }
-if(process.argv[2]==='--case')runChild();else main();
+if(process.argv[2]==='--case')runChild();
+else if(process.argv[2]==='--baseline')baselineChild();else main();
