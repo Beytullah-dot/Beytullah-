@@ -9,7 +9,8 @@ assert.match(html,/startConstructiveWorker\(data,sol\)/);
 assert.match(html,/function changed\(\)\{cancelConstructiveSearch\(true\)/);
 assert.match(html,/function showEmpty\(\)\{cancelConstructiveSearch\(true\)/);
 assert.match(html,/pagehide.*cancelConstructiveSearch/);
-assert.match(html,/state\.materialMode==='auto'\)return;/);
+assert.match(html,/startConstructiveWorker\(item.data,item.plan\)/);
+assert.match(html,/autoPlanCache\[chosen\]=\{data,plan\}/);
 const scope={last:null,postMessage(message){this.last=message}};
 let sandbox;
 sandbox=vm.createContext({self:scope,window:scope,console,
@@ -41,13 +42,14 @@ function send(id,data,objective='cost',mode='guillotine'){
  assert.equal(scope.last.researchOnly,true);
  return scope.last
 }
-const state={mode:'guillotine',materialMode:'single',priceMode:'panel'};
+const state={mode:'guillotine',materialMode:'single',priceMode:'panel',objective:'cost'};
+const autoPlanCache={selected:'economic',economic:null,area:null,minimum:null};
 const a=html.indexOf('function acceptConstructiveWorkerResult('),
  b=html.indexOf('function startConstructiveWorker(',a);
 assert(a>0&&b>a,'real production candidate acceptance extracted');
-const accept=new Function('state','auditCutPlan','binCost',
+const accept=new Function('state','auditCutPlan','binCost','autoPlanCache',
  html.slice(a,b)+';return acceptConstructiveWorkerResult;')(
- state,engine.auditCutPlan,engine.binCost);
+ state,engine.auditCutPlan,engine.binCost,autoPlanCache);
 const data=job(),snapshot=JSON.stringify(data),got=send(1,data);
 assert.equal(JSON.stringify(data),snapshot,'worker must not modify user inputs');
 assert.equal(got.status,'feasible-uncertified','known physical constructive witness');
@@ -84,7 +86,21 @@ rejected(fakePrice,'cost forgery rejected');
 assert.throws(()=>accept(data,{...incomplete,unplaced:[]},got),
  'a complete baseline must not be replaced without objective comparison');
 state.materialMode='auto';
-rejected(got,'auto material assignment must not be bypassed');
+rejected(got,'auto material assignment must not be bypassed without matching selection');
+autoPlanCache.economic={data,plan:incomplete};
+assert.equal(accept(data,incomplete,got).unplaced.length,0,
+ 'selected automatic assignment can be physically rescued');
+autoPlanCache.selected='area';
+rejected(got,'switched automatic objective rejects stale candidate');
+autoPlanCache.selected='economic';
+autoPlanCache.economic={data:{...data},plan:incomplete};
+rejected(got,'new assignment data snapshot rejects stale candidate');
+autoPlanCache.economic={data,plan:{...incomplete}};
+rejected(got,'new assignment plan snapshot rejects stale candidate');
+autoPlanCache.economic={data,plan:incomplete};
+state.objective='area';
+rejected(got,'changed objective rejects stale candidate');
+state.objective='cost';
 state.materialMode='single';
 assert.equal(send(2,data,'cost','nest').status,'unknown-class');
 const forbidden=job();forbidden.parts[0].grain='width';

@@ -1725,8 +1725,16 @@ function acceptConstructiveWorkerResult(data,initial,response){
  if(response?.type!=='construct-finished'||response.status!=='feasible-uncertified'||
    response.proof!=='none'||response.researchOnly!==true)
   throw Error('Yapıcı adayın kanıtsız durum sözleşmesi geçersiz.');
- if(state.mode!=='guillotine'||state.materialMode==='auto'||!initial.unplaced.length)
+ if(state.mode!=='guillotine'||!initial.unplaced.length)
   throw Error('Yapıcı aday mevcut çözümün kapsamında değil.');
+ // Automatic material assignments are distinct: never silently switch the
+ // selected assignment or let a stale candidate override a newly selected one.
+ const choice=state.objective==='area'?'area':'economic';
+ if(state.materialMode==='auto'&&
+   (autoPlanCache?.selected!==choice||
+    autoPlanCache?.[choice]?.data!==data||
+    autoPlanCache?.[choice]?.plan!==initial))
+  throw Error('Karma otomatik adayın malzeme ataması artık seçili değil.');
  const p=response.plan;
  if(!p||!Array.isArray(p.bins)||!p.bins.length||!Array.isArray(p.unplaced)||
    p.unplaced.length||p.placedCount!==data.parts.length)
@@ -1749,8 +1757,13 @@ function acceptConstructiveWorkerResult(data,initial,response){
 function startConstructiveWorker(data,initial){
  cancelConstructiveSearch(true);
  // Initial partial solution is safe to display, but not a production plan.
- // Auto assignment has its own proof/stock-selection contract: do not bypass it.
- if(!initial.unplaced.length||state.mode!=='guillotine'||state.materialMode==='auto')return;
+ // Automatic assignment is allowed only for its currently selected snapshot.
+ if(!initial.unplaced.length||state.mode!=='guillotine')return;
+ const chosen=state.objective==='area'?'area':'economic';
+ if(state.materialMode==='auto'&&
+   (autoPlanCache?.selected!==chosen||
+    autoPlanCache?.[chosen]?.data!==data||
+    autoPlanCache?.[chosen]?.plan!==initial))return;
  if(typeof Worker==='undefined'){
   exactSearchStatus('Eksik plan için yapıcı Worker desteklenmiyor; sonuç değişmedi.','warning');return
  }
@@ -1788,6 +1801,11 @@ function startConstructiveWorker(data,initial){
    const plan=acceptConstructiveWorkerResult(data,initial,response);
    // showResult re-audits and computes only genuinely justified bounds.
    showResult(data,plan);
+   if(state.materialMode==='auto'){
+    // Preserve user-selected material assignment and existing other choices.
+    // An unproven constructive plan never proves global auto optimality.
+    autoPlanCache[chosen]={data,plan};
+   }
    toast('Yapıcı arama tüm parçalar için fiziksel giyotin planı buldu; optimumluk kanıtlanmadı.');
    startExactWorker(data,plan)
   }catch(error){
@@ -2232,7 +2250,8 @@ function showAutoPlan(choice){
   '. Taslaklar bağımsız giyotin denetiminden geçti; tüm malzeme atamaları için küresel optimumluk iddia edilmez.';
  byId('optimalityRow').textContent='Karma otomatik: tüm malzeme dağılımlarında minimum stok henüz kanıtlanmadı.';
  byId('optimalityRow').classList.remove('is-proven');
- startExactWorker(item.data,item.plan)
+ startExactWorker(item.data,item.plan);
+ startConstructiveWorker(item.data,item.plan)
 }
 byId('autoPlanChoice').onclick=e=>{
  const b=e.target.closest('button[data-choice]');

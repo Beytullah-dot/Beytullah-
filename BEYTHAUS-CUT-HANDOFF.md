@@ -2058,3 +2058,51 @@ arttırılmadı. Sırada PR CI ile olası düzeltmeler; ardından
 karma otomatik ve tam fakat maliyet/alan açısından yetersiz
 planlar için güvenli adaylaştırma; bağımsız mobil ölçüm,
 bulut audit/RLS ve UAT iş paketleri var.
+
+
+## X. 22 Kasım 2026 — PR #49 master doğrulaması ve A/otomatik atama emniyet sınırı
+
+**PR #49 birleştirildi:** https://github.com/Beytullah-dot/Beytullah-/pull/49
+Master merge: `18dd49227fd7180eb0e7df316160260154cc782a`.
+PR'ın ilk araştırma-test CI'si VM'de Worker `self/window`
+ayrımı nedeniyle FAIL oldu; test ortamı gerçek Worker köküne
+eşitlendi ve güncel PR SHA `acfa6028bcb1495ffd18556e58191db4565a3815`
+için Optimizer #44968512945, Geometry #44968512927 ve
+iPhone WebKit **emülasyonu** #44968512944 SUCCESS oldu.
+PR #49 merge sonrasında gerçek master Optimizer
+#44968615190, Geometry #44968615174, iPhone WebKit
+**emülasyonu** #44968615210 ve GitHub Pages #44968615106
+**4/4 SUCCESS**. İlk başarısız koşu başarılı olarak
+sunulmadı.
+
+**A'nın ikinci dilimi (bu bölüm kaydedilirken ayrı PR/CI henüz
+tamamlanmadı):** `feat/v1-a-auto-constructive-fallback`.
+Karma otomatik materyal ataması için sadece kullanıcı tarafından
+o anda seçili `economic` veya `area` alternatifindeki eksik
+planı yapıcı Worker'a aç. Yalnız aynı `data/plan` nesne kimliği,
+aynı seçili hedef ve aynı cache anahtarı hâlen geçerliyse aday
+kabul edilebilir; hedef/atanan malzeme/proje değişince eski Worker
+iptal edilir. Sadece bağımsız tam kenar denetimli
+`feasible-uncertified` plan kullanıcıya gösterilir; cache'in
+diğer hedefleri korunur; karma atama optimumluğu KANITLANMAZ.
+Gerçek WebKit içinde ayrı Worker çalıştırılması ve tekrar fiziksel
+audit, bu dalın kabul regresyonuna eklendi.
+
+**Hazır oluş hâlâ tahmini %70 (+0 puan).** A paketi, tam fakat
+iyileştirilebilir başlangıç planları, mobil kaynak profili,
+gerçek tarayıcı/çok kullanıcılı kabul ve kanıt kapsamı açısından
+tamamlanmadı. Gerçek iPhone Safari testi ve iki gerçek kullanıcı
+Supabase UAT **AÇIK**. Supabase proje salt-okunur
+`ACTIVE_HEALTHY`; migrationlar `20261118212836`,
+`20261119202121`. Güvenlik advisor sonuçlarında RLS
+politikasız (RPC-only olabilecek) 10 tablo, 9 adet authenticated
+`SECURITY DEFINER` RPC ve leaked-password-protection uyarısı
+bulundu; bu, doğrulama olmadan istismar kanıtı sayılamaz.
+Gerçek kullanıcı tablosu, Auth, stok, SQL migration, üretim
+ve kayıtlar değiştirilmedi. C paketinde ayrı salt-okunur
+yetki fonksiyon incelemesi zorunlu.
+
+**Sıradaki adım:** A/otomatik atama dalını gerçek CI ile
+doğrula; güvenli birleştir ve master/Pages'i yeniden doğrula.
+Ardından B ölçek/mobil performans testleri, C bulut
+sunucu-fiziksel-audit tehdidi ve D/E UAT kabul listesine geç.
