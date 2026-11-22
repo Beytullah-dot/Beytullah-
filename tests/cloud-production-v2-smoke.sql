@@ -102,6 +102,79 @@ begin
  exception when sqlstate '22023' then rejected:=true;end;
  if not rejected then raise exception 'Phantom full stock source accepted';end if;
 end$$;
+-- A forged remnant smaller than a stock but NOT equal to any real residual
+-- cut-tree leaf must roll back ALL production and stock mutations.
+select public.beythaus_cloud_save_full_stock(current_setting('test.ws2')::uuid,
+ 'bbbbbbbb-0000-4000-8000-000000000006'::uuid,
+ '{"id":"F-X","l":100,"w":100,"t":18,"qty":1,"category":"panel",
+   "material":"Fizik Test","grain":"","price":100,"priceUnit":"panel"}'::jsonb);
+do $declare rejected boolean:=false;
+begin
+ begin
+ perform public.beythaus_cloud_production_v2(current_setting('test.ws2')::uuid,
+  'bbbbbbbb-0000-4000-8000-000000000007'::uuid,
+  '{"batchId":"B-forged-offcut","usedFull":[{"id":"F-X","qty":1,"expectedVersion":1}],
+    "consumed":[],"created":[{"id":"R-FORGED","binIndex":0,"l":48,"w":100}],
+    "planSnapshot":{"kerf":2,"trim":0,"bins":[{
+      "sourceType":"full","sourceId":"F-X",
+      "stock":{"l":100,"w":100,"t":18,"material":"Fizik Test"},
+      "cuts":[{"axis":"vertical","source":{"x":0,"y":0,"w":100,"h":100},"at":50}],
+      "pieces":[{"id":"P-X","x":0,"y":0,"w":49,"h":100}]
+    }]}}'::jsonb);
+ exception when sqlstate '22023' then rejected:=true;end;
+ if not rejected then raise exception 'Forged 48 mm offcut was accepted';end if;
+ if exists(select 1 from public.beythaus_stock
+  where workspace_id=current_setting('test.ws2')::uuid and id='R-FORGED') then
+  raise exception 'Rejected production created an offcut';end if;
+ if (select qty from public.beythaus_full_stocks
+   where workspace_id=current_setting('test.ws2')::uuid and id='F-X')<>1 then
+  raise exception 'Rejected production still consumed full stock';end if;
+ if exists(select 1 from public.beythaus_production_records
+   where workspace_id=current_setting('test.ws2')::uuid and id='B-forged-offcut') then
+  raise exception 'Rejected plan produced a durable batch';end if;
+end$;
+-- The original RPC stock-and-area checks would accept this attack:
+-- two 49x100 offcuts total 9800 <=10000. Physical leaves permit only ONE
+-- unused 49x100 leaf once the piece has been cut.
+do $declare rejected boolean:=false;
+begin
+ begin
+ perform public.beythaus_cloud_production_v2(current_setting('test.ws2')::uuid,
+  'bbbbbbbb-0000-4000-8000-000000000008'::uuid,
+  '{"batchId":"B-duplicate-offcut","usedFull":[{"id":"F-X","qty":1,"expectedVersion":1}],
+    "consumed":[],"created":[{"id":"R-DUP-1","binIndex":0,"l":49,"w":100},
+       {"id":"R-DUP-2","binIndex":0,"l":49,"w":100}],
+    "planSnapshot":{"kerf":2,"trim":0,"bins":[{
+      "sourceType":"full","sourceId":"F-X",
+      "stock":{"l":100,"w":100,"t":18,"material":"Fizik Test"},
+      "cuts":[{"axis":"vertical","source":{"x":0,"y":0,"w":100,"h":100},"at":50}],
+      "pieces":[{"id":"P-X","x":0,"y":0,"w":49,"h":100}]
+    }]}}'::jsonb);
+ exception when sqlstate '22023' then rejected:=true;end;
+ if not rejected then raise exception 'Residual leaf double-spent';end if;
+ if (select qty from public.beythaus_full_stocks
+   where workspace_id=current_setting('test.ws2')::uuid and id='F-X')<>1 then
+  raise exception 'Duplicate remnant attack consumed stock';end if;
+end$;
+-- Forging a part rectangle not generated as an exact guillotine leaf.
+do $declare rejected boolean:=false;
+begin
+ begin
+ perform public.beythaus_cloud_production_v2(current_setting('test.ws2')::uuid,
+  'bbbbbbbb-0000-4000-8000-000000000009'::uuid,
+  '{"batchId":"B-forged-part","usedFull":[{"id":"F-X","qty":1,"expectedVersion":1}],
+    "consumed":[],"created":[],
+    "planSnapshot":{"kerf":2,"trim":0,"bins":[{
+      "sourceType":"full","sourceId":"F-X",
+      "stock":{"l":100,"w":100,"t":18,"material":"Fizik Test"},
+      "cuts":[{"axis":"vertical","source":{"x":0,"y":0,"w":100,"h":100},"at":50}],
+      "pieces":[{"id":"P-X","x":0,"y":0,"w":100,"h":100}]
+    }]}}'::jsonb);
+ exception when sqlstate '22023' then rejected:=true;end;
+ if not rejected then raise exception 'Phantom whole-board part accepted';end if;
+end$;
+select 'Physical tree guard: forged and duplicate offcuts / phantom cut pieces rejected, rollback PASS' as security_success;
+
 -- Only valid workspace members may read the new inventory or write its ledger.
 select set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',false);
 do $$declare rejected boolean:=false;
