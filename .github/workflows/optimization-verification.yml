@@ -71,6 +71,8 @@ jobs:
         run: MOTOR_CAPACITY_JSON=motor-capacity-matrix.json node tests/motor-capacity-matrix.cjs
       - name: Research commercial tight-stock witnesses, scarcity and objective contrast
         run: MOTOR_COMMERCIAL_STRESS_JSON=motor-commercial-stress.json node tests/motor-commercial-tight-stock.cjs
+      - name: Verify independent alternate-topology stock-shape holdouts
+        run: MOTOR_SHAPE_HOLDOUT_JSON=motor-shape-holdout.json node tests/motor-stock-shape-holdout.cjs
       - name: Verify new physical exact full-span bound in deployed proof worker
         run: MOTOR_FULLSPAN_CERT_JSON=fullspan-certificate-report.json node tests/motor-fullspan-certificate.cjs
       - name: Verify physical stock-geometry compatibility with independent oracle
@@ -119,4 +121,5 @@ jobs:
             live-constructive-scale-report.json
             motor-capacity-matrix.json
             motor-commercial-stress.json
+            motor-shape-holdout.json
           if-no-files-found: warn
