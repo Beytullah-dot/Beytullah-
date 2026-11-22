@@ -2310,3 +2310,60 @@ uzun görevini Worker'a güvenle taşı; D Pages/PDF/cache
 E2E ve E UAT kabul listesini ilerlet. Kullanıcı verisine
 test amacıyla dokunma; gerçek iPhone ve iki gerçek
 kullanıcı UAT yapılmış gibi anlatma.
+
+
+## AC. 22 Kasım 2026 — Motor kapasitesi ve %100 bitiş kriteri / kullanıcı stratejik kararı
+
+Kullanıcı yeni geliştirme felsefesini kesinleştirdi: **sonsuz
+exact-optimal arayışı yerine gerçekçi proje büyüklüğünde
+kanıtlanabilir matematiksel kapasiteyi ve fiziksel yapıcı
+performansı ölç; ticari kapsam yeterliyse motorun kendi
+geliştirme aşamasını %100 tamamlanmış kabul et.**
+Bundan büyük/karmaşık işlerde **fiziksel denetimli
+sezgisel plan** ve dürüst "optimumluk kanıtlanmadı"
+uyarısı yeterli olabilir. Mevcut iyi çözümü girdi adedi
+yüksek diye geri çekme. Bu stratejinin somut kabul
+sözleşmesi ayrı dosyada:
+`BEYTHAUS-CUT-ENGINE-CAPACITY-ACCEPTANCE.md`.
+Release roadmap'e 7. bölüm eklendi.
+
+**Zorunlu düzeltme:** Evrensel tek X=parça sayısı
+matematiksel garanti değildir. Aynı N içindeki parça
+çeşitliliği, stok/kerf/trim, rotasyon/damar, fiziksel
+kesim kısıtı ve hedef fonksiyonu karmaşıklığı belirler.
+Önce N=`sum(qty)`, K=benzersiz parçalar ve stok sınıfı
+matrisiyle **gerçek optimalite sertifika kapsamını**
+test et, örneklerde fiziksel tam çözüm, sertifikalı
+optimum, gap (varsa), UNKNOWN, süre/RSS ve mobil
+ölçümleri ayrı say. Sonra her ticari sınıf için
+ölçülmüş yeterlilik eşiğini (varsa X) ve riskli
+sınıflarda kaynak bütçeli sezgisel fallback'i ilan et.
+**Küçük iş de kanıtsız, büyük tekrarlı iş de exact
+olabilir.** Kanıt olan herhangi büyüklükte kullanıcıya
+`OPTIMAL` göster, diğerlerinde fiziksel uygulanabilir
+planı `feasible-uncertified` olarak sun.
+
+**Yeni sohbetin ilk işi:** Motor için önceki handoff
+giyotin alt sınıf exact oranlarını ve mevcut Worker'ın
+14/16 fiziksel plan örneklemini **karıştırmadan**
+bağımsız optimalite kapsam matrisi planla/çalıştır.
+Sırf X büyük olsun diye yeni exact algoritma
+yığma. Hedeflenen ticari kullanılabilirlik ve
+performans ölçüldüğünde motor kapanışını öner;
+kapanmış kabulünü test kanıtından önce yapma.
+Sonra C/D/E üretim risklerini bitir.
+
+**Ayrı durum:** Motor %100 = yalnız teknik motor
+geliştirme kapsamı tamamlandı; **ürün v1 %100**
+olamaz, Supabase canlı sunucu fiziksel guard henüz
+uygulanmadı, iki kullanıcı gerçek yarış testi,
+iPhone Safari, PDF/Pages/mobile/önbellek UAT açık.
+Canlı stok/SQL/Auth verisini test için değiştirme.
+Ürün hazır oluş önceki %70, güncel %70, +0 puan.
+Bu belge değişikliği yeni bir optimumluk veya performans
+kanıtı değildir.
+
+Bu kayıt hazırlanırken master başlangıç doğrulama SHA:
+`5263b7f99c773a5e47381318222a1e8986014d54`.
+Yeni PR merge sonrası güncel SHA'yı yeniden doğrula;
+buradaki değeri asla değişmez varsayma.
