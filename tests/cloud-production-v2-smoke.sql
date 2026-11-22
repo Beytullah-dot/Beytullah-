@@ -123,14 +123,17 @@ begin
     }]}}'::jsonb);
  exception when sqlstate '22023' then rejected:=true;end;
  if not rejected then raise exception 'Forged 48 mm offcut was accepted';end if;
- if exists(select 1 from public.beythaus_stock
-  where workspace_id=current_setting('test.ws2')::uuid and id='R-FORGED') then
+ if exists(select 1 from jsonb_array_elements(
+  public.beythaus_cloud_snapshot_v2(current_setting('test.ws2')::uuid)->'pieces') p
+  where p->>'id'='R-FORGED') then
   raise exception 'Rejected production created an offcut';end if;
- if (select qty from public.beythaus_full_stocks
-   where workspace_id=current_setting('test.ws2')::uuid and id='F-X')<>1 then
+ if (select (f->>'qty')::integer from jsonb_array_elements(
+   public.beythaus_cloud_snapshot_v2(current_setting('test.ws2')::uuid)->'fullStocks') f
+   where f->>'id'='F-X')<>1 then
   raise exception 'Rejected production still consumed full stock';end if;
- if exists(select 1 from public.beythaus_production_records
-   where workspace_id=current_setting('test.ws2')::uuid and id='B-forged-offcut') then
+ if exists(select 1 from jsonb_array_elements(
+   public.beythaus_cloud_snapshot_v2(current_setting('test.ws2')::uuid)->'batches') b
+   where b->>'id'='B-forged-offcut') then
   raise exception 'Rejected plan produced a durable batch';end if;
 end$$;
 -- The original RPC stock-and-area checks would accept this attack:
@@ -152,8 +155,9 @@ begin
     }]}}'::jsonb);
  exception when sqlstate '22023' then rejected:=true;end;
  if not rejected then raise exception 'Residual leaf double-spent';end if;
- if (select qty from public.beythaus_full_stocks
-   where workspace_id=current_setting('test.ws2')::uuid and id='F-X')<>1 then
+ if (select (f->>'qty')::integer from jsonb_array_elements(
+   public.beythaus_cloud_snapshot_v2(current_setting('test.ws2')::uuid)->'fullStocks') f
+   where f->>'id'='F-X')<>1 then
   raise exception 'Duplicate remnant attack consumed stock';end if;
 end$$;
 -- Forging a part rectangle not generated as an exact guillotine leaf.
