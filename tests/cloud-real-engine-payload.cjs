@@ -50,10 +50,11 @@ select public.beythaus_cloud_save_full_stock(:'ws_compat'::uuid,
 select public.beythaus_cloud_production_v2(:'ws_compat'::uuid,
  'cccccccc-0000-4000-8000-000000000002'::uuid,
  '${quoted}'::jsonb);
+select set_config('test.ws_compat', :'ws_compat',false);
 do $compat$
 declare s jsonb;
 begin
- s=public.beythaus_cloud_snapshot_v2(:'ws_compat'::uuid);
+ s=public.beythaus_cloud_snapshot_v2(current_setting('test.ws_compat')::uuid);
  if jsonb_array_length(s->'batches')<>1 then
   raise exception 'Engine-produced plan did not commit precisely once';end if;
  if (select (x->>'qty')::int from jsonb_array_elements(s->'fullStocks') x
