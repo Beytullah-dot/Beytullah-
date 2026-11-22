@@ -29,6 +29,49 @@ async function main() {
   assert.match(await page.title(), /Beythaus Cut/i);
   console.log('PASS 1: Mobile WebKit page loads, existing app and drawer initialize');
 
+  // Real browser Worker invocation on synthetic stock. This is WebKit
+  // emulation, not a physical iPhone acceptance test.
+  const webkitConstructive=await page.evaluate(async()=>{
+    const common={category:'panel',material:'panel|webkit-lazy',
+      t:18,grain:'length',rotate:false};
+    const widths=[8,14,10,12,9,13,7,15];
+    const data={parts:widths.map((l,i)=>({...common,
+      id:'wk-p'+i,label:'WK'+i,l,w:16})),
+      stocks:[[52,36,100],[54,38,114],[56,40,129],[60,42,157]]
+        .map(([l,w,price],i)=>({...common,id:'wk-s'+i,
+          l,w,price,priceUnit:'panel',qty:1})),trim:1,kerf:2,m3:null};
+    const worker=new Worker('./constructive-worker.js');
+    return new Promise((resolve,reject)=>{
+      const limit=setTimeout(()=>{worker.terminate();reject(Error('Constructive browser Worker timeout'))},9000);
+      worker.onerror=e=>{clearTimeout(limit);worker.terminate();
+        reject(Error('Constructive Worker exception: '+e.message))};
+      worker.onmessage=e=>{clearTimeout(limit);worker.terminate();
+        const r=e.data;resolve({status:r.status,proof:r.proof,
+          researchOnly:r.researchOnly,placedCount:r.plan?.placedCount,
+          unplacedCount:r.plan?.unplaced?.length,
+          cuts:r.plan?.bins?.flatMap(b=>b.cuts).length,
+          plan:r.plan,data})};
+      worker.postMessage({type:'construct',requestId:910,mode:'guillotine',
+        objective:'cost',priceMode:'panel',m3:null,data});
+    });
+  });
+  assert.equal(webkitConstructive.status,'feasible-uncertified');
+  assert.equal(webkitConstructive.proof,'none');
+  assert.equal(webkitConstructive.researchOnly,true);
+  assert.equal(webkitConstructive.placedCount,8);
+  assert.equal(webkitConstructive.unplacedCount,0);
+  assert(webkitConstructive.cuts>0);
+  // Replay the returned tree through the production auditor in this browser.
+  const checkedWorker=await page.evaluate(({data,plan})=>{
+    const state=window.BeythausCut.getState();
+    const original=state.mode;state.mode='guillotine';
+    try{return window.BeythausCut.auditCutPlan(plan,data)}
+    finally{state.mode=original}
+  },webkitConstructive);
+  assert.equal(checkedWorker.ok,true,'browser Worker plan re-audited in WebKit');
+  console.log('PASS 1b: WebKit constructive Worker and browser physical cut-tree re-audit');
+
+
   // Same persistent handle both opens and closes the drawer.
   const handle = page.locator('#bhDrawerHandle');
   await handle.click();
