@@ -2463,3 +2463,78 @@ ilan etme. Ardından B ana thread Worker migration,
 C izole sunucu fiziksel guard ve atomik stok
 concurrency provası, D PDF/Pages/PWA cache,
 E gerçek iPhone + iki gerçek kullanıcı UAT.
+
+
+## AE. 22 Kasım 2026 — Kıt stok, bağımsız fiziksel tanık ve gerçek UI yolu kapasite çalışması
+
+**PR #57** https://github.com/Beytullah-dot/Beytullah-/pull/57;
+\`tests/motor-commercial-tight-stock.cjs\` ve kalıcı rapor
+\`tests/MOTOR-COMMERCIAL-TIGHT-STOCK-RESULTS.md\`.
+GitHub PR test SHA \`ca1553ae593a822398cd84832bc0b6e75841edff\`.
+Optimizer run https://github.com/Beytullah-dot/Beytullah-/actions/runs/44973670179
+**SUCCESS** (60 yeni senaryo), aynı head Geometry/Uncapped Scale **SUCCESS**.
+Dokümantasyon sonrasındaki head ve merge sonrası master CI/Pages yeniden doğrulanmalı.
+
+**Deney:** N=10,25,50,100,200; panel ve iki malzemeli
+panel/masif, yön/döndürme; her biri (a) tam kenarlı dört kesim
+ile bağımsız **mümkünlüğü gösterilen stok multisetinde**,
+(b) toplam kullanılabilir stok alanı dahi yetersiz alt stok
+negatif karşılığı; minimum levha, brüt alan, gerçek kayıtlı
+maliyet ayrı: 4 sınıf × 5 N × 3 hedef = **60 sentetik
+hedef-senaryo**. Fiziksel tanık motora sunulmadı, her
+tam/eksik aday ürün production-audit ve bağımsız
+\`optimization-oracle.cjs\` kesim ağacı tekrarından geçti.
+Bu bir saha başarı oranı veya evrensel N sınırı DEĞİLDİR.
+
+**30 bağımsız fiziksel mümkün senaryoda**
+- İyileştirmesiz ilk \`optimize(...,false,false,...)\`
+  **7/30 tam**.
+- Gerçek UI akışındaki iyileştirmeli
+  \`optimize(...,true,false,...)\` **15/30 tam**,
+  **15/15 seçili amaca özgü global optimum kanıtlı**.
+- Sınırlı yapıcı Worker **3/30 tam**, UI+Worker birleşik
+  **15/30 tam**: **15/30 fiziksel mümkün olduğu bilinen
+  senaryo çözülemedi**. Tam olmayan hiçbir plan üretim
+  adayı olarak kabul edilmedi.
+- N=10 ve N=25'in her birinde **6/6** UI tam;
+  N=50'de **3/6**, N=100 ve 200'de **0/6**.
+  Bu yalnız bilerek zor seçilmiş exact-stock aileleri.
+  \`UNKNOWN\` imkânsızlık kanıtı değildir.
+- 30 alanı matematiksel yetersiz negatif senaryoda
+  **0 yanlış tam plan**.
+
+**Bağımsız iki parçalı exact oracle:** Aynı sentetik işte
+min levha **1**, min brüt stok alanı **5808 mm²**,
+min kayıtlı maliyet **80 sentetik birim**; sayısal hedefleri
+birbirine taşımama, daha kötü tam plana sahte \`OPTIMAL\`
+vermeme, bilinmeyen fiyatta \`unknown-price\` korumaları
+başarılı. Mevcut tam planların bağımsız tanıktan daha kötü
+olduğu doğrulanmış örnek **0**; çözülemeyen örneklerin
+kalitesine dair iddia değildir.
+
+**Kaynak profili:** UI iyileştirmeli ilk hesapta izole Linux
+Node en yavaş ~1570 ms, p95 ~1435 ms; RSS maksimum
+~117,4 MiB (Node çalışma zamanı ve denetimler dahil).
+Gerçek iPhone Safari ölçülmedi; ana JS thread'de donma
+güvenlik/UX riski **açık**.
+
+**Kesin karar:** Motor geliştirme **%100 kabul edilmedi**;
+ürün v1 hazır oluş tahmini **%70, +0 yüzde puan**.
+Yeni gerçek fiziksel algoritma yayına alınmadı, yalnız test
+ve rapor değişti. Canlı Supabase migration
+\`20261122_000003_server_physical_cut_guard.sql\`
+**UYGULANMADI**, canlı kullanıcı stok/Auth/üretim veri
+yazısı yapılmadı.
+
+**Sıradaki görev:** PR #57 son head CI, master merge
+ve master Optimizer/Geometry/Pages SUCCESS durumunu
+doğrula. Kıt ve tight inventory iç içe gerçek
+giyotin planlarda stok-seçim, block repair ve nested
+residual kurtarmasının üretim motorunda **mümkünlük
+iyileştirmesi** için bounded adaylar geliştirilmesi;
+her tam planı iki fiziksel denetimden geçir, her hedef
+için cost/area/count bağımsız korunmalı. Hiçbir
+bilinmeyen sonuç optimum veya imkânsız diye gösterilmez.
+Sonra mobil ilk \`optimize\` Worker'a taşıma ve
+Supabase izole server guard/atomik stok doğrulaması;
+gerçek iPhone ve 2 kullanıcı UAT hâlâ açık.
