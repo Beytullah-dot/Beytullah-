@@ -1988,3 +1988,33 @@ olarak güvenli bağlanabilirliğini değerlendirmek; eğer gerekirse
 lazy pricing / branch-and-price, MILP/CP-SAT yöntemlerini
 farklı, kontrollü araştırmalarda karşılaştırmaktır.
 Açık PR ve güncel master bilgilerini her seferinde GitHub'dan teyit et.
+
+
+## V. 22 Kasım 2026 — Kullanıcının onaysız devam talimatı ve v1 release yol haritası
+
+Kullanıcı, yaklaşık **%70** olarak tahmin edilen mevcut v1 ürün
+hazır oluşunu tamamlamak için **kalan tahmini %30'luk işleri ara ara
+yeniden onay almadan yürütmemizi** istedi. Bu oran matematiksel optimumluk
+başarı yüzdesi veya ampirik tamamlanma ölçüsü değil, çalışma takibi
+için başlangıç **tahmini** referanstır.
+
+**Kalıcı yürütme planı ve kabul matrisi:**
+[`BEYTHAUS-CUT-RELEASE-ROADMAP.md`](./BEYTHAUS-CUT-RELEASE-ROADMAP.md).
+Yol haritasındaki A–E paketleri sırayla bağımsız küçük PR ve gerçek
+CI ile ele alınacak. Başarılı rutin PR'lar için yeniden "devam edeyim mi?"
+diye sorulmayacak; GitHub master/Pages, AGENTS, mevcut üretim güvenliği
+ve bağımsız audit doğrulanacak. Her önemli birleşimden sonra önceki
+yüzde / güncel yüzde / yüzde puan farkı, hangi kabul kanıtının alındığı,
+kalan risk, fiziksel başarı ve **ayrı optimumluk kanıt kapsamı** bildirilecek.
+
+**Sınırlar:** Gerçek kullanıcı stoku ve kayıtları, geri alınamaz
+Supabase operasyonları, Auth/RLS güvenliği ve finansal hesap işlemleri
+onaysız/denetimsiz değiştirilmez. Gerçek iPhone veya iki insanın
+Supabase UAT'si yapılmadan "tamamlandı" denmez. Takılınan adım
+dürüstçe BLOKE işaretlenir ve bağımsız yapılabilir sonraki güvenli
+geliştirmeye devam edilir.
+
+Bu kayıt yazılırken **doğrulanan önceki master**
+`f3b4655fd5397bfd057059ee9254f16820812a7c`; Optimizer, Geometry ve Pages **SUCCESS**;
+açık PR **0**. Bu bölümün birleştirme commit'i ve yeni master CI
+sonraki işlemde tekrar doğrulanmalıdır.
