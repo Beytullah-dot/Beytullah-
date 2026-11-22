@@ -65,4 +65,5 @@ jobs:
           docker exec -i beythaus-ci-postgres psql -U postgres -v ON_ERROR_STOP=1 < supabase/migrations/20261118_000001_cloud_inventory.sql
           docker exec -i beythaus-ci-postgres psql -U postgres -v ON_ERROR_STOP=1 < tests/cloud-db-smoke.sql
           docker exec -i beythaus-ci-postgres psql -U postgres -v ON_ERROR_STOP=1 < supabase/migrations/20261119_000002_full_stock_production.sql
+          docker exec -i beythaus-ci-postgres psql -U postgres -v ON_ERROR_STOP=1 < supabase/migrations/20261122_000003_server_physical_cut_guard.sql
           docker exec -i beythaus-ci-postgres psql -U postgres -v ON_ERROR_STOP=1 < tests/cloud-production-v2-smoke.sql
