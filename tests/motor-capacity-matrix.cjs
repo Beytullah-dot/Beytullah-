@@ -118,7 +118,9 @@ function runChild(){
  if(w.status==='feasible-uncertified'){
   workerAudited=verify(w.plan);
  }else{
-  assert(w.status.startsWith('unknown-'),'Worker unexpected result: '+w.status);
+  assert(['unknown-limit','unknown-no-candidate','unknown-class',
+   'unknown-price','unknown-precision','unknown-input'].includes(w.status),
+   'Worker unexpected/hidden error: '+w.status);
   assert.equal(w.plan,null,'Incomplete Worker plan leaked as production');
  }
  const solver=family==='nested8'?
@@ -170,7 +172,7 @@ function runChild(){
  }
  const mem=process.memoryUsage();
  const row={
-  family,N,K,objective,materialCount:new Set(data.parts.map(p=>p.material)).size,
+  family,N,K:data.K,objective,materialCount:new Set(data.parts.map(p=>p.material)).size,
   stockTypeCount:data.stocks.length,
   availableStockCount:data.stocks.reduce((a,s)=>a+s.qty,0),
   trimMm:data.trim,kerfMm:data.kerf,
