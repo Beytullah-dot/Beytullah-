@@ -12,7 +12,7 @@ assert.match(html,/pagehide.*cancelConstructiveSearch/);
 assert.match(html,/state\.materialMode==='auto'\)return;/);
 const scope={last:null,postMessage(message){this.last=message}};
 let sandbox;
-sandbox=vm.createContext({self:scope,console,
+sandbox=vm.createContext({self:scope,window:scope,console,
  importScripts(...paths){for(const file of paths){
   assert(!file.includes('..'),'no traversal in worker imports');
   vm.runInContext(source(file.replace(/^\.\//,'')),sandbox,{filename:file});
