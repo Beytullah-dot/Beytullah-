@@ -2367,3 +2367,99 @@ Bu kayıt hazırlanırken master başlangıç doğrulama SHA:
 `5263b7f99c773a5e47381318222a1e8986014d54`.
 Yeni PR merge sonrası güncel SHA'yı yeniden doğrula;
 buradaki değeri asla değişmez varsayma.
+
+
+## AD. 22 Kasım 2026 — 105 vaka ile motor optimumluk kapasitesi, N/K/amaç matrisi
+
+**Araştırma PR #56:** https://github.com/Beytullah-dot/Beytullah-/pull/56
+(nihai merge / master SHA için güncel GitHub durumunu tekrar doğrula).
+Test: `tests/motor-capacity-matrix.cjs`; ölçüm raporu:
+`tests/MOTOR-CAPACITY-MATRIX-RESULTS.md`; CI JSON artifact:
+`motor-capacity-matrix.json`. PR test kodu SHA
+`3bd91a89d83156d216a26461195c742ed1e339f8`.
+CI gerçek Optimizer [#44972616223](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44972616223),
+Geometry [#44972616247](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44972616247),
+Uncapped Scale [#44972616222](https://github.com/Beytullah-dot/Beytullah-/actions/runs/44972616222):
+**3/3 SUCCESS**. Dokümantasyon commit'i sonrasındaki yeni PR/master
+CI ve Pages ayrıca doğrulanmalı.
+
+**Deney tasarımı:** N=10/25/50/100/200/500/1000; 5 aile:
+tek genişlik full-span K=1, dört farklı bant yüksekliği K=4/
+heterojen stok, sekiz enli iç içe 3 aşamalı sınıf K=8, K=N
+farklı ölçü, iki malzemeli panel/masif ve yön/rotasyon K=4.
+Toplam 35 sentetik geometri/stoğa göre 3 ayrı hedef (levha adedi,
+brüt alan, maliyet) = **105 hedef-vaka**. Pozitif kerf 2 mm,
+trim 1 mm, stok/adet, fiyat, malzeme, yön korundu. Bu
+**rastgele seçilmiş 105 ticari proje değildir**; yapıcı/saha
+kapsamı çıkarılamaz. Her tam planda uygulama audit'i ve
+bağımsız `optimization-oracle.cjs` tam kenar audit'i zorunlu.
+Araştırma özel-sınıf exact sonuçları KÜRESEL 2D optimum
+olarak sayılmadı. Küresel kanıt yalnız uygulamanın gerçek
+`optimality-certificate.js` hedefe özgü LB=UB sertifikasıyla.
+
+**CI Linux Node gerçek ölçüm:** Ana üretim kesim motoru
+`engine.optimize(..., false, false, objective)`
+**105/105 tam ve çift audit olumlu**; 0/105 izole baseline
+zaman aşımı. Canlı sınırlı yapıcı Worker **69/105**
+tam ve çift audit olumlu; 36/105 özel Worker UNKNOWN
+(15 kaynak/21 `unknown-class`), bu **ana motorun**
+başarısızlığı veya işin imkânsızlığı **DEĞİLDİR**.
+İki üretim yolu birlikte **105/105 tam**.
+Seçilen hedef için KÜRESEL kanıt **60/105**:
+levha adedi 23/35; brüt alan 19/35; maliyet 18/35.
+**45/105** tam ama küresel optimumluk kanıtsız.
+Special full-span/üç aşamalı araştırma sütununda
+18 class-only exact; ayrıca 3 iki aşamalı class-only;
+genel optimuma EKLENMEZ.
+
+**Sınıf kırılımı (global optimum / 21 hedef-vaka):**
+fullspan 21/21; dört farklı bant + dört heterojen stok
+4/21; sekiz en + dört stok 7/21; K=N 7/21;
+panel/masif + zorunlu döndürme K=4, sabit malzeme
+ataması altında 21/21. Son özel ailede yapıcı Worker
+21/21 `unknown-class` olsa da ana engine hepsini
+çözdü. **Bu sertifikalar seçilen sabit malzeme ataması
+içindir, global karma otomatik atamayı kanıtlamaz.**
+
+**N=1000/K=1 özel tanık:** tam fiziksel 334 levha,
+minimum brüt stok alanı 1.366.728 mm², sentetik kayıtlı
+maliyet 30.060; üç ayrı amaçta da kanıtlı global
+optimum. Bu **evrensel 1000 parça kapasite garantisi
+değildir**. K=4 ve heterojen stok N=1000'de tam
+plan vardır ancak üç hedefin hiçbirinde kesin optimum
+kanıtlanmamıştır. K=N=1000 örneğinde ana engine tam
+fiziksel plan, yapıcı Worker UNKNOWN, global kanıt yok.
+Bazı zayıf LB gap'leri %60 üzerindedir; gap kanıtlanmış
+kazanç tahmini değildir.
+
+**Performans:** baseline ilk senkron hesap median
+~60,1 ms / p95 ~357,1 ms, max ~520,4 ms;
+Worker median ~15,8 / p95 ~325,5 ms. Gözlenen
+maksimum izole Node Linux süreç RSS ~136,3 MiB
+(Node çalışma zamanı + bağımsız auditor dâhil).
+**Gerçek iPhone Safari değil, mobil ana-thread donma
+riski açık.** Bu test kaynak bütçeleri kullanıcı
+girdi tavanı DEĞİLDİR.
+
+**Motor gelişim kabulü:** Henüz **%100 DEĞİL**.
+Bunlar seçilmiş ve çoğunlukla fiziksel mümkün/sentetik
+stoklu aileler; daha zor heterojen / kıt stok / rotasyon /
+otomatik malzeme ataması / gerçek müşteri dağılımları,
+sezgisel kalite, kanıtlı gap ve mobil perf için
+ek bağımsız regresyon ve gerçek UAT gerekiyor.
+Ürün v1 hazır oluş **%70 (+0 puan)** korundu.
+Supabase migration `20261122_000003_server_physical_cut_guard.sql`
+canlıya uygulanmadı, Auth/gerçek stok/üretim kayıtlarına
+DOKUNULMADI.
+
+**Sıradaki güvenli teknik adım:** Önce PR #56 son head
+Optimizer, Geometry, Uncapped CI ve master merge/Pages
+doğrula. Sonra bu matrisin üretime benzer, fiziksel
+olarak kasıtlı zor/kıt stoklu ve K yüksek ailelerini
+bağımsız oracle ile genişlet; sezgisel plan kalitesini
+farklı yöntemler/kanıtlı optimal alt-yukarı sınırıyla
+ölç. Ticari kabul eşikleri kanıtlanmadan motor %100
+ilan etme. Ardından B ana thread Worker migration,
+C izole sunucu fiziksel guard ve atomik stok
+concurrency provası, D PDF/Pages/PWA cache,
+E gerçek iPhone + iki gerçek kullanıcı UAT.
