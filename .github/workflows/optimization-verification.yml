@@ -65,6 +65,8 @@ jobs:
         run: MOTOR_THREE_STAGE_LAZY_JSON=three-stage-lazy-report.json node tests/motor-three-stage-lazy.cjs
       - name: Verify live lazy constructive Worker against independent physical oracle
         run: node tests/constructive-worker.cjs
+      - name: Profile deployed bounded constructive Worker with isolated real Linux RSS
+        run: MOTOR_LIVE_CONSTRUCTIVE_SCALE_JSON=live-constructive-scale-report.json node tests/motor-live-constructive-scale.cjs
       - name: Verify new physical exact full-span bound in deployed proof worker
         run: MOTOR_FULLSPAN_CERT_JSON=fullspan-certificate-report.json node tests/motor-fullspan-certificate.cjs
       - name: Verify physical stock-geometry compatibility with independent oracle
@@ -110,4 +112,5 @@ jobs:
             three-stage-report.json
             three-stage-scale-report.json
             three-stage-lazy-report.json
+            live-constructive-scale-report.json
           if-no-files-found: warn
