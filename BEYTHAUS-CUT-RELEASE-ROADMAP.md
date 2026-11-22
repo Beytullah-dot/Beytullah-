@@ -101,3 +101,23 @@ Gerçek saha kabulü koşulsuz `100%` olarak işaretlenemez.
 - Bu yol haritası kullanıcının "kalan %30" ifadesini **kapsamı belirli
   v1 hazır oluşu** olarak operasyonelleştirir; sınırsız problem ailesinde
   matematiksel optimumluğun tamamlandığı şeklinde yorumlanamaz.
+
+
+## 6. 22 Kasım 2026 — A–E kabul ilerleme kontrolü
+
+Kanıtları ve bütün PR/commit/CI bağlantılarını güncel
+`BEYTHAUS-CUT-V1-CHECKPOINT-20261122.md` kaydından oku.
+PR #49–53 mevcut master'a birleştirildi; gerçek Worker'a
+bounded constructive fallback, seçili karma otomatik
+sözleşmesi, sentetik Linux RSS/UNKNOWN stres deneyleri,
+izole PostgreSQL sunucu-fiziksel-audit trigger adayı
+ve gerçek shipped motorun sentetik cloud RPC uyumluluğu
+eklendi. **Güvenlik migrationı hâlâ canlı Supabase'e
+uygulanmadı.** Paketleri kısmi işler bitmiş diye
+kapanmış sayma. 70% hazır oluş tahmini korunuyor.
+Gerçek iPhone Safari/iki kullanıcı UAT, ilk senkron
+optimize mobil performansı, PDF/Pages byte E2E, canlı
+migration rollback güvenliği ve ispat/gap matrisi açık.
+
+Bir sonraki sohbette bu dosyadaki eski başlangıç HEAD'ini
+güncel sanma: GitHub `master` ref'ini ayrıca kontrol et.
