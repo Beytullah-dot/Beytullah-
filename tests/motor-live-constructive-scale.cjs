@@ -24,7 +24,8 @@ function fixture(family,count,priceKnown=true){
 }
 if(process.argv[2]==='--child'){
  const [, , ,family,countRaw,objective,priceKnownRaw]=process.argv;
- const data=fixture(family,Number(countRaw),priceKnownRaw==='true');
+ const priceKnown=priceKnownRaw==='true';
+ const data=fixture(family,Number(countRaw),priceKnown);
  const snapshot=JSON.stringify(data);
  const scope={out:null,postMessage(message){this.out=message}};
  let sandbox;
