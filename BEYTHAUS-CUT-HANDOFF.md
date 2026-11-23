@@ -2,7 +2,7 @@
 
 > **Tek giriş belgesi.** Yeni bir sohbet veya geliştirme oturumunda önce bu dosyayı ve `AGENTS.md`'yi oku. Bu belge **geçmiş PR günlüğü değildir**; güncel ürün sözleşmesi, doğrulanmış teknik durum, açık riskler ve sonraki adımdır.
 >
-> **Durum kesiti:** 22 Kasım 2026, Türkiye. Son doğrulanmış **motor kodu**: `27d0513c155d87128e18b8718aeb034aea427153` (PR #58 sonrası). Belgeyi güncelleyen commit bu SHA'dan daha yeni olabilir. **Her seferinde gerçek `master` HEAD, PR, CI, Pages ve Supabase durumunu yeniden doğrula.**
+> **Durum kesiti:** 23 Kasım 2026, Türkiye. Son doğrulanmış **motor kodu**: `27d0513c155d87128e18b8718aeb034aea427153` (PR #58 sonrası). Belgeyi güncelleyen commit bu SHA'dan daha yeni olabilir. **Her seferinde gerçek `master` HEAD, PR, CI ve Pages durumunu yeniden doğrula. Bu motor çalışmasında gerçek Supabase stok/Auth/üretim verisine erişme.**
 >
 > **Depo:** https://github.com/Beytullah-dot/Beytullah- · **Canlı uygulama:** https://beytullah-dot.github.io/Beytullah-/ · **Yayın:** `master` → `docs/` · **Supabase:** `pdqgpupdqgrxejvjpdzs`.
 
@@ -10,7 +10,7 @@
 
 Beythaus Cut; panel ve masif ahşap için **iki boyutlu, fiziksel giyotin kesim** optimizasyonu, ortak stok/raf/QR envanteri, malzeme maliyet kaydı, kesim PDF'si ve tamamlanmış üretim arşivi sunan mevcut web/PWA uygulamasıdır. Aynı projeyi geliştir; **bağımsız demo/proje veya yeni yayın adresi oluşturma**.
 
-- Motorun amacı her olası 2D yerleşim için evrensel matematiksel optimumluk değil; **gerçekten kesilebilir plan**, seçili hedefte iyi performans ve **kanıt mümkünse hedefe özgü optimumluk** sunmaktır.
+- 23 Kasım kullanıcı kararıyla zorunlu kapı **bağımsız fiziksel geçerlilik**, ana hedef **süre bütçesi içinde güvenli alt sınıra göre düşük fark**, küçük gruplarda tamamlanan kesin çözüm ise **hedefe özgü optimum etiketi** olur. Öncelik levha sayısı veya maliyet, eşitlikte tek parça halinde en büyük kullanılabilir artıktır.
 - Kullanıcı kararı: ticari iş ailelerinde güvenilir kabul eşiği **ölçülerek** sağlanırsa motor geliştirmesi %100 tamamlanabilir. Sonsuz exact araştırma zorunlu değildir. Bunun için `BEYTHAUS-CUT-ENGINE-CAPACITY-ACCEPTANCE.md` bağlayıcı kabul çerçevesidir.
 - **Parça sayısına keyfî kullanıcı giriş tavanı koyma.** `N=sum(qty)` fiziksel parça adedi; `K` ölçü/malzeme/yön/rotasyon çeşitliliğidir. Hız ve kanıtlanabilirlik N, K, stok sınıfları, kısıtlar, amaç ve kaynak bütçesine bağlıdır. Ölçülmüş belirli sınıf eşiği evrensel garanti değildir.
 - **Motor %100 kabul edilmedi.** **Ürün v1 mühendislik hazır oluş tahmini ~%70, değişim +0 yüzde puan.** Bu öznel ürün durumu bir test başarı oranı değildir; gerçek kabul kapıları kapanmadan artırma.
@@ -30,9 +30,9 @@ Beythaus Cut; panel ve masif ahşap için **iki boyutlu, fiziksel giyotin kesim*
 ### Optimizasyonun fiziksel ve matematiksel sözleşmesi
 
 - **Üretim planı yalnız tam kenarlı giyotin**: her kesim, o andaki aktif alt levhanın bir kenarından karşı kenarına uzanır. Sırf çakışmasız serbest dikdörtgen yerleşimi üretilebilir plan değildir.
-- Kullanıcı **hesaplamadan önce** brüt alan/fire veya kayıtlı maliyet önceliğini seçer. Minimum levha sayısı ayrı bir amaç/kanıt olarak raporlanır. `count`, `area` ve `cost` **bağımsızdır**; birinin optimumluğu diğerini kanıtlamaz.
+- Mevcut arayüz brüt alan/fire veya kayıtlı maliyet önceliği seçtirir. Yeni ürün sözleşmesi levha sayısı veya maliyet önceliği ve eşitlikte en büyük tek kullanılabilir artığı tanımlar. Arayüz ve ortak aday havuzu geçişi Aşama 4–5 kapsamında bekler. `count`, `area` ve `cost` ayrı ölçülür.
 - Üretime çıkarılan her **tam** plan gerçek stok/kerf/trim/yön ve tam kesim ağacının fiziksel denetiminden geçmelidir. Eksik/kısmi sonuç üretim talimatı olamaz.
-- Sonuç durumları açık: (1) **seçili amaçta kanıtlı küresel optimum** yalnız aynı fiziksel model ve hedef için geçerli LB=UB veya tam exact ispatıyla; (2) **fiziksel tam plan, optimumluğu kanıtlanmamış**; (3) **UNKNOWN/kaynak sınırı**, hiçbir zaman “imkânsız” değildir; (4) **kanıtlı imkânsız** yalnız geçerli eksiksiz ispat varsa.
+- Hedeflenen tam-plan ürün dili **“Kanıtlı optimum” / “Alt sınırın %X üstünde”** olur. Başlangıçta en fazla 8 parçalı küçük grupta tamamlanan genel fiziksel exact çözüm optimum etiketi sağlayabilir. Tam plan yoksa veya maliyet fiyatı eksikse açıklayıcı durum mesajı gerekir. UNKNOWN teknik kayıtta kalır. Bu dilin üretime uygulanması Aşama 5 kapsamındadır. Fark `(U-L)/L` paydasıyla hesaplanır.
 - İki/üç aşamalı veya full-span **özel sınıf** exact ispatlarını genel 2D giyotin küresel optimumluğuna yükseltme. Bağımsız geometrik oracle bir optimumluk ispatı değil, fiziksel uygunluk denetimidir. Bilinmeyen fiyat **0 TL değildir**; uygun maliyet karşılaştırması/kanıtı yoksa `unknown-price` göster.
 - **Kaynak bütçesi** (zaman, durum, yerel arama derinliği, bellek) kullanıcı için keyfî toplam parça giriş limiti değildir. Kaynak tükendiğinde geçerli mevcut planı tut, kanıtın yokluğunu doğru belirt.
 
@@ -95,17 +95,23 @@ Beythaus Cut; panel ve masif ahşap için **iki boyutlu, fiziksel giyotin kesim*
 - Mevcut canlı server üretim yolunun tam kesim ağacını bağımsız, yetkili fiziksel tanık üzerinden doğruladığı varsayılamaz; istemciden gelen üretim kesim verisi güvenilmeyen girdidir. Tam stok/üretim/maliyet bütünlüğü için **sunucu otoriteli fiziksel denetim ve atomik concurrency** kabulü açık.
 - Gerçek kullanıcıların **stok adedi, artık kimliği, Auth, finans, arşiv, üretim kayıtları** üzerinde test için yazma/silme yok. Migration'ı, geriye dönük veri değişimini veya geniş yetkiyi güvenli hazırlık ve gerekli açık onay olmadan canlıda çalıştırma. Service-role anahtarı, parola veya gerçek kişi verisi GitHub'da bulunmamalı.
 
-## 6. Ürün v1 açık kapıları / çalışma sırası
+## 6. Güncel çalışma sırası ve açık kabul kapıları
 
-**Öncelik sırası, yeni gerçek sorun veya kullanıcı kararıyla yeniden değerlendirilebilir:**
+23 Kasım kullanıcı talimatı önceki Worker önceliğinin yerini aldı. Her aşama sonunda ölçüm ve riskleri raporlayıp dur. Yeni aşama için bulgu/öneri onayı al.
 
-1. **B — İlk `optimize` ana thread yükü:** güvenli Worker'a taşınması; plan/audit sözleşmesini bozma. Abort, stale request, proje/hedef değişimi, Worker hata/timeout, backpressure, bellek ve iOS WebKit emülasyon regresyonları; bağımsız Node ölçümleri ve erişilebilir performans raporu.
-2. **A — Ticari motor yeterlilik matrisi:** N/K, stok sınıfı, çeşitlilik, malzeme, kerf, trim ve hedefe göre yeni bağımsız fiziksel tanıklı zorlu/holdout örnekleri ölç. Başarı, hedefe göre küresel sertifika, UNKNOWN, kısmi, optimality gap ve gerçek kaynak maliyetini ayrı göster. Tam fakat kanıtsız planlarda hedefe özgü strict improvement değerlendir. Evrensel exact garantisi peşine koşma.
-3. **C — Bulut üretim güvenliği:** staging/izole PostgreSQL'de çok parçalı/karma malzeme/pozitif kerf gerçek `planSnapshot`, kesim ağacı sahteciliği, stale stock, iki eşzamanlı hesap, idempotensi, rollback ve tenant izolasyonu testleri; **canlı migration otomatik uygulanmaz**.
-4. **D — Çıktı ve dağıtım E2E:** gerçek kesim ağacı ↔ PDF sıra/kerf ↔ kullanılabilir artık/kayıt değeri ↔ stok tüketimi ↔ maliyet arşivi tutarlılığı, Pages gerçek asset sürümü/cache ve küçük ekran.
-5. **E — Son saha kabulü:** gerçek **iPhone Safari** ve **iki gerçek kullanıcıyla** Supabase çok cihazlı üretim/çakışma UAT; yapılamadıysa tamamlandı değil **BLOCKED/AÇIK** olarak kaydet.
+0. **Ticari ölçüm** — Onaylanan zarf 100–260 parça, 25–90 tip, 3–7 grup. 20 geliştirme ve 40 kabul tohumu. Yeni kaynak `tests/commercial-stage0/`, sonuç `tests/MOTOR-APARTMENT-STAGE0-RESULTS.md`. İlk eşikler onaylandı. Üreteç, bağımsız fiziksel tanık, güvenli alan örtüsü alt sınırı ve süre bütçeli referans araması test katmanındadır. Ölçülen örneklem 129–225 parça, 28–65 tip, 3–5 gruptur. Uç değerler ve gerçek atölye dağılımı açıktır.
+   **Aşama 0 ölçüm sonucu** — 40 kabul projesinde iki hedefte de 40/40 tam plan. Bilinen en iyi levha sayısıyla eşit 37/40; kalan üçünde 1 fazla levha. Bilinen en iyi maliyete p95 uzaklık %5,88. Güvenli alt sınır farkı p95 levhada %21,43, maliyette %27,64. İlk geçerli plan p95 yaklaşık 0,42 saniye; kısa koşu en yüksek RSS 71,3 MiB, uzun koşu 225,2 MiB. Geçerlilik, süre ve bellek kapıları örneklemde geçti. İki kalite kapısı iki hedefte de kaldı. 300 kaydedilmiş plan tekrar bağımsız denetlendi. Yanlış optimum etiketi bu deneyde ölçülmedi. Gerçek iPhone ve zarf uçları açık. Aşama 1 için kullanıcı onayı bekleniyor.
+1. **B1 dar artık** — Parça yanındaki `0 < artık < kerf` son kesim davranışını yerleşim/audit/exact katmanlarında tutarlı ele al. Kullanıcının bağımsız paketindeki `relaxed` oracle bu fiziğe izin verir, kesim tekrarı ise hâlâ taşmayı reddeder. Bağımsız doğrulayıcı da ayrı testlerle güncellenmelidir. Eski alt sınırların tümünü yeni fiziksel modelde yeniden değerlendir.
+2. **B2/B5 az tip, çok kopya** — Çarpanlı DP/Pareto veya güçlü sezgisel ile partLimit ve gereksiz düğüm tüketimini ele al.
+3. **B3 küçük iş kurtarma** — En fazla 8 parçalı tam alt küme DP son fallback.
+4. **B4 aday havuzu** — Bütün hedeflerin adaylarını seçili hedefe göre değerlendir.
+5. **Dil/Worker sadeleştirme** — Kanıt kapsamı, kullanıcı dili, ana optimize yükünün Worker'a taşınması. İptal, geç sonuç, değişen proje/hedef ve bellek regresyonlarını doğrula.
 
-Plan ve paket kabul ölçütleri: `BEYTHAUS-CUT-RELEASE-ROADMAP.md`, `BEYTHAUS-CUT-V1-CHECKPOINT-20261122.md`. Risk kapanmadan tahmini %70'i sırf PR sayısı yükseldi diye artırma.
+**Aşama 0 onayı Aşama 1 uygulamasına geçiş onayı değildir.** Üretim motoru kodu hâlâ `27d0513…` sürümüdür. `tests/commercial-stage0/results/campaign.json.gz` sentetik girdileri, fiziksel tanıkları ve seçilen planları içerir. B1–B6 düzeltmeleri henüz uygulanmış sayılmaz.
+
+Motor aşamalarının ardından ürün v1 için izole sunucu fiziksel guard ve atomik stok yarışları, PDF/üretim/artık tutarlılığı, gerçek iPhone Safari ve iki gerçek kullanıcı kabulü sürer. Gerçek Supabase stok/Auth/üretim verileri bu çalışma kapsamı dışındadır. Canlı migration için önceki güvenlik sınırları geçerlidir.
+
+Plan ve paket kabul ölçütleri `BEYTHAUS-CUT-RELEASE-ROADMAP.md` ve `BEYTHAUS-CUT-V1-CHECKPOINT-20261122.md` içindedir. Yeni kullanıcı kararları çelişen eski sıralamadan önceliklidir.
 
 ## 7. Yeni sohbette çalıştırılacak kısa kontrol listesi
 
@@ -126,4 +132,4 @@ Plan ve paket kabul ölçütleri: `BEYTHAUS-CUT-RELEASE-ROADMAP.md`, `BEYTHAUS-C
 - [PR #49](https://github.com/Beytullah-dot/Beytullah-/pull/49)–[#53](https://github.com/Beytullah-dot/Beytullah-/pull/53): yapıcı Worker, seçili karma otomatik fallback, Linux ölçek/UNKNOWN ve izole SQL guard/gerçek motor payload.
 - `docs/ENGINE-ARCHITECTURE.md`, `docs/BULUT-SENKRONIZASYON.md`, `tests/README.md`: kod sözleşmesi, bulut ve bağımsız testlerin ayrıntıları.
 
-**Önemli:** Bu dosyanın sadeleştirilmesi **yeni motor kanıtı, tamamlanmış canlı güvenlik testi veya v1 teslimi değildir**.
+**Güncel oturum:** Aşama 0 test ve ölçüm çalışması [PR #60](https://github.com/Beytullah-dot/Beytullah-/pull/60) içinde tutulur. Sonuçlar ve kalan kabul açıkları `tests/MOTOR-APARTMENT-STAGE0-RESULTS.md` dosyasındadır. Motor tamamlanma veya ürün v1 kabulü ilan edilmedi.
