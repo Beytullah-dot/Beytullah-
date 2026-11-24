@@ -1,0 +1,17 @@
+[
+  {
+    "room": "mutfak",
+    "pages": 5,
+    "overhangLabels": 2
+  },
+  {
+    "room": "banyo",
+    "pages": 7,
+    "overhangLabels": 1
+  },
+  {
+    "room": "wc",
+    "pages": 4,
+    "overhangLabels": 1
+  }
+]

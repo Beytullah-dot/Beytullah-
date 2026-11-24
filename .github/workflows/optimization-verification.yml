@@ -106,6 +106,7 @@ jobs:
       - name: Verify Stage 1 default-off, physical overhang and relaxed lower bounds
         run: |
           node tests/stage1/core.cjs
+          node tests/stage1/closure/precision.cjs
           node tests/stage1/closure/default-off.cjs
           node tests/stage1/closure/bounds-relaxed.cjs
           node tests/stage1/closure/missed-diagnosis.cjs

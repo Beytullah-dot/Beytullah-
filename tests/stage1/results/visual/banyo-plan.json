@@ -1,0 +1,890 @@
+{
+  "data": {
+    "parts": [
+      {
+        "id": "p0-0",
+        "origin": "p0",
+        "l": 720,
+        "w": 450,
+        "t": 18,
+        "category": "panel",
+        "grain": "length",
+        "material": "panel|beyaz panel",
+        "label": "Yan panel",
+        "rotate": false,
+        "order": 0
+      },
+      {
+        "id": "p0-1",
+        "origin": "p0",
+        "l": 720,
+        "w": 450,
+        "t": 18,
+        "category": "panel",
+        "grain": "length",
+        "material": "panel|beyaz panel",
+        "label": "Yan panel",
+        "rotate": false,
+        "order": 0
+      },
+      {
+        "id": "p1-0",
+        "origin": "p1",
+        "l": 564,
+        "w": 450,
+        "t": 18,
+        "category": "panel",
+        "grain": "length",
+        "material": "panel|beyaz panel",
+        "label": "Taban ve raf",
+        "rotate": false,
+        "order": 1
+      },
+      {
+        "id": "p1-1",
+        "origin": "p1",
+        "l": 564,
+        "w": 450,
+        "t": 18,
+        "category": "panel",
+        "grain": "length",
+        "material": "panel|beyaz panel",
+        "label": "Taban ve raf",
+        "rotate": false,
+        "order": 1
+      },
+      {
+        "id": "p2-0",
+        "origin": "p2",
+        "l": 716,
+        "w": 296,
+        "t": 18,
+        "category": "panel",
+        "grain": "length",
+        "material": "panel|beyaz panel",
+        "label": "Kapak",
+        "rotate": false,
+        "order": 2
+      },
+      {
+        "id": "p2-1",
+        "origin": "p2",
+        "l": 716,
+        "w": 296,
+        "t": 18,
+        "category": "panel",
+        "grain": "length",
+        "material": "panel|beyaz panel",
+        "label": "Kapak",
+        "rotate": false,
+        "order": 2
+      },
+      {
+        "id": "p3-0",
+        "origin": "p3",
+        "l": 600,
+        "w": 470,
+        "t": 18,
+        "category": "panel",
+        "grain": "length",
+        "material": "panel|beyaz panel",
+        "label": "Üst tabla",
+        "rotate": false,
+        "order": 3
+      }
+    ],
+    "stocks": [
+      {
+        "id": "s0",
+        "l": 1455,
+        "w": 910,
+        "t": 18,
+        "qty": 8,
+        "price": 1000,
+        "category": "panel",
+        "priceUnit": "panel",
+        "grain": "",
+        "material": "panel|beyaz panel",
+        "displayMaterial": "Beyaz panel",
+        "version": null,
+        "order": 0
+      }
+    ],
+    "kerf": 4,
+    "trim": 5,
+    "allowNarrowScrapCuts": true,
+    "m3": null,
+    "minEdge": 50,
+    "minArea": 10000,
+    "errors": []
+  },
+  "plan": {
+    "bins": [
+      {
+        "stock": {
+          "id": "s0",
+          "l": 1455,
+          "w": 910,
+          "t": 18,
+          "qty": 8,
+          "price": 1000,
+          "category": "panel",
+          "priceUnit": "panel",
+          "grain": "",
+          "material": "panel|beyaz panel",
+          "displayMaterial": "Beyaz panel",
+          "version": null,
+          "order": 0
+        },
+        "x": 5,
+        "y": 5,
+        "w": 1445,
+        "h": 900,
+        "free": [
+          {
+            "x": 5,
+            "y": 759,
+            "w": 1445,
+            "h": 146
+          },
+          {
+            "x": 1445,
+            "y": 459,
+            "w": 5,
+            "h": 296
+          }
+        ],
+        "placed": [
+          {
+            "id": "p0-0",
+            "origin": "p0",
+            "l": 720,
+            "w": 720,
+            "t": 18,
+            "category": "panel",
+            "grain": "length",
+            "material": "panel|beyaz panel",
+            "label": "Yan panel",
+            "rotate": false,
+            "order": 0,
+            "jitter": 0.9675434269011021,
+            "x": 5,
+            "y": 5,
+            "h": 450,
+            "rotated": false
+          },
+          {
+            "id": "p0-1",
+            "origin": "p0",
+            "l": 720,
+            "w": 720,
+            "t": 18,
+            "category": "panel",
+            "grain": "length",
+            "material": "panel|beyaz panel",
+            "label": "Yan panel",
+            "rotate": false,
+            "order": 0,
+            "jitter": 0.6572510732803494,
+            "x": 729,
+            "y": 5,
+            "h": 450,
+            "rotated": false
+          },
+          {
+            "id": "p2-1",
+            "origin": "p2",
+            "l": 716,
+            "w": 716,
+            "t": 18,
+            "category": "panel",
+            "grain": "length",
+            "material": "panel|beyaz panel",
+            "label": "Kapak",
+            "rotate": false,
+            "order": 2,
+            "jitter": 0.6459983412642032,
+            "x": 5,
+            "y": 459,
+            "h": 296,
+            "rotated": false
+          },
+          {
+            "id": "p2-0",
+            "origin": "p2",
+            "l": 716,
+            "w": 716,
+            "t": 18,
+            "category": "panel",
+            "grain": "length",
+            "material": "panel|beyaz panel",
+            "label": "Kapak",
+            "rotate": false,
+            "order": 2,
+            "jitter": 0.3446894979570061,
+            "x": 725,
+            "y": 459,
+            "h": 296,
+            "rotated": false
+          }
+        ],
+        "cuts": [
+          {
+            "x1": 5,
+            "y1": 457,
+            "x2": 1450,
+            "y2": 457,
+            "axis": "horizontal",
+            "at": 457,
+            "source": {
+              "x": 5,
+              "y": 5,
+              "w": 1445,
+              "h": 900
+            },
+            "label": "Yan panel",
+            "number": 1
+          },
+          {
+            "x1": 727,
+            "y1": 5,
+            "x2": 727,
+            "y2": 455,
+            "axis": "vertical",
+            "at": 727,
+            "source": {
+              "x": 5,
+              "y": 5,
+              "w": 1445,
+              "h": 450
+            },
+            "label": "Yan panel",
+            "number": 2
+          },
+          {
+            "x1": 1451,
+            "y1": 5,
+            "x2": 1451,
+            "y2": 455,
+            "axis": "vertical",
+            "at": 1451,
+            "overhang": true,
+            "source": {
+              "x": 729,
+              "y": 5,
+              "w": 721,
+              "h": 450
+            },
+            "label": "Yan panel",
+            "number": 3
+          },
+          {
+            "x1": 5,
+            "y1": 757,
+            "x2": 1450,
+            "y2": 757,
+            "axis": "horizontal",
+            "at": 757,
+            "source": {
+              "x": 5,
+              "y": 459,
+              "w": 1445,
+              "h": 446
+            },
+            "label": "Kapak",
+            "number": 4
+          },
+          {
+            "x1": 723,
+            "y1": 459,
+            "x2": 723,
+            "y2": 755,
+            "axis": "vertical",
+            "at": 723,
+            "source": {
+              "x": 5,
+              "y": 459,
+              "w": 1445,
+              "h": 296
+            },
+            "label": "Kapak",
+            "number": 5
+          },
+          {
+            "x1": 1443,
+            "y1": 459,
+            "x2": 1443,
+            "y2": 755,
+            "axis": "vertical",
+            "at": 1443,
+            "source": {
+              "x": 725,
+              "y": 459,
+              "w": 725,
+              "h": 296
+            },
+            "label": "Kapak",
+            "number": 6
+          }
+        ]
+      },
+      {
+        "stock": {
+          "id": "s0",
+          "l": 1455,
+          "w": 910,
+          "t": 18,
+          "qty": 8,
+          "price": 1000,
+          "category": "panel",
+          "priceUnit": "panel",
+          "grain": "",
+          "material": "panel|beyaz panel",
+          "displayMaterial": "Beyaz panel",
+          "version": null,
+          "order": 0
+        },
+        "x": 5,
+        "y": 5,
+        "w": 1445,
+        "h": 900,
+        "free": [
+          {
+            "x": 5,
+            "y": 459,
+            "w": 1445,
+            "h": 446
+          },
+          {
+            "x": 1141,
+            "y": 5,
+            "w": 309,
+            "h": 450
+          }
+        ],
+        "placed": [
+          {
+            "id": "p1-0",
+            "origin": "p1",
+            "l": 564,
+            "w": 564,
+            "t": 18,
+            "category": "panel",
+            "grain": "length",
+            "material": "panel|beyaz panel",
+            "label": "Taban ve raf",
+            "rotate": false,
+            "order": 1,
+            "jitter": 0.9998800703324378,
+            "x": 5,
+            "y": 5,
+            "h": 450,
+            "rotated": false
+          },
+          {
+            "id": "p1-1",
+            "origin": "p1",
+            "l": 564,
+            "w": 564,
+            "t": 18,
+            "category": "panel",
+            "grain": "length",
+            "material": "panel|beyaz panel",
+            "label": "Taban ve raf",
+            "rotate": false,
+            "order": 1,
+            "jitter": 0.5435616467148066,
+            "x": 573,
+            "y": 5,
+            "h": 450,
+            "rotated": false
+          }
+        ],
+        "cuts": [
+          {
+            "x1": 5,
+            "y1": 457,
+            "x2": 1450,
+            "y2": 457,
+            "axis": "horizontal",
+            "at": 457,
+            "source": {
+              "x": 5,
+              "y": 5,
+              "w": 1445,
+              "h": 900
+            },
+            "label": "Taban ve raf",
+            "number": 1
+          },
+          {
+            "x1": 571,
+            "y1": 5,
+            "x2": 571,
+            "y2": 455,
+            "axis": "vertical",
+            "at": 571,
+            "source": {
+              "x": 5,
+              "y": 5,
+              "w": 1445,
+              "h": 450
+            },
+            "label": "Taban ve raf",
+            "number": 2
+          },
+          {
+            "x1": 1139,
+            "y1": 5,
+            "x2": 1139,
+            "y2": 455,
+            "axis": "vertical",
+            "at": 1139,
+            "source": {
+              "x": 573,
+              "y": 5,
+              "w": 877,
+              "h": 450
+            },
+            "label": "Taban ve raf",
+            "number": 3
+          }
+        ]
+      },
+      {
+        "stock": {
+          "id": "s0",
+          "l": 1455,
+          "w": 910,
+          "t": 18,
+          "qty": 8,
+          "price": 1000,
+          "category": "panel",
+          "priceUnit": "panel",
+          "grain": "",
+          "material": "panel|beyaz panel",
+          "displayMaterial": "Beyaz panel",
+          "version": null,
+          "order": 0
+        },
+        "x": 5,
+        "y": 5,
+        "w": 1445,
+        "h": 900,
+        "free": [
+          {
+            "x": 609,
+            "y": 5,
+            "w": 841,
+            "h": 470
+          },
+          {
+            "x": 5,
+            "y": 479,
+            "w": 1445,
+            "h": 426
+          }
+        ],
+        "placed": [
+          {
+            "id": "p3-0",
+            "origin": "p3",
+            "l": 600,
+            "w": 600,
+            "t": 18,
+            "category": "panel",
+            "grain": "length",
+            "material": "panel|beyaz panel",
+            "label": "Üst tabla",
+            "rotate": false,
+            "order": 3,
+            "jitter": 0.6056594024412334,
+            "x": 5,
+            "y": 5,
+            "h": 470,
+            "rotated": false
+          }
+        ],
+        "cuts": [
+          {
+            "x1": 5,
+            "y1": 477,
+            "x2": 1450,
+            "y2": 477,
+            "axis": "horizontal",
+            "at": 477,
+            "source": {
+              "x": 5,
+              "y": 5,
+              "w": 1445,
+              "h": 900
+            },
+            "label": "Üst tabla",
+            "number": 1
+          },
+          {
+            "x1": 607,
+            "y1": 5,
+            "x2": 607,
+            "y2": 475,
+            "axis": "vertical",
+            "at": 607,
+            "source": {
+              "x": 5,
+              "y": 5,
+              "w": 1445,
+              "h": 470
+            },
+            "label": "Üst tabla",
+            "number": 2
+          }
+        ]
+      }
+    ],
+    "unplaced": [],
+    "partArea": 1861472,
+    "stockArea": 3972150,
+    "cost": 3000,
+    "unknownCostBins": 0,
+    "placedCount": 7,
+    "search": {
+      "baselineStockCount": 3,
+      "savedStockCount": 0,
+      "refinementAttempts": 90,
+      "refinementSteps": 0,
+      "offcutAttempts": 160,
+      "offcutImprovements": 1,
+      "offcutAreaGain": 2570,
+      "offcutTimeLimited": false
+    },
+    "stockProof": {
+      "goal": "minimum-stock-count",
+      "proven": true,
+      "complete": true,
+      "usedStockCount": 3,
+      "lowerBound": 2,
+      "method": "exhaustive-geometry",
+      "searchStatus": "worker-proved",
+      "gap": 1,
+      "reason": "Minimum stok sayısı matematiksel olarak kanıtlandı.",
+      "details": [
+        {
+          "material": "panel|beyaz panel",
+          "requiredArea": 1861472,
+          "lowerBound": 2,
+          "areaLowerBound": 2,
+          "kerfAreaLowerBound": 2,
+          "halfSpanLowerBound": 2,
+          "incompatibilityLowerBound": 1,
+          "itemCapacityLowerBound": 2,
+          "inspectedPieces": 7,
+          "totalPieces": 7
+        }
+      ]
+    },
+    "globalAreaProof": {
+      "objective": "area",
+      "incumbent": 3972150,
+      "lowerBound": 2648100,
+      "proven": false,
+      "status": "gap",
+      "groups": [
+        {
+          "key": "panel|beyaz panel",
+          "parts": 7,
+          "stockTypes": 1,
+          "excludedStockTypes": 0,
+          "originalStockTypes": 1,
+          "status": "optimal-relaxation",
+          "lowerBound": 2648100,
+          "areaRelaxation": {
+            "status": "optimal-relaxation",
+            "lowerBound": 2648100,
+            "states": 3,
+            "elapsedMs": 0
+          },
+          "kerfExpandedAreaRelaxation": {
+            "status": "optimal-relaxation",
+            "lowerBound": 2648100,
+            "states": 3,
+            "elapsedMs": 0,
+            "method": "kerf-expanded-area-cover"
+          },
+          "cardinalityRelaxation": {
+            "status": "optimal-relaxation",
+            "lowerBound": 2648100,
+            "tested": 3,
+            "total": 3,
+            "complete": true,
+            "method": "heterogeneous-threshold-kerf-cover"
+          },
+          "pairedRelaxation": {
+            "status": "optimal-relaxation",
+            "lowerBound": 2648100,
+            "tested": 3,
+            "total": 3,
+            "complete": true,
+            "method": "paired-area-threshold-cover",
+            "elapsedMs": 0
+          },
+          "multiThresholdRelaxation": {
+            "status": "optimal-relaxation",
+            "lowerBound": 2648100,
+            "tested": 3,
+            "total": 3,
+            "complete": true,
+            "method": "multi-threshold-area-cover",
+            "elapsedMs": 1
+          },
+          "tripleThresholdRelaxation": {
+            "status": "optimal-relaxation",
+            "lowerBound": 2648100,
+            "tested": 1,
+            "total": 1,
+            "complete": true,
+            "peakStates": 3,
+            "elapsedMs": 0,
+            "method": "triple-threshold-area-cover"
+          },
+          "fullSpanPhysicalRelaxation": {
+            "status": "unknown-class",
+            "lowerBound": null,
+            "states": 0,
+            "patterns": 0
+          }
+        }
+      ],
+      "gap": 1324050,
+      "gapPercent": 33.333333333333336,
+      "method": "integer-area-cover"
+    },
+    "globalCostProof": {
+      "objective": "cost",
+      "incumbent": 3000,
+      "lowerBound": 2000,
+      "proven": false,
+      "status": "gap",
+      "groups": [
+        {
+          "key": "panel|beyaz panel",
+          "parts": 7,
+          "stockTypes": 1,
+          "excludedStockTypes": 0,
+          "originalStockTypes": 1,
+          "status": "optimal-relaxation",
+          "lowerBound": 2000,
+          "areaRelaxation": {
+            "status": "optimal-relaxation",
+            "lowerBound": 2000,
+            "states": 3,
+            "elapsedMs": 0
+          },
+          "kerfExpandedAreaRelaxation": {
+            "status": "optimal-relaxation",
+            "lowerBound": 2000,
+            "states": 3,
+            "elapsedMs": 0,
+            "method": "kerf-expanded-area-cover"
+          },
+          "cardinalityRelaxation": {
+            "status": "optimal-relaxation",
+            "lowerBound": 2000,
+            "tested": 3,
+            "total": 3,
+            "complete": true,
+            "method": "heterogeneous-threshold-kerf-cover"
+          },
+          "pairedRelaxation": {
+            "status": "optimal-relaxation",
+            "lowerBound": 2000,
+            "tested": 3,
+            "total": 3,
+            "complete": true,
+            "method": "paired-area-threshold-cover",
+            "elapsedMs": 0
+          },
+          "multiThresholdRelaxation": {
+            "status": "optimal-relaxation",
+            "lowerBound": 2000,
+            "tested": 3,
+            "total": 3,
+            "complete": true,
+            "method": "multi-threshold-area-cover",
+            "elapsedMs": 0
+          },
+          "tripleThresholdRelaxation": {
+            "status": "optimal-relaxation",
+            "lowerBound": 2000,
+            "tested": 1,
+            "total": 1,
+            "complete": true,
+            "peakStates": 3,
+            "elapsedMs": 0,
+            "method": "triple-threshold-area-cover"
+          },
+          "fullSpanPhysicalRelaxation": {
+            "status": "unknown-class",
+            "lowerBound": null,
+            "states": 0,
+            "patterns": 0
+          }
+        }
+      ],
+      "gap": 1000,
+      "gapPercent": 33.333333333333336,
+      "method": "integer-area-cover"
+    },
+    "globalCountProof": {
+      "objective": "count",
+      "incumbent": 3,
+      "lowerBound": 2,
+      "proven": false,
+      "status": "gap",
+      "groups": [
+        {
+          "key": "panel|beyaz panel",
+          "parts": 7,
+          "stockTypes": 1,
+          "excludedStockTypes": 0,
+          "originalStockTypes": 1,
+          "status": "optimal-relaxation",
+          "lowerBound": 2,
+          "areaRelaxation": {
+            "status": "optimal-relaxation",
+            "lowerBound": 2,
+            "states": 3,
+            "elapsedMs": 0
+          },
+          "kerfExpandedAreaRelaxation": {
+            "status": "optimal-relaxation",
+            "lowerBound": 2,
+            "states": 3,
+            "elapsedMs": 0,
+            "method": "kerf-expanded-area-cover"
+          },
+          "cardinalityRelaxation": {
+            "status": "optimal-relaxation",
+            "lowerBound": 2,
+            "tested": 3,
+            "total": 3,
+            "complete": true,
+            "method": "heterogeneous-threshold-kerf-cover"
+          },
+          "pairedRelaxation": {
+            "status": "optimal-relaxation",
+            "lowerBound": 2,
+            "tested": 3,
+            "total": 3,
+            "complete": true,
+            "method": "paired-area-threshold-cover",
+            "elapsedMs": 0
+          },
+          "multiThresholdRelaxation": {
+            "status": "optimal-relaxation",
+            "lowerBound": 2,
+            "tested": 3,
+            "total": 3,
+            "complete": true,
+            "method": "multi-threshold-area-cover",
+            "elapsedMs": 0
+          },
+          "tripleThresholdRelaxation": {
+            "status": "optimal-relaxation",
+            "lowerBound": 2,
+            "tested": 1,
+            "total": 1,
+            "complete": true,
+            "peakStates": 3,
+            "elapsedMs": 0,
+            "method": "triple-threshold-area-cover"
+          },
+          "fullSpanPhysicalRelaxation": {
+            "status": "unknown-class",
+            "lowerBound": null,
+            "states": 0,
+            "patterns": 0
+          }
+        }
+      ],
+      "gap": 1,
+      "gapPercent": 33.333333333333336,
+      "method": "integer-area-cover"
+    },
+    "exact": {
+      "status": "worker-proved",
+      "proof": true,
+      "optimumCount": 3,
+      "nodes": 1078,
+      "elapsedMs": 6,
+      "groups": [
+        {
+          "material": "panel|beyaz panel",
+          "status": "proved",
+          "proven": true,
+          "initialCount": 3,
+          "bestCount": 3,
+          "lowerBound": 2,
+          "nodes": 1078,
+          "checked": [
+            {
+              "boards": 2,
+              "status": "infeasible",
+              "nodes": 1078
+            }
+          ]
+        }
+      ]
+    },
+    "economyProof": {
+      "goal": "minimum-gross-stock-area",
+      "objective": "area",
+      "proven": true,
+      "conditionalProven": false,
+      "status": "optimal",
+      "minimumArea": 3972150,
+      "minimumCost": null,
+      "nodes": 1078
+    }
+  },
+  "independent": {
+    "ok": true,
+    "errors": [],
+    "count": 3,
+    "area": 3972150,
+    "cost": 3000,
+    "placed": 7,
+    "complete": true
+  },
+  "cuts": [
+    {
+      "x1": 1451,
+      "y1": 5,
+      "x2": 1451,
+      "y2": 455,
+      "axis": "vertical",
+      "at": 1451,
+      "overhang": true,
+      "source": {
+        "x": 729,
+        "y": 5,
+        "w": 721,
+        "h": 450
+      },
+      "label": "Yan panel",
+      "number": 3
+    }
+  ],
+  "buttons": [
+    {
+      "id": "downloadPdfTopBtn",
+      "text": "↓\nPDF",
+      "disabled": false
+    },
+    {
+      "id": "printBtn",
+      "text": "PDF",
+      "disabled": false
+    }
+  ],
+  "errors": []
+}

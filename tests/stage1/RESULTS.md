@@ -1,3 +1,5 @@
+> Bu tarihsel ara raporun kapanış sonucu: [CLOSURE-RESULTS.md](CLOSURE-RESULTS.md). 60 saniyelik kesilme tek vaka değil bütün kampanya sınırıydı; ayrıntılar güncel rapordadır.
+
 # Aşama 1 — B1 ara raporu / kabul tamamlanmadı
 
 24 Kasım 2026. **Duruldu; yayına alınmadı. Aşama 2 başlamadı.** Gerçek Supabase, Auth, stok veya üretim verisine erişilmedi.
