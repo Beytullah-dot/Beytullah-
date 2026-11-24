@@ -1586,7 +1586,8 @@ function makePdfDocument(){
     style:'section',pageBreak:'before'},
    ...(!productionReady?[{text:draftNotice,fontSize:11,bold:true,color:'#A13C23',margin:[0,2,0,10]}]:[]),
    {text:b.stock.material+'  ·  '+m(b.stock.l)+' × '+m(b.stock.w)+'  ·  '+thick(b.stock.t)+'  ·  '+placed.length+' parça  ·  %'+fmt(yieldPct,1)+' verim',fontSize:9,color:'#667C6B',margin:[0,5,0,15]},
-   {svg,width:750,margin:[0,0,0,10]},
+   // A4 landscape: keep the complete drawing and dimension labels below the heading.
+   {svg,width:view?Math.min(750,400*Number(view[1])/Number(view[2])):750,margin:[0,0,0,10]},
    {text:'Testere payı '+fmt(val(state.kerf),1)+' mm · Kenar payı '+fmt(val(state.trim),1)+' mm / kenar',fontSize:8,color:'#84988A',margin:[0,5,0,11]},
    heading(productionReady?'BU STOKTAN ÜRETİLECEK PARÇALAR':'TASLAKTA YERLEŞTİRİLEN PARÇALAR'),
    table(['Etiket','Net ölçü','Kalınlık','Adet','Dönüş'],rows,[85,170,100,55,'*']),
