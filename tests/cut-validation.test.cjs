@@ -56,6 +56,7 @@ vm.runInNewContext(engineSource,{window},{
  filename:'docs/engine/cutting-engine.js',timeout:10000
 });
 assert.equal(window.BeythausCutEngine.contractVersion,1);
+vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../docs/engine/physical-verifier.js'),'utf8'),sandbox);
 vm.runInNewContext(script.replace('window.BeythausCut={','window.__testHooks={showResult,makePdfDocument,productionFile};window.BeythausCut={'), sandbox, {filename:'docs/index.html', timeout:10000});
 const app = window.BeythausCut;
 assert.ok(app?.normalize && app?.optimize && app?.auditCutPlan);

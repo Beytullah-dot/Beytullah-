@@ -1,0 +1,13 @@
+Advanced optimization benchmark: 5 → 4 panels; 9 bounded repack attempts.
+Stock-count certificate checks: 1-stock, 2-stock, geometric incompatibility, distinct materials, incomplete and PDF labeling.
+Exact engine: improvement 2→1, impossible 1-board proof, timeout guard, and 90 independent grid-oracle fixtures passed.
+Variable-stock exact search: 75 independent integer-grid oracle cases passed.
+2DPackLib CLASS external benchmarks: 11 geometry-validated instances across 6 classes; 6 match externally reported optimum; 3 internally certified among those with a known reference.
+Gross waste: independent grid-oracle comparisons 36 cases, 36 rigorous area certificates; UI/PDF and pricing distinctions passed.
+Usable offcut optimizer: 75 independent cut replays, 14 quality improvements; fixed purchased stock, PDF disclosure and no false optimum claim passed.
+Remnant inventory: physical production only, project-to-project reuse, consumption, PDF provenance, status, backup and idempotency passed.
+Shelf inventory: 58+ metadata, responsive UI, filter, rotation, legacy-migration, production, edit and backup assertions passed.
+Physical QR labels: real QR encode/decode round trip, 2 rendered labels, 13+ URL/security checks, filtered print and offline files passed.
+Stock movement history: production, QR attribution, before/after, deletion tombstones, import idempotency, CSV and failed-write atomicity passed.
+Real app cloud guard: local inventory isolated, stale local writes refused, stock version 7 preserved and production RPC payload verified.
+Beythaus Cut: 917 checks passed; invalid plans rejected and unknown prices preserved.

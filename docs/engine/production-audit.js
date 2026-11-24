@@ -16,9 +16,38 @@ function createAudit({getState,mkey}={}){
   get(_target,key){const project=getState();return project==null?undefined:project[key]},
   set(){throw new TypeError('Auditor must not mutate project settings')}
  });
+// Verify the exterior blade footprint with an independent x-slab / y-interval
+// cover of earlier kerf gaps. Coordinates outside trimmed stock are allowed.
+function overhangIsClear(spill, root, gaps, tolerance){
+ const left=Math.max(spill.x,root.x),right=Math.min(spill.x+spill.w,root.x+root.w);
+ const top=Math.max(spill.y,root.y),bottom=Math.min(spill.y+spill.h,root.y+root.h);
+ if(right-left<=tolerance||bottom-top<=tolerance)return true;
+ const xs=[left,right];
+ for(const gap of gaps){
+  if(gap.x>left&&gap.x<right)xs.push(gap.x);
+  if(gap.x+gap.w>left&&gap.x+gap.w<right)xs.push(gap.x+gap.w);
+ }
+ xs.sort((a,b)=>a-b);
+ for(let i=1;i<xs.length;i++){
+  if(xs[i]-xs[i-1]<=tolerance)continue;
+  const x=(xs[i]+xs[i-1])/2;
+  const intervals=gaps.filter(g=>g.x<=x&&g.x+g.w>=x)
+   .map(g=>[Math.max(top,g.y),Math.min(bottom,g.y+g.h)]).filter(g=>g[1]>g[0])
+   .sort((a,b)=>a[0]-b[0]);
+  let reached=top;
+  for(const [from,to] of intervals){
+   if(from>reached+tolerance)break;
+   reached=Math.max(reached,to);
+  }
+  if(reached<bottom-tolerance)return false;
+ }
+ return true;
+}
 function auditGuillotineCuts(bin,cfg){
  const errors=[],tol=1e-5,eq=(a,b)=>Math.abs(a-b)<=tol;
  const leaves=[{x:cfg.trim,y:cfg.trim,w:bin.stock.l-2*cfg.trim,h:bin.stock.w-2*cfg.trim}];
+ const usable={...leaves[0]},gaps=[];
+ const narrow=cfg.allowNarrowScrapCuts===true||(cfg.allowNarrowScrapCuts===undefined&&state.allowNarrowScrapCuts===true);
  const same=(a,b)=>eq(a.x,b.x)&&eq(a.y,b.y)&&eq(a.w,b.w)&&eq(a.h,b.h);
  function issue(msg){if(errors.length<10)errors.push(msg)}
  if(!Array.isArray(bin.cuts)){issue('Kesim adımları eksik.');return errors}
@@ -31,7 +60,27 @@ function auditGuillotineCuts(bin,cfg){
    issue('Adım '+(j+1)+': kesim kaynağın tamamını geçmiyor.')
   }
   const before=(vertical?at-p.x:at-p.y)-k/2,after=(vertical?p.x+p.w-at:p.y+p.h-at)-k/2;
-  if(before<-tol||after<-tol){issue('Adım '+(j+1)+': testere payı stok dışına taşıyor.');continue}
+  const total=vertical?p.w:p.h,overhang=after < -tol;
+  // A positive terminal scrap may be smaller than kerf. Zero scrap must not
+  // cause a cut; ordinary full-kerf cuts retain the existing behavior.
+  if(before<-tol||before>=total-tol||overhang&&!narrow){
+   issue('Adım '+(j+1)+': dar artık kesimine izin yok veya artık sıfır.');continue
+  }
+  if(overhang!==(c.overhang===true)){issue('Taşma işareti kesim geometrisiyle uyuşmuyor.');continue}
+  if(overhang){
+   const spill=vertical?{x:p.x+p.w,y:p.y,w:-after,h:p.h}:
+    {x:p.x,y:p.y+p.h,w:p.w,h:-after};
+   const blade=vertical?{x:at-k/2,y:p.y,w:k,h:p.h}:{x:p.x,y:at-k/2,w:p.w,h:k};
+   const touches=(a,b)=>Math.min(a.x+a.w,b.x+b.w)-Math.max(a.x,b.x)>tol&&
+    Math.min(a.y+a.h,b.y+b.h)-Math.max(a.y,b.y)>tol;
+   if(-after>=k-tol||!overhangIsClear(spill,usable,gaps,tol)||
+      leaves.some(leaf=>touches(spill,leaf))||bin.placed.some(piece=>touches(blade,piece))){
+    issue('Taşan testere komşu parçaya veya kesilmemiş serbest alana ulaşıyor.');continue
+   }
+  }
+  const consumed=Math.max(0,Math.min(k,total-before));
+  if(consumed>tol)gaps.push(vertical?{x:p.x+before,y:p.y,w:consumed,h:p.h}:
+   {x:p.x,y:p.y+before,w:p.w,h:consumed});
   if(vertical){
    if(before>tol)leaves.push({x:p.x,y:p.y,w:before,h:p.h});
    if(after>tol)leaves.push({x:at+k/2,y:p.y,w:after,h:p.h});
@@ -73,7 +122,7 @@ function auditCutPlan(result,data){
   if(!stock){error('Stok '+(index+1)+' kaynak listesinde yok.');continue}
   usage.set(stock.id,(usage.get(stock.id)||0)+1);totalStockArea+=stock.l*stock.w;
   if(!Array.isArray(bin.placed)||!bin.placed.length){error('Boş stok yerleşimi.');continue}
-  if(state.mode==='guillotine')for(const msg of auditGuillotineCuts(bin,{trim:data.trim,kerf:data.kerf}))error(msg);
+  if(state.mode==='guillotine')for(const msg of auditGuillotineCuts(bin,{trim:data.trim,kerf:data.kerf,allowNarrowScrapCuts:data.allowNarrowScrapCuts}))error(msg);
   if(!eq(board.l,stock.l)||!eq(board.w,stock.w)||mkey(board.material)!==mkey(stock.material)||
    (board.t===null)!==(stock.t===null)||(board.t!==null&&!eq(board.t,stock.t)))error('Stok boyutları değişmiş.');
   for(const piece of bin.placed){
