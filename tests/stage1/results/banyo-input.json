@@ -1,0 +1,85 @@
+{
+  "synthetic": true,
+  "witnessProvided": false,
+  "state": {
+    "project": "Banyo - lavabo dolabı",
+    "unit": "mm",
+    "kerf": 4,
+    "trim": 5,
+    "allowNarrowScrapCuts": true,
+    "mode": "guillotine",
+    "objective": "area",
+    "priceMode": "panel",
+    "materialMode": "single",
+    "singleMaterial": "Beyaz panel",
+    "singleCategory": "panel",
+    "partsThicknessEnabled": true,
+    "stocksThicknessEnabled": true,
+    "useRemnantStock": false,
+    "offcutMinEdgeMm": 50,
+    "offcutMinAreaCm2": 100,
+    "parts": [
+      {
+        "id": "p0",
+        "l": 720,
+        "w": 450,
+        "qty": 2,
+        "label": "Yan panel",
+        "t": 18,
+        "category": "panel",
+        "material": "Beyaz panel",
+        "grain": "length",
+        "rotate": false
+      },
+      {
+        "id": "p1",
+        "l": 564,
+        "w": 450,
+        "qty": 2,
+        "label": "Taban ve raf",
+        "t": 18,
+        "category": "panel",
+        "material": "Beyaz panel",
+        "grain": "length",
+        "rotate": false
+      },
+      {
+        "id": "p2",
+        "l": 716,
+        "w": 296,
+        "qty": 2,
+        "label": "Kapak",
+        "t": 18,
+        "category": "panel",
+        "material": "Beyaz panel",
+        "grain": "length",
+        "rotate": false
+      },
+      {
+        "id": "p3",
+        "l": 600,
+        "w": 470,
+        "qty": 1,
+        "label": "Üst tabla",
+        "t": 18,
+        "category": "panel",
+        "material": "Beyaz panel",
+        "grain": "length",
+        "rotate": false
+      }
+    ],
+    "stocks": [
+      {
+        "id": "s0",
+        "l": 1455,
+        "w": 910,
+        "qty": 8,
+        "t": 18,
+        "category": "panel",
+        "material": "Beyaz panel",
+        "price": 1000,
+        "priceUnit": "panel"
+      }
+    ]
+  }
+}

@@ -22,10 +22,10 @@ function stockPrice(s, m3) {
 // ---------------------------------------------------------------- independent plan verifier
 /* Method A: positions-only guillotine recognition (ignores the engine's cut list).
  * Method B: replay of the engine's own cut list with its own exact arithmetic.
- * Both must pass for a bin to be accepted.  Scaled integers (x1000) => no tolerance games.
+ * Both must pass for a bin to be accepted.  Scaled integers (x1e6); reject unsupported precision and unsafe coordinates.
  */
-const S = 1000;
-const I = v => { const r = Math.round(v * S); if (Math.abs(r - v * S) > 1e-6 * Math.max(1, Math.abs(v * S))) throw new Error('non-grid value ' + v); return r; };
+const S = 1000000;
+const I = v => { const scaled=v*S,r=Math.round(scaled); if (!Number.isFinite(v)||!Number.isSafeInteger(r)||Math.abs(r-scaled)>Math.max(1e-4,Math.abs(scaled)*Number.EPSILON*8)) throw new Error('non-grid or unsafe value '+v); return r; };
 
 function recognizeGuillotine(pieces, k) { // pieces: {x,y,w,h} scaled ints; returns true if separable by full-span kerf cuts
   if (pieces.length <= 1) return true;

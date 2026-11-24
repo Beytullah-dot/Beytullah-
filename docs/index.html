@@ -379,7 +379,7 @@ function ensurePartLabels(rows){const used=new Set(rows.map(p=>String(p.label??'
 const round=(n,d=3)=>Math.round(n*10**d)/10**d;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const defaultData=()=>({version:2,partsThicknessEnabled:true,stocksThicknessEnabled:true,
- project:'Yeni proje',unit:'cm',kerf:3,trim:0,offcutMinEdgeMm:50,offcutMinAreaCm2:100,
+ project:'Yeni proje',unit:'cm',kerf:3,trim:0,allowNarrowScrapCuts:false,offcutMinEdgeMm:50,offcutMinAreaCm2:100,
  offcutValuePerM2:'',useRemnantStock:true,mode:'guillotine',
  priceMode:'panel',objective:'cost',m3Price:25000,materialMode:'single',singleMaterial:'',
  singleCategory:'panel',allowedStockIds:null,parts:[],stocks:[]});

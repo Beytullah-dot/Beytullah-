@@ -1,0 +1,5681 @@
+{
+  "inputCases": 309,
+  "feasibleCases": 199,
+  "coverage": {
+    "kerfExpandedAreaCover": 597,
+    "thresholdCardinalityCover": 597,
+    "pairedAreaCardinalityCover": 597,
+    "multipleThresholdAreaCover": 570,
+    "tripleThresholdAreaCover": 507,
+    "kerfAreaLowerBound": 199,
+    "halfSpanLowerBound": 199,
+    "incompatibilityLowerBound": 199,
+    "itemCapacityLowerBound": 199,
+    "fullSpan": 8
+  },
+  "violations": 0,
+  "rows": [
+    {
+      "caseId": "generic-970000",
+      "oracle": {
+        "count": 1,
+        "area": 520,
+        "cost": 55
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 336,
+        "thresholdCardinalityCover/area": 336,
+        "pairedAreaCardinalityCover/area": 336,
+        "multipleThresholdAreaCover/area": 336,
+        "tripleThresholdAreaCover/area": 336,
+        "kerfExpandedAreaCover/cost": 55,
+        "thresholdCardinalityCover/cost": 55,
+        "pairedAreaCardinalityCover/cost": 55,
+        "multipleThresholdAreaCover/cost": 55,
+        "tripleThresholdAreaCover/cost": 55,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970001",
+      "oracle": {
+        "count": 1,
+        "area": 552,
+        "cost": 31
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 552,
+        "thresholdCardinalityCover/area": 552,
+        "pairedAreaCardinalityCover/area": 552,
+        "multipleThresholdAreaCover/area": 552,
+        "tripleThresholdAreaCover/area": 552,
+        "kerfExpandedAreaCover/cost": 31,
+        "thresholdCardinalityCover/cost": 31,
+        "pairedAreaCardinalityCover/cost": 31,
+        "multipleThresholdAreaCover/cost": 31,
+        "tripleThresholdAreaCover/cost": 31,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970002",
+      "oracle": {
+        "count": 2,
+        "area": 582,
+        "cost": 69
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 414,
+        "thresholdCardinalityCover/area": 336,
+        "pairedAreaCardinalityCover/area": 336,
+        "multipleThresholdAreaCover/area": 336,
+        "tripleThresholdAreaCover/area": 336,
+        "kerfExpandedAreaCover/cost": 35,
+        "thresholdCardinalityCover/cost": 35,
+        "pairedAreaCardinalityCover/cost": 35,
+        "multipleThresholdAreaCover/cost": 35,
+        "tripleThresholdAreaCover/cost": 35,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970003",
+      "oracle": {
+        "count": 1,
+        "area": 390,
+        "cost": 48
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 390,
+        "thresholdCardinalityCover/area": 390,
+        "pairedAreaCardinalityCover/area": 390,
+        "multipleThresholdAreaCover/area": 390,
+        "tripleThresholdAreaCover/area": 390,
+        "kerfExpandedAreaCover/cost": 48,
+        "thresholdCardinalityCover/cost": 48,
+        "pairedAreaCardinalityCover/cost": 48,
+        "multipleThresholdAreaCover/cost": 48,
+        "tripleThresholdAreaCover/cost": 48,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970005",
+      "oracle": {
+        "count": 1,
+        "area": 234,
+        "cost": 67
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 234,
+        "thresholdCardinalityCover/area": 234,
+        "pairedAreaCardinalityCover/area": 234,
+        "multipleThresholdAreaCover/area": 234,
+        "tripleThresholdAreaCover/area": 234,
+        "kerfExpandedAreaCover/cost": 67,
+        "thresholdCardinalityCover/cost": 67,
+        "pairedAreaCardinalityCover/cost": 67,
+        "multipleThresholdAreaCover/cost": 67,
+        "tripleThresholdAreaCover/cost": 67,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970006",
+      "oracle": {
+        "count": 2,
+        "area": 1012,
+        "cost": 166
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 1012,
+        "thresholdCardinalityCover/area": 506,
+        "pairedAreaCardinalityCover/area": 506,
+        "multipleThresholdAreaCover/area": 506,
+        "tripleThresholdAreaCover/area": 506,
+        "kerfExpandedAreaCover/cost": 166,
+        "thresholdCardinalityCover/cost": 83,
+        "pairedAreaCardinalityCover/cost": 83,
+        "multipleThresholdAreaCover/cost": 83,
+        "tripleThresholdAreaCover/cost": 83,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970007",
+      "oracle": {
+        "count": 1,
+        "area": 598,
+        "cost": 20
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 598,
+        "thresholdCardinalityCover/area": 598,
+        "pairedAreaCardinalityCover/area": 598,
+        "multipleThresholdAreaCover/area": 598,
+        "tripleThresholdAreaCover/area": 598,
+        "kerfExpandedAreaCover/cost": 20,
+        "thresholdCardinalityCover/cost": 20,
+        "pairedAreaCardinalityCover/cost": 20,
+        "multipleThresholdAreaCover/cost": 20,
+        "tripleThresholdAreaCover/cost": 20,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970008",
+      "oracle": {
+        "count": 2,
+        "area": 714,
+        "cost": 146
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 2,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 714,
+        "thresholdCardinalityCover/area": 714,
+        "pairedAreaCardinalityCover/area": 714,
+        "multipleThresholdAreaCover/area": 714,
+        "tripleThresholdAreaCover/area": 714,
+        "kerfExpandedAreaCover/cost": 146,
+        "thresholdCardinalityCover/cost": 146,
+        "pairedAreaCardinalityCover/cost": 146,
+        "multipleThresholdAreaCover/cost": 146,
+        "tripleThresholdAreaCover/cost": 146,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 2
+      }
+    },
+    {
+      "caseId": "generic-970010",
+      "oracle": {
+        "count": 1,
+        "area": 575,
+        "cost": 88
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 575,
+        "thresholdCardinalityCover/area": 432,
+        "pairedAreaCardinalityCover/area": 432,
+        "multipleThresholdAreaCover/area": 432,
+        "tripleThresholdAreaCover/area": 432,
+        "kerfExpandedAreaCover/cost": 88,
+        "thresholdCardinalityCover/cost": 78,
+        "pairedAreaCardinalityCover/cost": 78,
+        "multipleThresholdAreaCover/cost": 78,
+        "tripleThresholdAreaCover/cost": 78,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970011",
+      "oracle": {
+        "count": 1,
+        "area": 456,
+        "cost": 33
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 456,
+        "thresholdCardinalityCover/area": 456,
+        "pairedAreaCardinalityCover/area": 456,
+        "multipleThresholdAreaCover/area": 456,
+        "tripleThresholdAreaCover/area": 456,
+        "kerfExpandedAreaCover/cost": 33,
+        "thresholdCardinalityCover/cost": 33,
+        "pairedAreaCardinalityCover/cost": 33,
+        "multipleThresholdAreaCover/cost": 33,
+        "tripleThresholdAreaCover/cost": 33,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970012",
+      "oracle": {
+        "count": 1,
+        "area": 460,
+        "cost": 13
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 460,
+        "thresholdCardinalityCover/area": 460,
+        "pairedAreaCardinalityCover/area": 460,
+        "multipleThresholdAreaCover/area": 460,
+        "tripleThresholdAreaCover/area": 460,
+        "kerfExpandedAreaCover/cost": 13,
+        "thresholdCardinalityCover/cost": 13,
+        "pairedAreaCardinalityCover/cost": 13,
+        "multipleThresholdAreaCover/cost": 13,
+        "tripleThresholdAreaCover/cost": 13,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970013",
+      "oracle": {
+        "count": 1,
+        "area": 480,
+        "cost": 71
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 480,
+        "thresholdCardinalityCover/area": 480,
+        "pairedAreaCardinalityCover/area": 480,
+        "multipleThresholdAreaCover/area": 480,
+        "kerfExpandedAreaCover/cost": 71,
+        "thresholdCardinalityCover/cost": 71,
+        "pairedAreaCardinalityCover/cost": 71,
+        "multipleThresholdAreaCover/cost": 71,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970014",
+      "oracle": {
+        "count": 2,
+        "area": 672,
+        "cost": 50
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 336,
+        "thresholdCardinalityCover/area": 336,
+        "pairedAreaCardinalityCover/area": 336,
+        "multipleThresholdAreaCover/area": 336,
+        "tripleThresholdAreaCover/area": 336,
+        "kerfExpandedAreaCover/cost": 25,
+        "thresholdCardinalityCover/cost": 25,
+        "pairedAreaCardinalityCover/cost": 25,
+        "multipleThresholdAreaCover/cost": 25,
+        "tripleThresholdAreaCover/cost": 25,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970015",
+      "oracle": {
+        "count": 2,
+        "area": 676,
+        "cost": 108
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 676,
+        "thresholdCardinalityCover/area": 338,
+        "pairedAreaCardinalityCover/area": 338,
+        "multipleThresholdAreaCover/area": 338,
+        "tripleThresholdAreaCover/area": 338,
+        "kerfExpandedAreaCover/cost": 108,
+        "thresholdCardinalityCover/cost": 54,
+        "pairedAreaCardinalityCover/cost": 54,
+        "multipleThresholdAreaCover/cost": 54,
+        "tripleThresholdAreaCover/cost": 54,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970016",
+      "oracle": {
+        "count": 1,
+        "area": 368,
+        "cost": 12
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 368,
+        "thresholdCardinalityCover/area": 368,
+        "pairedAreaCardinalityCover/area": 368,
+        "multipleThresholdAreaCover/area": 368,
+        "kerfExpandedAreaCover/cost": 12,
+        "thresholdCardinalityCover/cost": 12,
+        "pairedAreaCardinalityCover/cost": 12,
+        "multipleThresholdAreaCover/cost": 12,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970019",
+      "oracle": {
+        "count": 2,
+        "area": 864,
+        "cost": 32
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 432,
+        "thresholdCardinalityCover/area": 432,
+        "pairedAreaCardinalityCover/area": 432,
+        "multipleThresholdAreaCover/area": 432,
+        "kerfExpandedAreaCover/cost": 16,
+        "thresholdCardinalityCover/cost": 16,
+        "pairedAreaCardinalityCover/cost": 16,
+        "multipleThresholdAreaCover/cost": 16,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970020",
+      "oracle": {
+        "count": 1,
+        "area": 315,
+        "cost": 35
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 315,
+        "thresholdCardinalityCover/area": 315,
+        "pairedAreaCardinalityCover/area": 315,
+        "multipleThresholdAreaCover/area": 315,
+        "tripleThresholdAreaCover/area": 315,
+        "kerfExpandedAreaCover/cost": 35,
+        "thresholdCardinalityCover/cost": 35,
+        "pairedAreaCardinalityCover/cost": 35,
+        "multipleThresholdAreaCover/cost": 35,
+        "tripleThresholdAreaCover/cost": 35,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970021",
+      "oracle": {
+        "count": 1,
+        "area": 375,
+        "cost": 27
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 375,
+        "thresholdCardinalityCover/area": 375,
+        "pairedAreaCardinalityCover/area": 375,
+        "multipleThresholdAreaCover/area": 375,
+        "tripleThresholdAreaCover/area": 375,
+        "kerfExpandedAreaCover/cost": 27,
+        "thresholdCardinalityCover/cost": 27,
+        "pairedAreaCardinalityCover/cost": 27,
+        "multipleThresholdAreaCover/cost": 27,
+        "tripleThresholdAreaCover/cost": 27,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970022",
+      "oracle": {
+        "count": 2,
+        "area": 1046,
+        "cost": 157
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 2,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 1046,
+        "thresholdCardinalityCover/area": 1046,
+        "pairedAreaCardinalityCover/area": 1046,
+        "multipleThresholdAreaCover/area": 1046,
+        "tripleThresholdAreaCover/area": 1046,
+        "kerfExpandedAreaCover/cost": 157,
+        "thresholdCardinalityCover/cost": 157,
+        "pairedAreaCardinalityCover/cost": 157,
+        "multipleThresholdAreaCover/cost": 157,
+        "tripleThresholdAreaCover/cost": 157,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 2
+      }
+    },
+    {
+      "caseId": "generic-970023",
+      "oracle": {
+        "count": 2,
+        "area": 816,
+        "cost": 62
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 816,
+        "thresholdCardinalityCover/area": 408,
+        "pairedAreaCardinalityCover/area": 408,
+        "multipleThresholdAreaCover/area": 408,
+        "tripleThresholdAreaCover/area": 408,
+        "kerfExpandedAreaCover/cost": 62,
+        "thresholdCardinalityCover/cost": 31,
+        "pairedAreaCardinalityCover/cost": 31,
+        "multipleThresholdAreaCover/cost": 31,
+        "tripleThresholdAreaCover/cost": 31,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970025",
+      "oracle": {
+        "count": 2,
+        "area": 546,
+        "cost": 90
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 2,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 546,
+        "thresholdCardinalityCover/area": 546,
+        "pairedAreaCardinalityCover/area": 546,
+        "multipleThresholdAreaCover/area": 546,
+        "tripleThresholdAreaCover/area": 546,
+        "kerfExpandedAreaCover/cost": 90,
+        "thresholdCardinalityCover/cost": 90,
+        "pairedAreaCardinalityCover/cost": 90,
+        "multipleThresholdAreaCover/cost": 90,
+        "tripleThresholdAreaCover/cost": 90,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 2
+      }
+    },
+    {
+      "caseId": "generic-970026",
+      "oracle": {
+        "count": 2,
+        "area": 1040,
+        "cost": 168
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 520,
+        "thresholdCardinalityCover/area": 520,
+        "pairedAreaCardinalityCover/area": 520,
+        "multipleThresholdAreaCover/area": 520,
+        "tripleThresholdAreaCover/area": 520,
+        "kerfExpandedAreaCover/cost": 84,
+        "thresholdCardinalityCover/cost": 84,
+        "pairedAreaCardinalityCover/cost": 84,
+        "multipleThresholdAreaCover/cost": 84,
+        "tripleThresholdAreaCover/cost": 84,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970027",
+      "oracle": {
+        "count": 2,
+        "area": 1008,
+        "cost": 78
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 504,
+        "thresholdCardinalityCover/area": 504,
+        "pairedAreaCardinalityCover/area": 504,
+        "multipleThresholdAreaCover/area": 504,
+        "kerfExpandedAreaCover/cost": 39,
+        "thresholdCardinalityCover/cost": 39,
+        "pairedAreaCardinalityCover/cost": 39,
+        "multipleThresholdAreaCover/cost": 39,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970028",
+      "oracle": {
+        "count": 4,
+        "area": 1440,
+        "cost": 296
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 3,
+        "thresholdCardinalityCover/count": 3,
+        "pairedAreaCardinalityCover/count": 3,
+        "multipleThresholdAreaCover/count": 3,
+        "tripleThresholdAreaCover/count": 3,
+        "kerfExpandedAreaCover/area": 1020,
+        "thresholdCardinalityCover/area": 1140,
+        "pairedAreaCardinalityCover/area": 1140,
+        "multipleThresholdAreaCover/area": 1140,
+        "tripleThresholdAreaCover/area": 1140,
+        "kerfExpandedAreaCover/cost": 217,
+        "thresholdCardinalityCover/cost": 227,
+        "pairedAreaCardinalityCover/cost": 227,
+        "multipleThresholdAreaCover/cost": 227,
+        "tripleThresholdAreaCover/cost": 227,
+        "kerfAreaLowerBound": 3,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 4,
+        "itemCapacityLowerBound": 3
+      }
+    },
+    {
+      "caseId": "generic-970029",
+      "oracle": {
+        "count": 2,
+        "area": 672,
+        "cost": 112
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 672,
+        "thresholdCardinalityCover/area": 336,
+        "pairedAreaCardinalityCover/area": 672,
+        "multipleThresholdAreaCover/area": 672,
+        "tripleThresholdAreaCover/area": 672,
+        "kerfExpandedAreaCover/cost": 112,
+        "thresholdCardinalityCover/cost": 56,
+        "pairedAreaCardinalityCover/cost": 112,
+        "multipleThresholdAreaCover/cost": 112,
+        "tripleThresholdAreaCover/cost": 112,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970031",
+      "oracle": {
+        "count": 2,
+        "area": 656,
+        "cost": 39
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 656,
+        "thresholdCardinalityCover/area": 240,
+        "pairedAreaCardinalityCover/area": 416,
+        "multipleThresholdAreaCover/area": 416,
+        "tripleThresholdAreaCover/area": 416,
+        "kerfExpandedAreaCover/cost": 39,
+        "thresholdCardinalityCover/cost": 13,
+        "pairedAreaCardinalityCover/cost": 26,
+        "multipleThresholdAreaCover/cost": 26,
+        "tripleThresholdAreaCover/cost": 26,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970032",
+      "oracle": {
+        "count": 2,
+        "area": 836,
+        "cost": 118
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 836,
+        "thresholdCardinalityCover/area": 418,
+        "pairedAreaCardinalityCover/area": 836,
+        "multipleThresholdAreaCover/area": 836,
+        "tripleThresholdAreaCover/area": 836,
+        "kerfExpandedAreaCover/cost": 118,
+        "thresholdCardinalityCover/cost": 59,
+        "pairedAreaCardinalityCover/cost": 118,
+        "multipleThresholdAreaCover/cost": 118,
+        "tripleThresholdAreaCover/cost": 118,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970034",
+      "oracle": {
+        "count": 3,
+        "area": 910,
+        "cost": 190
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 2,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 700,
+        "thresholdCardinalityCover/area": 560,
+        "pairedAreaCardinalityCover/area": 560,
+        "multipleThresholdAreaCover/area": 560,
+        "tripleThresholdAreaCover/area": 560,
+        "kerfExpandedAreaCover/cost": 174,
+        "thresholdCardinalityCover/cost": 103,
+        "pairedAreaCardinalityCover/cost": 103,
+        "multipleThresholdAreaCover/cost": 103,
+        "tripleThresholdAreaCover/cost": 103,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 3,
+        "itemCapacityLowerBound": 2
+      }
+    },
+    {
+      "caseId": "generic-970035",
+      "oracle": {
+        "count": 1,
+        "area": 266,
+        "cost": 15
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 266,
+        "thresholdCardinalityCover/area": 266,
+        "pairedAreaCardinalityCover/area": 266,
+        "multipleThresholdAreaCover/area": 266,
+        "tripleThresholdAreaCover/area": 266,
+        "kerfExpandedAreaCover/cost": 15,
+        "thresholdCardinalityCover/cost": 15,
+        "pairedAreaCardinalityCover/cost": 15,
+        "multipleThresholdAreaCover/cost": 15,
+        "tripleThresholdAreaCover/cost": 15,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970036",
+      "oracle": {
+        "count": 2,
+        "area": 856,
+        "cost": 123
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 2,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 856,
+        "thresholdCardinalityCover/area": 856,
+        "pairedAreaCardinalityCover/area": 856,
+        "multipleThresholdAreaCover/area": 856,
+        "tripleThresholdAreaCover/area": 856,
+        "kerfExpandedAreaCover/cost": 123,
+        "thresholdCardinalityCover/cost": 123,
+        "pairedAreaCardinalityCover/cost": 123,
+        "multipleThresholdAreaCover/cost": 123,
+        "tripleThresholdAreaCover/cost": 123,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 2
+      }
+    },
+    {
+      "caseId": "generic-970037",
+      "oracle": {
+        "count": 1,
+        "area": 456,
+        "cost": 68
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 456,
+        "thresholdCardinalityCover/area": 456,
+        "pairedAreaCardinalityCover/area": 456,
+        "multipleThresholdAreaCover/area": 456,
+        "tripleThresholdAreaCover/area": 456,
+        "kerfExpandedAreaCover/cost": 68,
+        "thresholdCardinalityCover/cost": 68,
+        "pairedAreaCardinalityCover/cost": 68,
+        "multipleThresholdAreaCover/cost": 68,
+        "tripleThresholdAreaCover/cost": 68,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970038",
+      "oracle": {
+        "count": 2,
+        "area": 448,
+        "cost": 80
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 448,
+        "thresholdCardinalityCover/area": 224,
+        "pairedAreaCardinalityCover/area": 285,
+        "multipleThresholdAreaCover/area": 285,
+        "tripleThresholdAreaCover/area": 285,
+        "kerfExpandedAreaCover/cost": 80,
+        "thresholdCardinalityCover/cost": 40,
+        "pairedAreaCardinalityCover/cost": 41,
+        "multipleThresholdAreaCover/cost": 41,
+        "tripleThresholdAreaCover/cost": 41,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970039",
+      "oracle": {
+        "count": 1,
+        "area": 323,
+        "cost": 11
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 323,
+        "thresholdCardinalityCover/area": 323,
+        "pairedAreaCardinalityCover/area": 323,
+        "multipleThresholdAreaCover/area": 323,
+        "tripleThresholdAreaCover/area": 323,
+        "kerfExpandedAreaCover/cost": 11,
+        "thresholdCardinalityCover/cost": 11,
+        "pairedAreaCardinalityCover/cost": 11,
+        "multipleThresholdAreaCover/cost": 11,
+        "tripleThresholdAreaCover/cost": 11,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970040",
+      "oracle": {
+        "count": 1,
+        "area": 315,
+        "cost": 39
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 315,
+        "thresholdCardinalityCover/area": 315,
+        "pairedAreaCardinalityCover/area": 315,
+        "multipleThresholdAreaCover/area": 315,
+        "tripleThresholdAreaCover/area": 315,
+        "kerfExpandedAreaCover/cost": 39,
+        "thresholdCardinalityCover/cost": 39,
+        "pairedAreaCardinalityCover/cost": 39,
+        "multipleThresholdAreaCover/cost": 39,
+        "tripleThresholdAreaCover/cost": 39,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970041",
+      "oracle": {
+        "count": 2,
+        "area": 597,
+        "cost": 103
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 2,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 570,
+        "thresholdCardinalityCover/area": 597,
+        "pairedAreaCardinalityCover/area": 597,
+        "multipleThresholdAreaCover/area": 597,
+        "tripleThresholdAreaCover/area": 597,
+        "kerfExpandedAreaCover/cost": 103,
+        "thresholdCardinalityCover/cost": 103,
+        "pairedAreaCardinalityCover/cost": 103,
+        "multipleThresholdAreaCover/cost": 103,
+        "tripleThresholdAreaCover/cost": 103,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 2
+      }
+    },
+    {
+      "caseId": "generic-970043",
+      "oracle": {
+        "count": 1,
+        "area": 625,
+        "cost": 50
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 625,
+        "thresholdCardinalityCover/area": 625,
+        "pairedAreaCardinalityCover/area": 625,
+        "multipleThresholdAreaCover/area": 625,
+        "tripleThresholdAreaCover/area": 625,
+        "kerfExpandedAreaCover/cost": 50,
+        "thresholdCardinalityCover/cost": 50,
+        "pairedAreaCardinalityCover/cost": 50,
+        "multipleThresholdAreaCover/cost": 50,
+        "tripleThresholdAreaCover/cost": 50,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970045",
+      "oracle": {
+        "count": 1,
+        "area": 462,
+        "cost": 62
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 462,
+        "thresholdCardinalityCover/area": 462,
+        "pairedAreaCardinalityCover/area": 462,
+        "multipleThresholdAreaCover/area": 462,
+        "tripleThresholdAreaCover/area": 462,
+        "kerfExpandedAreaCover/cost": 62,
+        "thresholdCardinalityCover/cost": 62,
+        "pairedAreaCardinalityCover/cost": 62,
+        "multipleThresholdAreaCover/cost": 62,
+        "tripleThresholdAreaCover/cost": 62,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970046",
+      "oracle": {
+        "count": 1,
+        "area": 375,
+        "cost": 38
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 375,
+        "thresholdCardinalityCover/area": 208,
+        "pairedAreaCardinalityCover/area": 208,
+        "multipleThresholdAreaCover/area": 208,
+        "kerfExpandedAreaCover/cost": 38,
+        "thresholdCardinalityCover/cost": 38,
+        "pairedAreaCardinalityCover/cost": 38,
+        "multipleThresholdAreaCover/cost": 38,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970047",
+      "oracle": {
+        "count": 2,
+        "area": 641,
+        "cost": 136
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 532,
+        "thresholdCardinalityCover/area": 266,
+        "pairedAreaCardinalityCover/area": 375,
+        "multipleThresholdAreaCover/area": 375,
+        "tripleThresholdAreaCover/area": 375,
+        "kerfExpandedAreaCover/cost": 136,
+        "thresholdCardinalityCover/cost": 68,
+        "pairedAreaCardinalityCover/cost": 68,
+        "multipleThresholdAreaCover/cost": 68,
+        "tripleThresholdAreaCover/cost": 68,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970048",
+      "oracle": {
+        "count": 1,
+        "area": 520,
+        "cost": 51
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 390,
+        "thresholdCardinalityCover/area": 195,
+        "pairedAreaCardinalityCover/area": 390,
+        "multipleThresholdAreaCover/area": 390,
+        "tripleThresholdAreaCover/area": 390,
+        "kerfExpandedAreaCover/cost": 51,
+        "thresholdCardinalityCover/cost": 32,
+        "pairedAreaCardinalityCover/cost": 51,
+        "multipleThresholdAreaCover/cost": 51,
+        "tripleThresholdAreaCover/cost": 51,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970050",
+      "oracle": {
+        "count": 1,
+        "area": 340,
+        "cost": 33
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 340,
+        "thresholdCardinalityCover/area": 340,
+        "pairedAreaCardinalityCover/area": 340,
+        "multipleThresholdAreaCover/area": 340,
+        "tripleThresholdAreaCover/area": 340,
+        "kerfExpandedAreaCover/cost": 33,
+        "thresholdCardinalityCover/cost": 33,
+        "pairedAreaCardinalityCover/cost": 33,
+        "multipleThresholdAreaCover/cost": 33,
+        "tripleThresholdAreaCover/cost": 33,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970052",
+      "oracle": {
+        "count": 2,
+        "area": 569,
+        "cost": 26
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 569,
+        "thresholdCardinalityCover/area": 361,
+        "pairedAreaCardinalityCover/area": 361,
+        "multipleThresholdAreaCover/area": 361,
+        "tripleThresholdAreaCover/area": 361,
+        "kerfExpandedAreaCover/cost": 26,
+        "thresholdCardinalityCover/cost": 13,
+        "pairedAreaCardinalityCover/cost": 13,
+        "multipleThresholdAreaCover/cost": 13,
+        "tripleThresholdAreaCover/cost": 13,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970053",
+      "oracle": {
+        "count": 1,
+        "area": 494,
+        "cost": 57
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 494,
+        "thresholdCardinalityCover/area": 494,
+        "pairedAreaCardinalityCover/area": 494,
+        "multipleThresholdAreaCover/area": 494,
+        "tripleThresholdAreaCover/area": 494,
+        "kerfExpandedAreaCover/cost": 57,
+        "thresholdCardinalityCover/cost": 57,
+        "pairedAreaCardinalityCover/cost": 57,
+        "multipleThresholdAreaCover/cost": 57,
+        "tripleThresholdAreaCover/cost": 57,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970054",
+      "oracle": {
+        "count": 1,
+        "area": 441,
+        "cost": 23
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 441,
+        "thresholdCardinalityCover/area": 270,
+        "pairedAreaCardinalityCover/area": 270,
+        "multipleThresholdAreaCover/area": 270,
+        "tripleThresholdAreaCover/area": 270,
+        "kerfExpandedAreaCover/cost": 23,
+        "thresholdCardinalityCover/cost": 23,
+        "pairedAreaCardinalityCover/cost": 23,
+        "multipleThresholdAreaCover/cost": 23,
+        "tripleThresholdAreaCover/cost": 23,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970055",
+      "oracle": {
+        "count": 2,
+        "area": 576,
+        "cost": 128
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 288,
+        "thresholdCardinalityCover/area": 288,
+        "pairedAreaCardinalityCover/area": 288,
+        "multipleThresholdAreaCover/area": 288,
+        "kerfExpandedAreaCover/cost": 64,
+        "thresholdCardinalityCover/cost": 64,
+        "pairedAreaCardinalityCover/cost": 64,
+        "multipleThresholdAreaCover/cost": 64,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970056",
+      "oracle": {
+        "count": 2,
+        "area": 741,
+        "cost": 120
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 714,
+        "thresholdCardinalityCover/area": 357,
+        "pairedAreaCardinalityCover/area": 714,
+        "multipleThresholdAreaCover/area": 714,
+        "tripleThresholdAreaCover/area": 714,
+        "kerfExpandedAreaCover/cost": 120,
+        "thresholdCardinalityCover/cost": 60,
+        "pairedAreaCardinalityCover/cost": 120,
+        "multipleThresholdAreaCover/cost": 120,
+        "tripleThresholdAreaCover/cost": 120,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970058",
+      "oracle": {
+        "count": 2,
+        "area": 836,
+        "cost": 88
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 550,
+        "thresholdCardinalityCover/area": 550,
+        "pairedAreaCardinalityCover/area": 550,
+        "multipleThresholdAreaCover/area": 550,
+        "tripleThresholdAreaCover/area": 550,
+        "kerfExpandedAreaCover/cost": 40,
+        "thresholdCardinalityCover/cost": 40,
+        "pairedAreaCardinalityCover/cost": 40,
+        "multipleThresholdAreaCover/cost": 40,
+        "tripleThresholdAreaCover/cost": 40,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970059",
+      "oracle": {
+        "count": 1,
+        "area": 625,
+        "cost": 12
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 625,
+        "thresholdCardinalityCover/area": 625,
+        "pairedAreaCardinalityCover/area": 625,
+        "multipleThresholdAreaCover/area": 625,
+        "tripleThresholdAreaCover/area": 625,
+        "kerfExpandedAreaCover/cost": 12,
+        "thresholdCardinalityCover/cost": 12,
+        "pairedAreaCardinalityCover/cost": 12,
+        "multipleThresholdAreaCover/cost": 12,
+        "tripleThresholdAreaCover/cost": 12,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970060",
+      "oracle": {
+        "count": 2,
+        "area": 672,
+        "cost": 152
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 2,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 672,
+        "thresholdCardinalityCover/area": 672,
+        "pairedAreaCardinalityCover/area": 672,
+        "multipleThresholdAreaCover/area": 672,
+        "tripleThresholdAreaCover/area": 672,
+        "kerfExpandedAreaCover/cost": 152,
+        "thresholdCardinalityCover/cost": 152,
+        "pairedAreaCardinalityCover/cost": 152,
+        "multipleThresholdAreaCover/cost": 152,
+        "tripleThresholdAreaCover/cost": 152,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 2,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 2
+      }
+    },
+    {
+      "caseId": "generic-970062",
+      "oracle": {
+        "count": 1,
+        "area": 270,
+        "cost": 69
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 270,
+        "thresholdCardinalityCover/area": 270,
+        "pairedAreaCardinalityCover/area": 270,
+        "multipleThresholdAreaCover/area": 270,
+        "tripleThresholdAreaCover/area": 270,
+        "kerfExpandedAreaCover/cost": 69,
+        "thresholdCardinalityCover/cost": 69,
+        "pairedAreaCardinalityCover/cost": 69,
+        "multipleThresholdAreaCover/cost": 69,
+        "tripleThresholdAreaCover/cost": 69,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970065",
+      "oracle": {
+        "count": 3,
+        "area": 912,
+        "cost": 146
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 624,
+        "thresholdCardinalityCover/area": 288,
+        "pairedAreaCardinalityCover/area": 576,
+        "multipleThresholdAreaCover/area": 576,
+        "tripleThresholdAreaCover/area": 576,
+        "kerfExpandedAreaCover/cost": 78,
+        "thresholdCardinalityCover/cost": 68,
+        "pairedAreaCardinalityCover/cost": 107,
+        "multipleThresholdAreaCover/cost": 107,
+        "tripleThresholdAreaCover/cost": 107,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970066",
+      "oracle": {
+        "count": 2,
+        "area": 644,
+        "cost": 180
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 322,
+        "thresholdCardinalityCover/area": 322,
+        "pairedAreaCardinalityCover/area": 322,
+        "multipleThresholdAreaCover/area": 322,
+        "kerfExpandedAreaCover/cost": 90,
+        "thresholdCardinalityCover/cost": 90,
+        "pairedAreaCardinalityCover/cost": 90,
+        "multipleThresholdAreaCover/cost": 90,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970068",
+      "oracle": {
+        "count": 1,
+        "area": 624,
+        "cost": 60
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 624,
+        "thresholdCardinalityCover/area": 624,
+        "pairedAreaCardinalityCover/area": 624,
+        "multipleThresholdAreaCover/area": 624,
+        "tripleThresholdAreaCover/area": 624,
+        "kerfExpandedAreaCover/cost": 60,
+        "thresholdCardinalityCover/cost": 60,
+        "pairedAreaCardinalityCover/cost": 60,
+        "multipleThresholdAreaCover/cost": 60,
+        "tripleThresholdAreaCover/cost": 60,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970069",
+      "oracle": {
+        "count": 2,
+        "area": 750,
+        "cost": 107
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 600,
+        "thresholdCardinalityCover/area": 450,
+        "pairedAreaCardinalityCover/area": 450,
+        "multipleThresholdAreaCover/area": 450,
+        "tripleThresholdAreaCover/area": 450,
+        "kerfExpandedAreaCover/cost": 107,
+        "thresholdCardinalityCover/cost": 52,
+        "pairedAreaCardinalityCover/cost": 52,
+        "multipleThresholdAreaCover/cost": 52,
+        "tripleThresholdAreaCover/cost": 52,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970070",
+      "oracle": {
+        "count": 1,
+        "area": 252,
+        "cost": 13
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 252,
+        "thresholdCardinalityCover/area": 252,
+        "pairedAreaCardinalityCover/area": 252,
+        "multipleThresholdAreaCover/area": 252,
+        "kerfExpandedAreaCover/cost": 13,
+        "thresholdCardinalityCover/cost": 13,
+        "pairedAreaCardinalityCover/cost": 13,
+        "multipleThresholdAreaCover/cost": 13,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970073",
+      "oracle": {
+        "count": 2,
+        "area": 1092,
+        "cost": 180
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 546,
+        "thresholdCardinalityCover/area": 546,
+        "pairedAreaCardinalityCover/area": 546,
+        "multipleThresholdAreaCover/area": 546,
+        "tripleThresholdAreaCover/area": 546,
+        "kerfExpandedAreaCover/cost": 90,
+        "thresholdCardinalityCover/cost": 90,
+        "pairedAreaCardinalityCover/cost": 90,
+        "multipleThresholdAreaCover/cost": 90,
+        "tripleThresholdAreaCover/cost": 90,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970074",
+      "oracle": {
+        "count": 2,
+        "area": 468,
+        "cost": 36
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 2,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 312,
+        "thresholdCardinalityCover/area": 468,
+        "pairedAreaCardinalityCover/area": 468,
+        "multipleThresholdAreaCover/area": 468,
+        "tripleThresholdAreaCover/area": 468,
+        "kerfExpandedAreaCover/cost": 24,
+        "thresholdCardinalityCover/cost": 36,
+        "pairedAreaCardinalityCover/cost": 36,
+        "multipleThresholdAreaCover/cost": 36,
+        "tripleThresholdAreaCover/cost": 36,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 2
+      }
+    },
+    {
+      "caseId": "generic-970075",
+      "oracle": {
+        "count": 2,
+        "area": 606,
+        "cost": 97
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 606,
+        "thresholdCardinalityCover/area": 378,
+        "pairedAreaCardinalityCover/area": 378,
+        "multipleThresholdAreaCover/area": 378,
+        "tripleThresholdAreaCover/area": 378,
+        "kerfExpandedAreaCover/cost": 97,
+        "thresholdCardinalityCover/cost": 79,
+        "pairedAreaCardinalityCover/cost": 79,
+        "multipleThresholdAreaCover/cost": 79,
+        "tripleThresholdAreaCover/cost": 79,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970078",
+      "oracle": {
+        "count": 2,
+        "area": 728,
+        "cost": 96
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 2,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 728,
+        "thresholdCardinalityCover/area": 728,
+        "pairedAreaCardinalityCover/area": 728,
+        "multipleThresholdAreaCover/area": 728,
+        "tripleThresholdAreaCover/area": 728,
+        "kerfExpandedAreaCover/cost": 52,
+        "thresholdCardinalityCover/cost": 52,
+        "pairedAreaCardinalityCover/cost": 52,
+        "multipleThresholdAreaCover/cost": 52,
+        "tripleThresholdAreaCover/cost": 52,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 2
+      }
+    },
+    {
+      "caseId": "generic-970080",
+      "oracle": {
+        "count": 2,
+        "area": 688,
+        "cost": 53
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 688,
+        "thresholdCardinalityCover/area": 336,
+        "pairedAreaCardinalityCover/area": 688,
+        "multipleThresholdAreaCover/area": 688,
+        "tripleThresholdAreaCover/area": 688,
+        "kerfExpandedAreaCover/cost": 53,
+        "thresholdCardinalityCover/cost": 15,
+        "pairedAreaCardinalityCover/cost": 53,
+        "multipleThresholdAreaCover/cost": 53,
+        "tripleThresholdAreaCover/cost": 53,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970082",
+      "oracle": {
+        "count": 1,
+        "area": 324,
+        "cost": 28
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 324,
+        "thresholdCardinalityCover/area": 324,
+        "pairedAreaCardinalityCover/area": 324,
+        "multipleThresholdAreaCover/area": 324,
+        "tripleThresholdAreaCover/area": 324,
+        "kerfExpandedAreaCover/cost": 28,
+        "thresholdCardinalityCover/cost": 28,
+        "pairedAreaCardinalityCover/cost": 28,
+        "multipleThresholdAreaCover/cost": 28,
+        "tripleThresholdAreaCover/cost": 28,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970083",
+      "oracle": {
+        "count": 2,
+        "area": 864,
+        "cost": 130
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 2,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 864,
+        "thresholdCardinalityCover/area": 672,
+        "pairedAreaCardinalityCover/area": 672,
+        "multipleThresholdAreaCover/area": 864,
+        "tripleThresholdAreaCover/area": 864,
+        "kerfExpandedAreaCover/cost": 130,
+        "thresholdCardinalityCover/cost": 88,
+        "pairedAreaCardinalityCover/cost": 88,
+        "multipleThresholdAreaCover/cost": 130,
+        "tripleThresholdAreaCover/cost": 130,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 2
+      }
+    },
+    {
+      "caseId": "generic-970084",
+      "oracle": {
+        "count": 1,
+        "area": 336,
+        "cost": 70
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 336,
+        "thresholdCardinalityCover/area": 336,
+        "pairedAreaCardinalityCover/area": 336,
+        "multipleThresholdAreaCover/area": 336,
+        "tripleThresholdAreaCover/area": 336,
+        "kerfExpandedAreaCover/cost": 70,
+        "thresholdCardinalityCover/cost": 70,
+        "pairedAreaCardinalityCover/cost": 70,
+        "multipleThresholdAreaCover/cost": 70,
+        "tripleThresholdAreaCover/cost": 70,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970086",
+      "oracle": {
+        "count": 2,
+        "area": 720,
+        "cost": 38
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 720,
+        "thresholdCardinalityCover/area": 360,
+        "pairedAreaCardinalityCover/area": 360,
+        "multipleThresholdAreaCover/area": 360,
+        "tripleThresholdAreaCover/area": 360,
+        "kerfExpandedAreaCover/cost": 38,
+        "thresholdCardinalityCover/cost": 19,
+        "pairedAreaCardinalityCover/cost": 19,
+        "multipleThresholdAreaCover/cost": 19,
+        "tripleThresholdAreaCover/cost": 19,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970088",
+      "oracle": {
+        "count": 1,
+        "area": 572,
+        "cost": 65
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 572,
+        "thresholdCardinalityCover/area": 280,
+        "pairedAreaCardinalityCover/area": 280,
+        "multipleThresholdAreaCover/area": 280,
+        "tripleThresholdAreaCover/area": 280,
+        "kerfExpandedAreaCover/cost": 65,
+        "thresholdCardinalityCover/cost": 57,
+        "pairedAreaCardinalityCover/cost": 57,
+        "multipleThresholdAreaCover/cost": 57,
+        "tripleThresholdAreaCover/cost": 57,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970089",
+      "oracle": {
+        "count": 2,
+        "area": 620,
+        "cost": 128
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 368,
+        "thresholdCardinalityCover/area": 252,
+        "pairedAreaCardinalityCover/area": 252,
+        "multipleThresholdAreaCover/area": 252,
+        "tripleThresholdAreaCover/area": 252,
+        "kerfExpandedAreaCover/cost": 68,
+        "thresholdCardinalityCover/cost": 60,
+        "pairedAreaCardinalityCover/cost": 60,
+        "multipleThresholdAreaCover/cost": 60,
+        "tripleThresholdAreaCover/cost": 60,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970091",
+      "oracle": {
+        "count": 2,
+        "area": 760,
+        "cost": 28
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 760,
+        "thresholdCardinalityCover/area": 380,
+        "pairedAreaCardinalityCover/area": 760,
+        "multipleThresholdAreaCover/area": 760,
+        "tripleThresholdAreaCover/area": 760,
+        "kerfExpandedAreaCover/cost": 28,
+        "thresholdCardinalityCover/cost": 14,
+        "pairedAreaCardinalityCover/cost": 28,
+        "multipleThresholdAreaCover/cost": 28,
+        "tripleThresholdAreaCover/cost": 28,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970093",
+      "oracle": {
+        "count": 2,
+        "area": 840,
+        "cost": 76
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 2,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 644,
+        "thresholdCardinalityCover/area": 448,
+        "pairedAreaCardinalityCover/area": 448,
+        "multipleThresholdAreaCover/area": 448,
+        "tripleThresholdAreaCover/area": 448,
+        "kerfExpandedAreaCover/cost": 76,
+        "thresholdCardinalityCover/cost": 76,
+        "pairedAreaCardinalityCover/cost": 76,
+        "multipleThresholdAreaCover/cost": 76,
+        "tripleThresholdAreaCover/cost": 76,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 2
+      }
+    },
+    {
+      "caseId": "generic-970094",
+      "oracle": {
+        "count": 1,
+        "area": 624,
+        "cost": 27
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 624,
+        "thresholdCardinalityCover/area": 368,
+        "pairedAreaCardinalityCover/area": 624,
+        "multipleThresholdAreaCover/area": 624,
+        "tripleThresholdAreaCover/area": 624,
+        "kerfExpandedAreaCover/cost": 27,
+        "thresholdCardinalityCover/cost": 27,
+        "pairedAreaCardinalityCover/cost": 27,
+        "multipleThresholdAreaCover/cost": 27,
+        "tripleThresholdAreaCover/cost": 27,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970095",
+      "oracle": {
+        "count": 2,
+        "area": 568,
+        "cost": 73
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 352,
+        "thresholdCardinalityCover/area": 352,
+        "pairedAreaCardinalityCover/area": 352,
+        "multipleThresholdAreaCover/area": 352,
+        "tripleThresholdAreaCover/area": 352,
+        "kerfExpandedAreaCover/cost": 36,
+        "thresholdCardinalityCover/cost": 55,
+        "pairedAreaCardinalityCover/cost": 55,
+        "multipleThresholdAreaCover/cost": 55,
+        "tripleThresholdAreaCover/cost": 55,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970097",
+      "oracle": {
+        "count": 1,
+        "area": 442,
+        "cost": 61
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 442,
+        "thresholdCardinalityCover/area": 442,
+        "pairedAreaCardinalityCover/area": 442,
+        "multipleThresholdAreaCover/area": 442,
+        "tripleThresholdAreaCover/area": 442,
+        "kerfExpandedAreaCover/cost": 61,
+        "thresholdCardinalityCover/cost": 61,
+        "pairedAreaCardinalityCover/cost": 61,
+        "multipleThresholdAreaCover/cost": 61,
+        "tripleThresholdAreaCover/cost": 61,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "generic-970098",
+      "oracle": {
+        "count": 2,
+        "area": 668,
+        "cost": 57
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 2,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 616,
+        "thresholdCardinalityCover/area": 616,
+        "pairedAreaCardinalityCover/area": 616,
+        "multipleThresholdAreaCover/area": 616,
+        "tripleThresholdAreaCover/area": 616,
+        "kerfExpandedAreaCover/cost": 38,
+        "thresholdCardinalityCover/cost": 38,
+        "pairedAreaCardinalityCover/cost": 38,
+        "multipleThresholdAreaCover/cost": 38,
+        "tripleThresholdAreaCover/cost": 38,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 2
+      }
+    },
+    {
+      "caseId": "generic-970099",
+      "oracle": {
+        "count": 1,
+        "area": 525,
+        "cost": 37
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 525,
+        "thresholdCardinalityCover/area": 525,
+        "pairedAreaCardinalityCover/area": 525,
+        "multipleThresholdAreaCover/area": 525,
+        "tripleThresholdAreaCover/area": 525,
+        "kerfExpandedAreaCover/cost": 37,
+        "thresholdCardinalityCover/cost": 37,
+        "pairedAreaCardinalityCover/cost": 37,
+        "multipleThresholdAreaCover/cost": 37,
+        "tripleThresholdAreaCover/cost": 37,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970001",
+      "oracle": {
+        "count": 2,
+        "area": 1104,
+        "cost": 62
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 1104,
+        "thresholdCardinalityCover/area": 552,
+        "pairedAreaCardinalityCover/area": 552,
+        "multipleThresholdAreaCover/area": 552,
+        "tripleThresholdAreaCover/area": 552,
+        "kerfExpandedAreaCover/cost": 62,
+        "thresholdCardinalityCover/cost": 31,
+        "pairedAreaCardinalityCover/cost": 31,
+        "multipleThresholdAreaCover/cost": 31,
+        "tripleThresholdAreaCover/cost": 31,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970002",
+      "oracle": {
+        "count": 2,
+        "area": 582,
+        "cost": 69
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 414,
+        "thresholdCardinalityCover/area": 336,
+        "pairedAreaCardinalityCover/area": 414,
+        "multipleThresholdAreaCover/area": 414,
+        "tripleThresholdAreaCover/area": 414,
+        "kerfExpandedAreaCover/cost": 35,
+        "thresholdCardinalityCover/cost": 35,
+        "pairedAreaCardinalityCover/cost": 35,
+        "multipleThresholdAreaCover/cost": 35,
+        "tripleThresholdAreaCover/cost": 35,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970005",
+      "oracle": {
+        "count": 1,
+        "area": 234,
+        "cost": 67
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 234,
+        "thresholdCardinalityCover/area": 234,
+        "pairedAreaCardinalityCover/area": 234,
+        "multipleThresholdAreaCover/area": 234,
+        "kerfExpandedAreaCover/cost": 67,
+        "thresholdCardinalityCover/cost": 67,
+        "pairedAreaCardinalityCover/cost": 67,
+        "multipleThresholdAreaCover/cost": 67,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970006",
+      "oracle": {
+        "count": 1,
+        "area": 506,
+        "cost": 83
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 506,
+        "thresholdCardinalityCover/area": 506,
+        "pairedAreaCardinalityCover/area": 506,
+        "multipleThresholdAreaCover/area": 506,
+        "tripleThresholdAreaCover/area": 506,
+        "kerfExpandedAreaCover/cost": 83,
+        "thresholdCardinalityCover/cost": 83,
+        "pairedAreaCardinalityCover/cost": 83,
+        "multipleThresholdAreaCover/cost": 83,
+        "tripleThresholdAreaCover/cost": 83,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970008",
+      "oracle": {
+        "count": 1,
+        "area": 414,
+        "cost": 73
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 357,
+        "thresholdCardinalityCover/area": 357,
+        "pairedAreaCardinalityCover/area": 357,
+        "multipleThresholdAreaCover/area": 357,
+        "tripleThresholdAreaCover/area": 357,
+        "kerfExpandedAreaCover/cost": 73,
+        "thresholdCardinalityCover/cost": 73,
+        "pairedAreaCardinalityCover/cost": 73,
+        "multipleThresholdAreaCover/cost": 73,
+        "tripleThresholdAreaCover/cost": 73,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970011",
+      "oracle": {
+        "count": 1,
+        "area": 456,
+        "cost": 33
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 456,
+        "thresholdCardinalityCover/area": 456,
+        "pairedAreaCardinalityCover/area": 456,
+        "multipleThresholdAreaCover/area": 456,
+        "tripleThresholdAreaCover/area": 456,
+        "kerfExpandedAreaCover/cost": 33,
+        "thresholdCardinalityCover/cost": 33,
+        "pairedAreaCardinalityCover/cost": 33,
+        "multipleThresholdAreaCover/cost": 33,
+        "tripleThresholdAreaCover/cost": 33,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970012",
+      "oracle": {
+        "count": 1,
+        "area": 460,
+        "cost": 13
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 460,
+        "thresholdCardinalityCover/area": 460,
+        "pairedAreaCardinalityCover/area": 460,
+        "multipleThresholdAreaCover/area": 460,
+        "kerfExpandedAreaCover/cost": 13,
+        "thresholdCardinalityCover/cost": 13,
+        "pairedAreaCardinalityCover/cost": 13,
+        "multipleThresholdAreaCover/cost": 13,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970013",
+      "oracle": {
+        "count": 1,
+        "area": 480,
+        "cost": 71
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 480,
+        "thresholdCardinalityCover/area": 480,
+        "pairedAreaCardinalityCover/area": 480,
+        "multipleThresholdAreaCover/area": 480,
+        "tripleThresholdAreaCover/area": 480,
+        "kerfExpandedAreaCover/cost": 71,
+        "thresholdCardinalityCover/cost": 71,
+        "pairedAreaCardinalityCover/cost": 71,
+        "multipleThresholdAreaCover/cost": 71,
+        "tripleThresholdAreaCover/cost": 71,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970019",
+      "oracle": {
+        "count": 1,
+        "area": 432,
+        "cost": 16
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 432,
+        "thresholdCardinalityCover/area": 432,
+        "pairedAreaCardinalityCover/area": 432,
+        "multipleThresholdAreaCover/area": 432,
+        "tripleThresholdAreaCover/area": 432,
+        "kerfExpandedAreaCover/cost": 16,
+        "thresholdCardinalityCover/cost": 16,
+        "pairedAreaCardinalityCover/cost": 16,
+        "multipleThresholdAreaCover/cost": 16,
+        "tripleThresholdAreaCover/cost": 16,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970020",
+      "oracle": {
+        "count": 1,
+        "area": 315,
+        "cost": 35
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 315,
+        "thresholdCardinalityCover/area": 315,
+        "pairedAreaCardinalityCover/area": 315,
+        "multipleThresholdAreaCover/area": 315,
+        "tripleThresholdAreaCover/area": 315,
+        "kerfExpandedAreaCover/cost": 35,
+        "thresholdCardinalityCover/cost": 35,
+        "pairedAreaCardinalityCover/cost": 35,
+        "multipleThresholdAreaCover/cost": 35,
+        "tripleThresholdAreaCover/cost": 35,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970021",
+      "oracle": {
+        "count": 2,
+        "area": 812,
+        "cost": 54
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 437,
+        "thresholdCardinalityCover/area": 375,
+        "pairedAreaCardinalityCover/area": 375,
+        "multipleThresholdAreaCover/area": 375,
+        "tripleThresholdAreaCover/area": 375,
+        "kerfExpandedAreaCover/cost": 27,
+        "thresholdCardinalityCover/cost": 27,
+        "pairedAreaCardinalityCover/cost": 27,
+        "multipleThresholdAreaCover/cost": 27,
+        "tripleThresholdAreaCover/cost": 27,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970022",
+      "oracle": {
+        "count": 2,
+        "area": 1046,
+        "cost": 157
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 1046,
+        "thresholdCardinalityCover/area": 546,
+        "pairedAreaCardinalityCover/area": 1046,
+        "multipleThresholdAreaCover/area": 1046,
+        "tripleThresholdAreaCover/area": 1046,
+        "kerfExpandedAreaCover/cost": 157,
+        "thresholdCardinalityCover/cost": 88,
+        "pairedAreaCardinalityCover/cost": 157,
+        "multipleThresholdAreaCover/cost": 157,
+        "tripleThresholdAreaCover/cost": 157,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970023",
+      "oracle": {
+        "count": 2,
+        "area": 816,
+        "cost": 62
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 408,
+        "thresholdCardinalityCover/area": 408,
+        "pairedAreaCardinalityCover/area": 408,
+        "multipleThresholdAreaCover/area": 408,
+        "tripleThresholdAreaCover/area": 408,
+        "kerfExpandedAreaCover/cost": 31,
+        "thresholdCardinalityCover/cost": 31,
+        "pairedAreaCardinalityCover/cost": 31,
+        "multipleThresholdAreaCover/cost": 31,
+        "tripleThresholdAreaCover/cost": 31,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970027",
+      "oracle": {
+        "count": 1,
+        "area": 504,
+        "cost": 39
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 504,
+        "thresholdCardinalityCover/area": 504,
+        "pairedAreaCardinalityCover/area": 504,
+        "multipleThresholdAreaCover/area": 504,
+        "tripleThresholdAreaCover/area": 504,
+        "kerfExpandedAreaCover/cost": 39,
+        "thresholdCardinalityCover/cost": 39,
+        "pairedAreaCardinalityCover/cost": 39,
+        "multipleThresholdAreaCover/cost": 39,
+        "tripleThresholdAreaCover/cost": 39,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970028",
+      "oracle": {
+        "count": 4,
+        "area": 1440,
+        "cost": 296
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 3,
+        "thresholdCardinalityCover/count": 2,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 1020,
+        "thresholdCardinalityCover/area": 720,
+        "pairedAreaCardinalityCover/area": 720,
+        "multipleThresholdAreaCover/area": 720,
+        "tripleThresholdAreaCover/area": 720,
+        "kerfExpandedAreaCover/cost": 217,
+        "thresholdCardinalityCover/cost": 148,
+        "pairedAreaCardinalityCover/cost": 148,
+        "multipleThresholdAreaCover/cost": 148,
+        "tripleThresholdAreaCover/cost": 148,
+        "kerfAreaLowerBound": 3,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 3,
+        "itemCapacityLowerBound": 2
+      }
+    },
+    {
+      "caseId": "grain-970031",
+      "oracle": {
+        "count": 2,
+        "area": 832,
+        "cost": 74
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 720,
+        "thresholdCardinalityCover/area": 416,
+        "pairedAreaCardinalityCover/area": 656,
+        "multipleThresholdAreaCover/area": 656,
+        "tripleThresholdAreaCover/area": 656,
+        "kerfExpandedAreaCover/cost": 39,
+        "thresholdCardinalityCover/cost": 26,
+        "pairedAreaCardinalityCover/cost": 39,
+        "multipleThresholdAreaCover/cost": 39,
+        "tripleThresholdAreaCover/cost": 39,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970032",
+      "oracle": {
+        "count": 2,
+        "area": 836,
+        "cost": 118
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 418,
+        "thresholdCardinalityCover/area": 418,
+        "pairedAreaCardinalityCover/area": 418,
+        "multipleThresholdAreaCover/area": 418,
+        "tripleThresholdAreaCover/area": 418,
+        "kerfExpandedAreaCover/cost": 59,
+        "thresholdCardinalityCover/cost": 59,
+        "pairedAreaCardinalityCover/cost": 59,
+        "multipleThresholdAreaCover/cost": 59,
+        "tripleThresholdAreaCover/cost": 59,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970034",
+      "oracle": {
+        "count": 3,
+        "area": 910,
+        "cost": 190
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 2,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 700,
+        "thresholdCardinalityCover/area": 560,
+        "pairedAreaCardinalityCover/area": 700,
+        "multipleThresholdAreaCover/area": 700,
+        "tripleThresholdAreaCover/area": 700,
+        "kerfExpandedAreaCover/cost": 174,
+        "thresholdCardinalityCover/cost": 103,
+        "pairedAreaCardinalityCover/cost": 174,
+        "multipleThresholdAreaCover/cost": 174,
+        "tripleThresholdAreaCover/cost": 174,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 3,
+        "itemCapacityLowerBound": 2
+      }
+    },
+    {
+      "caseId": "grain-970037",
+      "oracle": {
+        "count": 1,
+        "area": 456,
+        "cost": 68
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 456,
+        "thresholdCardinalityCover/area": 456,
+        "pairedAreaCardinalityCover/area": 456,
+        "multipleThresholdAreaCover/area": 456,
+        "tripleThresholdAreaCover/area": 456,
+        "kerfExpandedAreaCover/cost": 68,
+        "thresholdCardinalityCover/cost": 68,
+        "pairedAreaCardinalityCover/cost": 68,
+        "multipleThresholdAreaCover/cost": 68,
+        "tripleThresholdAreaCover/cost": 68,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970038",
+      "oracle": {
+        "count": 2,
+        "area": 448,
+        "cost": 80
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 448,
+        "thresholdCardinalityCover/area": 224,
+        "pairedAreaCardinalityCover/area": 448,
+        "multipleThresholdAreaCover/area": 448,
+        "tripleThresholdAreaCover/area": 448,
+        "kerfExpandedAreaCover/cost": 80,
+        "thresholdCardinalityCover/cost": 40,
+        "pairedAreaCardinalityCover/cost": 80,
+        "multipleThresholdAreaCover/cost": 80,
+        "tripleThresholdAreaCover/cost": 80,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970039",
+      "oracle": {
+        "count": 1,
+        "area": 323,
+        "cost": 11
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "kerfExpandedAreaCover/area": 323,
+        "thresholdCardinalityCover/area": 323,
+        "pairedAreaCardinalityCover/area": 323,
+        "kerfExpandedAreaCover/cost": 11,
+        "thresholdCardinalityCover/cost": 11,
+        "pairedAreaCardinalityCover/cost": 11,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970040",
+      "oracle": {
+        "count": 1,
+        "area": 315,
+        "cost": 39
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 315,
+        "thresholdCardinalityCover/area": 315,
+        "pairedAreaCardinalityCover/area": 315,
+        "multipleThresholdAreaCover/area": 315,
+        "tripleThresholdAreaCover/area": 315,
+        "kerfExpandedAreaCover/cost": 39,
+        "thresholdCardinalityCover/cost": 39,
+        "pairedAreaCardinalityCover/cost": 39,
+        "multipleThresholdAreaCover/cost": 39,
+        "tripleThresholdAreaCover/cost": 39,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970043",
+      "oracle": {
+        "count": 1,
+        "area": 625,
+        "cost": 50
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 625,
+        "thresholdCardinalityCover/area": 625,
+        "pairedAreaCardinalityCover/area": 625,
+        "multipleThresholdAreaCover/area": 625,
+        "tripleThresholdAreaCover/area": 625,
+        "kerfExpandedAreaCover/cost": 50,
+        "thresholdCardinalityCover/cost": 50,
+        "pairedAreaCardinalityCover/cost": 50,
+        "multipleThresholdAreaCover/cost": 50,
+        "tripleThresholdAreaCover/cost": 50,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970045",
+      "oracle": {
+        "count": 1,
+        "area": 462,
+        "cost": 62
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 462,
+        "thresholdCardinalityCover/area": 462,
+        "pairedAreaCardinalityCover/area": 462,
+        "multipleThresholdAreaCover/area": 462,
+        "tripleThresholdAreaCover/area": 462,
+        "kerfExpandedAreaCover/cost": 62,
+        "thresholdCardinalityCover/cost": 62,
+        "pairedAreaCardinalityCover/cost": 62,
+        "multipleThresholdAreaCover/cost": 62,
+        "tripleThresholdAreaCover/cost": 62,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970046",
+      "oracle": {
+        "count": 1,
+        "area": 375,
+        "cost": 38
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 208,
+        "thresholdCardinalityCover/area": 208,
+        "pairedAreaCardinalityCover/area": 208,
+        "multipleThresholdAreaCover/area": 208,
+        "kerfExpandedAreaCover/cost": 38,
+        "thresholdCardinalityCover/cost": 38,
+        "pairedAreaCardinalityCover/cost": 38,
+        "multipleThresholdAreaCover/cost": 38,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970048",
+      "oracle": {
+        "count": 2,
+        "area": 715,
+        "cost": 83
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 520,
+        "thresholdCardinalityCover/area": 390,
+        "pairedAreaCardinalityCover/area": 390,
+        "multipleThresholdAreaCover/area": 390,
+        "tripleThresholdAreaCover/area": 390,
+        "kerfExpandedAreaCover/cost": 51,
+        "thresholdCardinalityCover/cost": 51,
+        "pairedAreaCardinalityCover/cost": 51,
+        "multipleThresholdAreaCover/cost": 51,
+        "tripleThresholdAreaCover/cost": 51,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970052",
+      "oracle": {
+        "count": 2,
+        "area": 624,
+        "cost": 26
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 569,
+        "thresholdCardinalityCover/area": 361,
+        "pairedAreaCardinalityCover/area": 416,
+        "multipleThresholdAreaCover/area": 416,
+        "tripleThresholdAreaCover/area": 416,
+        "kerfExpandedAreaCover/cost": 26,
+        "thresholdCardinalityCover/cost": 13,
+        "pairedAreaCardinalityCover/cost": 26,
+        "multipleThresholdAreaCover/cost": 26,
+        "tripleThresholdAreaCover/cost": 26,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970053",
+      "oracle": {
+        "count": 1,
+        "area": 494,
+        "cost": 57
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 494,
+        "thresholdCardinalityCover/area": 494,
+        "pairedAreaCardinalityCover/area": 494,
+        "multipleThresholdAreaCover/area": 494,
+        "tripleThresholdAreaCover/area": 494,
+        "kerfExpandedAreaCover/cost": 57,
+        "thresholdCardinalityCover/cost": 57,
+        "pairedAreaCardinalityCover/cost": 57,
+        "multipleThresholdAreaCover/cost": 57,
+        "tripleThresholdAreaCover/cost": 57,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970054",
+      "oracle": {
+        "count": 2,
+        "area": 540,
+        "cost": 46
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 441,
+        "thresholdCardinalityCover/area": 270,
+        "pairedAreaCardinalityCover/area": 441,
+        "multipleThresholdAreaCover/area": 441,
+        "tripleThresholdAreaCover/area": 441,
+        "kerfExpandedAreaCover/cost": 23,
+        "thresholdCardinalityCover/cost": 23,
+        "pairedAreaCardinalityCover/cost": 23,
+        "multipleThresholdAreaCover/cost": 23,
+        "tripleThresholdAreaCover/cost": 23,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970055",
+      "oracle": {
+        "count": 2,
+        "area": 576,
+        "cost": 128
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 576,
+        "thresholdCardinalityCover/area": 288,
+        "pairedAreaCardinalityCover/area": 288,
+        "multipleThresholdAreaCover/area": 288,
+        "tripleThresholdAreaCover/area": 288,
+        "kerfExpandedAreaCover/cost": 128,
+        "thresholdCardinalityCover/cost": 64,
+        "pairedAreaCardinalityCover/cost": 64,
+        "multipleThresholdAreaCover/cost": 64,
+        "tripleThresholdAreaCover/cost": 64,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 2,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970056",
+      "oracle": {
+        "count": 2,
+        "area": 714,
+        "cost": 120
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 714,
+        "thresholdCardinalityCover/area": 357,
+        "pairedAreaCardinalityCover/area": 357,
+        "multipleThresholdAreaCover/area": 357,
+        "kerfExpandedAreaCover/cost": 120,
+        "thresholdCardinalityCover/cost": 60,
+        "pairedAreaCardinalityCover/cost": 60,
+        "multipleThresholdAreaCover/cost": 60,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970058",
+      "oracle": {
+        "count": 2,
+        "area": 836,
+        "cost": 88
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 836,
+        "thresholdCardinalityCover/area": 550,
+        "pairedAreaCardinalityCover/area": 550,
+        "multipleThresholdAreaCover/area": 550,
+        "tripleThresholdAreaCover/area": 550,
+        "kerfExpandedAreaCover/cost": 88,
+        "thresholdCardinalityCover/cost": 40,
+        "pairedAreaCardinalityCover/cost": 40,
+        "multipleThresholdAreaCover/cost": 40,
+        "tripleThresholdAreaCover/cost": 40,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970059",
+      "oracle": {
+        "count": 1,
+        "area": 625,
+        "cost": 12
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 625,
+        "thresholdCardinalityCover/area": 625,
+        "pairedAreaCardinalityCover/area": 625,
+        "multipleThresholdAreaCover/area": 625,
+        "tripleThresholdAreaCover/area": 625,
+        "kerfExpandedAreaCover/cost": 12,
+        "thresholdCardinalityCover/cost": 12,
+        "pairedAreaCardinalityCover/cost": 12,
+        "multipleThresholdAreaCover/cost": 12,
+        "tripleThresholdAreaCover/cost": 12,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970062",
+      "oracle": {
+        "count": 1,
+        "area": 360,
+        "cost": 83
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 270,
+        "thresholdCardinalityCover/area": 270,
+        "pairedAreaCardinalityCover/area": 270,
+        "multipleThresholdAreaCover/area": 270,
+        "tripleThresholdAreaCover/area": 270,
+        "kerfExpandedAreaCover/cost": 69,
+        "thresholdCardinalityCover/cost": 69,
+        "pairedAreaCardinalityCover/cost": 69,
+        "multipleThresholdAreaCover/cost": 69,
+        "tripleThresholdAreaCover/cost": 69,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970066",
+      "oracle": {
+        "count": 2,
+        "area": 644,
+        "cost": 180
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 644,
+        "thresholdCardinalityCover/area": 322,
+        "pairedAreaCardinalityCover/area": 644,
+        "multipleThresholdAreaCover/area": 644,
+        "tripleThresholdAreaCover/area": 644,
+        "kerfExpandedAreaCover/cost": 180,
+        "thresholdCardinalityCover/cost": 90,
+        "pairedAreaCardinalityCover/cost": 180,
+        "multipleThresholdAreaCover/cost": 180,
+        "tripleThresholdAreaCover/cost": 180,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 2,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970070",
+      "oracle": {
+        "count": 1,
+        "area": 252,
+        "cost": 13
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 252,
+        "thresholdCardinalityCover/area": 252,
+        "pairedAreaCardinalityCover/area": 252,
+        "multipleThresholdAreaCover/area": 252,
+        "tripleThresholdAreaCover/area": 252,
+        "kerfExpandedAreaCover/cost": 13,
+        "thresholdCardinalityCover/cost": 13,
+        "pairedAreaCardinalityCover/cost": 13,
+        "multipleThresholdAreaCover/cost": 13,
+        "tripleThresholdAreaCover/cost": 13,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970073",
+      "oracle": {
+        "count": 2,
+        "area": 1092,
+        "cost": 180
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 546,
+        "thresholdCardinalityCover/area": 546,
+        "pairedAreaCardinalityCover/area": 546,
+        "multipleThresholdAreaCover/area": 546,
+        "tripleThresholdAreaCover/area": 546,
+        "kerfExpandedAreaCover/cost": 90,
+        "thresholdCardinalityCover/cost": 90,
+        "pairedAreaCardinalityCover/cost": 90,
+        "multipleThresholdAreaCover/cost": 90,
+        "tripleThresholdAreaCover/cost": 90,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970074",
+      "oracle": {
+        "count": 1,
+        "area": 312,
+        "cost": 24
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 156,
+        "thresholdCardinalityCover/area": 156,
+        "pairedAreaCardinalityCover/area": 156,
+        "multipleThresholdAreaCover/area": 156,
+        "tripleThresholdAreaCover/area": 156,
+        "kerfExpandedAreaCover/cost": 12,
+        "thresholdCardinalityCover/cost": 12,
+        "pairedAreaCardinalityCover/cost": 12,
+        "multipleThresholdAreaCover/cost": 12,
+        "tripleThresholdAreaCover/cost": 12,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970075",
+      "oracle": {
+        "count": 2,
+        "area": 606,
+        "cost": 97
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 606,
+        "thresholdCardinalityCover/area": 228,
+        "pairedAreaCardinalityCover/area": 378,
+        "multipleThresholdAreaCover/area": 378,
+        "tripleThresholdAreaCover/area": 378,
+        "kerfExpandedAreaCover/cost": 97,
+        "thresholdCardinalityCover/cost": 18,
+        "pairedAreaCardinalityCover/cost": 79,
+        "multipleThresholdAreaCover/cost": 79,
+        "tripleThresholdAreaCover/cost": 79,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970078",
+      "oracle": {
+        "count": 3,
+        "area": 1142,
+        "cost": 122
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 2,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 728,
+        "thresholdCardinalityCover/area": 728,
+        "pairedAreaCardinalityCover/area": 728,
+        "multipleThresholdAreaCover/area": 728,
+        "kerfExpandedAreaCover/cost": 52,
+        "thresholdCardinalityCover/cost": 52,
+        "pairedAreaCardinalityCover/cost": 52,
+        "multipleThresholdAreaCover/cost": 52,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 2
+      }
+    },
+    {
+      "caseId": "grain-970080",
+      "oracle": {
+        "count": 2,
+        "area": 688,
+        "cost": 53
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 688,
+        "thresholdCardinalityCover/area": 352,
+        "pairedAreaCardinalityCover/area": 688,
+        "multipleThresholdAreaCover/area": 688,
+        "tripleThresholdAreaCover/area": 688,
+        "kerfExpandedAreaCover/cost": 53,
+        "thresholdCardinalityCover/cost": 38,
+        "pairedAreaCardinalityCover/cost": 53,
+        "multipleThresholdAreaCover/cost": 53,
+        "tripleThresholdAreaCover/cost": 53,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970082",
+      "oracle": {
+        "count": 2,
+        "area": 666,
+        "cost": 56
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 324,
+        "thresholdCardinalityCover/area": 324,
+        "pairedAreaCardinalityCover/area": 324,
+        "multipleThresholdAreaCover/area": 324,
+        "tripleThresholdAreaCover/area": 324,
+        "kerfExpandedAreaCover/cost": 28,
+        "thresholdCardinalityCover/cost": 28,
+        "pairedAreaCardinalityCover/cost": 28,
+        "multipleThresholdAreaCover/cost": 28,
+        "tripleThresholdAreaCover/cost": 28,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970083",
+      "oracle": {
+        "count": 2,
+        "area": 864,
+        "cost": 130
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 672,
+        "thresholdCardinalityCover/area": 528,
+        "pairedAreaCardinalityCover/area": 528,
+        "multipleThresholdAreaCover/area": 528,
+        "tripleThresholdAreaCover/area": 528,
+        "kerfExpandedAreaCover/cost": 88,
+        "thresholdCardinalityCover/cost": 86,
+        "pairedAreaCardinalityCover/cost": 86,
+        "multipleThresholdAreaCover/cost": 86,
+        "tripleThresholdAreaCover/cost": 86,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970084",
+      "oracle": {
+        "count": 2,
+        "area": 672,
+        "cost": 140
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 336,
+        "thresholdCardinalityCover/area": 336,
+        "pairedAreaCardinalityCover/area": 336,
+        "multipleThresholdAreaCover/area": 336,
+        "tripleThresholdAreaCover/area": 336,
+        "kerfExpandedAreaCover/cost": 70,
+        "thresholdCardinalityCover/cost": 70,
+        "pairedAreaCardinalityCover/cost": 70,
+        "multipleThresholdAreaCover/cost": 70,
+        "tripleThresholdAreaCover/cost": 70,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 2,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970086",
+      "oracle": {
+        "count": 3,
+        "area": 1080,
+        "cost": 125
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 2,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 785,
+        "thresholdCardinalityCover/area": 720,
+        "pairedAreaCardinalityCover/area": 720,
+        "multipleThresholdAreaCover/area": 720,
+        "tripleThresholdAreaCover/area": 720,
+        "kerfExpandedAreaCover/cost": 38,
+        "thresholdCardinalityCover/cost": 38,
+        "pairedAreaCardinalityCover/cost": 38,
+        "multipleThresholdAreaCover/cost": 38,
+        "tripleThresholdAreaCover/cost": 38,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 2
+      }
+    },
+    {
+      "caseId": "grain-970088",
+      "oracle": {
+        "count": 2,
+        "area": 852,
+        "cost": 122
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 572,
+        "thresholdCardinalityCover/area": 572,
+        "pairedAreaCardinalityCover/area": 572,
+        "multipleThresholdAreaCover/area": 572,
+        "tripleThresholdAreaCover/area": 572,
+        "kerfExpandedAreaCover/cost": 65,
+        "thresholdCardinalityCover/cost": 65,
+        "pairedAreaCardinalityCover/cost": 65,
+        "multipleThresholdAreaCover/cost": 65,
+        "tripleThresholdAreaCover/cost": 65,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970089",
+      "oracle": {
+        "count": 2,
+        "area": 620,
+        "cost": 128
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 620,
+        "thresholdCardinalityCover/area": 368,
+        "pairedAreaCardinalityCover/area": 368,
+        "multipleThresholdAreaCover/area": 368,
+        "tripleThresholdAreaCover/area": 368,
+        "kerfExpandedAreaCover/cost": 128,
+        "thresholdCardinalityCover/cost": 68,
+        "pairedAreaCardinalityCover/cost": 68,
+        "multipleThresholdAreaCover/cost": 68,
+        "tripleThresholdAreaCover/cost": 68,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "grain-970093",
+      "oracle": {
+        "count": 3,
+        "area": 1064,
+        "cost": 114
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 3,
+        "pairedAreaCardinalityCover/count": 3,
+        "multipleThresholdAreaCover/count": 3,
+        "tripleThresholdAreaCover/count": 3,
+        "kerfExpandedAreaCover/area": 672,
+        "thresholdCardinalityCover/area": 672,
+        "pairedAreaCardinalityCover/area": 672,
+        "multipleThresholdAreaCover/area": 868,
+        "tripleThresholdAreaCover/area": 868,
+        "kerfExpandedAreaCover/cost": 76,
+        "thresholdCardinalityCover/cost": 114,
+        "pairedAreaCardinalityCover/cost": 114,
+        "multipleThresholdAreaCover/cost": 114,
+        "tripleThresholdAreaCover/cost": 114,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 3,
+        "itemCapacityLowerBound": 3
+      }
+    },
+    {
+      "caseId": "grain-970094",
+      "oracle": {
+        "count": 1,
+        "area": 368,
+        "cost": 27
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 368,
+        "thresholdCardinalityCover/area": 368,
+        "pairedAreaCardinalityCover/area": 368,
+        "multipleThresholdAreaCover/area": 368,
+        "tripleThresholdAreaCover/area": 368,
+        "kerfExpandedAreaCover/cost": 27,
+        "thresholdCardinalityCover/cost": 27,
+        "pairedAreaCardinalityCover/cost": 27,
+        "multipleThresholdAreaCover/cost": 27,
+        "tripleThresholdAreaCover/cost": 27,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970000",
+      "oracle": {
+        "count": 1,
+        "area": 520,
+        "cost": 55
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 520,
+        "thresholdCardinalityCover/area": 336,
+        "pairedAreaCardinalityCover/area": 336,
+        "multipleThresholdAreaCover/area": 336,
+        "tripleThresholdAreaCover/area": 336,
+        "kerfExpandedAreaCover/cost": 55,
+        "thresholdCardinalityCover/cost": 55,
+        "pairedAreaCardinalityCover/cost": 55,
+        "multipleThresholdAreaCover/cost": 55,
+        "tripleThresholdAreaCover/cost": 55,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970001",
+      "oracle": {
+        "count": 1,
+        "area": 552,
+        "cost": 31
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 552,
+        "thresholdCardinalityCover/area": 552,
+        "pairedAreaCardinalityCover/area": 552,
+        "multipleThresholdAreaCover/area": 552,
+        "tripleThresholdAreaCover/area": 552,
+        "kerfExpandedAreaCover/cost": 31,
+        "thresholdCardinalityCover/cost": 31,
+        "pairedAreaCardinalityCover/cost": 31,
+        "multipleThresholdAreaCover/cost": 31,
+        "tripleThresholdAreaCover/cost": 31,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970002",
+      "oracle": {
+        "count": 2,
+        "area": 582,
+        "cost": 69
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 582,
+        "thresholdCardinalityCover/area": 336,
+        "pairedAreaCardinalityCover/area": 414,
+        "multipleThresholdAreaCover/area": 414,
+        "tripleThresholdAreaCover/area": 414,
+        "kerfExpandedAreaCover/cost": 69,
+        "thresholdCardinalityCover/cost": 35,
+        "pairedAreaCardinalityCover/cost": 35,
+        "multipleThresholdAreaCover/cost": 35,
+        "tripleThresholdAreaCover/cost": 35,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970003",
+      "oracle": {
+        "count": 1,
+        "area": 390,
+        "cost": 48
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 390,
+        "thresholdCardinalityCover/area": 390,
+        "pairedAreaCardinalityCover/area": 390,
+        "multipleThresholdAreaCover/area": 390,
+        "tripleThresholdAreaCover/area": 390,
+        "kerfExpandedAreaCover/cost": 48,
+        "thresholdCardinalityCover/cost": 48,
+        "pairedAreaCardinalityCover/cost": 48,
+        "multipleThresholdAreaCover/cost": 48,
+        "tripleThresholdAreaCover/cost": 48,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970005",
+      "oracle": {
+        "count": 1,
+        "area": 234,
+        "cost": 67
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 234,
+        "thresholdCardinalityCover/area": 234,
+        "pairedAreaCardinalityCover/area": 234,
+        "multipleThresholdAreaCover/area": 234,
+        "tripleThresholdAreaCover/area": 234,
+        "kerfExpandedAreaCover/cost": 67,
+        "thresholdCardinalityCover/cost": 67,
+        "pairedAreaCardinalityCover/cost": 67,
+        "multipleThresholdAreaCover/cost": 67,
+        "tripleThresholdAreaCover/cost": 67,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970006",
+      "oracle": {
+        "count": 2,
+        "area": 1012,
+        "cost": 166
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 1012,
+        "thresholdCardinalityCover/area": 506,
+        "pairedAreaCardinalityCover/area": 506,
+        "multipleThresholdAreaCover/area": 506,
+        "tripleThresholdAreaCover/area": 506,
+        "kerfExpandedAreaCover/cost": 166,
+        "thresholdCardinalityCover/cost": 83,
+        "pairedAreaCardinalityCover/cost": 83,
+        "multipleThresholdAreaCover/cost": 83,
+        "tripleThresholdAreaCover/cost": 83,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970007",
+      "oracle": {
+        "count": 1,
+        "area": 598,
+        "cost": 20
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 598,
+        "thresholdCardinalityCover/area": 598,
+        "pairedAreaCardinalityCover/area": 598,
+        "multipleThresholdAreaCover/area": 598,
+        "tripleThresholdAreaCover/area": 598,
+        "kerfExpandedAreaCover/cost": 20,
+        "thresholdCardinalityCover/cost": 20,
+        "pairedAreaCardinalityCover/cost": 20,
+        "multipleThresholdAreaCover/cost": 20,
+        "tripleThresholdAreaCover/cost": 20,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970008",
+      "oracle": {
+        "count": 2,
+        "area": 714,
+        "cost": 146
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 2,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 714,
+        "thresholdCardinalityCover/area": 714,
+        "pairedAreaCardinalityCover/area": 714,
+        "multipleThresholdAreaCover/area": 714,
+        "tripleThresholdAreaCover/area": 714,
+        "kerfExpandedAreaCover/cost": 146,
+        "thresholdCardinalityCover/cost": 146,
+        "pairedAreaCardinalityCover/cost": 146,
+        "multipleThresholdAreaCover/cost": 146,
+        "tripleThresholdAreaCover/cost": 146,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 2
+      }
+    },
+    {
+      "caseId": "dense-970010",
+      "oracle": {
+        "count": 1,
+        "area": 575,
+        "cost": 88
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 575,
+        "thresholdCardinalityCover/area": 432,
+        "pairedAreaCardinalityCover/area": 432,
+        "multipleThresholdAreaCover/area": 432,
+        "tripleThresholdAreaCover/area": 432,
+        "kerfExpandedAreaCover/cost": 88,
+        "thresholdCardinalityCover/cost": 78,
+        "pairedAreaCardinalityCover/cost": 78,
+        "multipleThresholdAreaCover/cost": 78,
+        "tripleThresholdAreaCover/cost": 78,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970011",
+      "oracle": {
+        "count": 1,
+        "area": 456,
+        "cost": 33
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 456,
+        "thresholdCardinalityCover/area": 456,
+        "pairedAreaCardinalityCover/area": 456,
+        "multipleThresholdAreaCover/area": 456,
+        "tripleThresholdAreaCover/area": 456,
+        "kerfExpandedAreaCover/cost": 33,
+        "thresholdCardinalityCover/cost": 33,
+        "pairedAreaCardinalityCover/cost": 33,
+        "multipleThresholdAreaCover/cost": 33,
+        "tripleThresholdAreaCover/cost": 33,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970012",
+      "oracle": {
+        "count": 1,
+        "area": 460,
+        "cost": 13
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 460,
+        "thresholdCardinalityCover/area": 460,
+        "pairedAreaCardinalityCover/area": 460,
+        "multipleThresholdAreaCover/area": 460,
+        "tripleThresholdAreaCover/area": 460,
+        "kerfExpandedAreaCover/cost": 13,
+        "thresholdCardinalityCover/cost": 13,
+        "pairedAreaCardinalityCover/cost": 13,
+        "multipleThresholdAreaCover/cost": 13,
+        "tripleThresholdAreaCover/cost": 13,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970013",
+      "oracle": {
+        "count": 1,
+        "area": 480,
+        "cost": 71
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 480,
+        "thresholdCardinalityCover/area": 480,
+        "pairedAreaCardinalityCover/area": 480,
+        "multipleThresholdAreaCover/area": 480,
+        "kerfExpandedAreaCover/cost": 71,
+        "thresholdCardinalityCover/cost": 71,
+        "pairedAreaCardinalityCover/cost": 71,
+        "multipleThresholdAreaCover/cost": 71,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970014",
+      "oracle": {
+        "count": 2,
+        "area": 672,
+        "cost": 50
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 336,
+        "thresholdCardinalityCover/area": 336,
+        "pairedAreaCardinalityCover/area": 336,
+        "multipleThresholdAreaCover/area": 336,
+        "tripleThresholdAreaCover/area": 336,
+        "kerfExpandedAreaCover/cost": 25,
+        "thresholdCardinalityCover/cost": 25,
+        "pairedAreaCardinalityCover/cost": 25,
+        "multipleThresholdAreaCover/cost": 25,
+        "tripleThresholdAreaCover/cost": 25,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970015",
+      "oracle": {
+        "count": 3,
+        "area": 1014,
+        "cost": 162
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 2,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 676,
+        "thresholdCardinalityCover/area": 676,
+        "pairedAreaCardinalityCover/area": 676,
+        "multipleThresholdAreaCover/area": 676,
+        "tripleThresholdAreaCover/area": 676,
+        "kerfExpandedAreaCover/cost": 108,
+        "thresholdCardinalityCover/cost": 108,
+        "pairedAreaCardinalityCover/cost": 108,
+        "multipleThresholdAreaCover/cost": 108,
+        "tripleThresholdAreaCover/cost": 108,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 2
+      }
+    },
+    {
+      "caseId": "dense-970016",
+      "oracle": {
+        "count": 1,
+        "area": 368,
+        "cost": 12
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 368,
+        "thresholdCardinalityCover/area": 368,
+        "pairedAreaCardinalityCover/area": 368,
+        "multipleThresholdAreaCover/area": 368,
+        "kerfExpandedAreaCover/cost": 12,
+        "thresholdCardinalityCover/cost": 12,
+        "pairedAreaCardinalityCover/cost": 12,
+        "multipleThresholdAreaCover/cost": 12,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970019",
+      "oracle": {
+        "count": 2,
+        "area": 864,
+        "cost": 32
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 432,
+        "thresholdCardinalityCover/area": 432,
+        "pairedAreaCardinalityCover/area": 432,
+        "multipleThresholdAreaCover/area": 432,
+        "kerfExpandedAreaCover/cost": 16,
+        "thresholdCardinalityCover/cost": 16,
+        "pairedAreaCardinalityCover/cost": 16,
+        "multipleThresholdAreaCover/cost": 16,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970020",
+      "oracle": {
+        "count": 1,
+        "area": 315,
+        "cost": 35
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 315,
+        "thresholdCardinalityCover/area": 315,
+        "pairedAreaCardinalityCover/area": 315,
+        "multipleThresholdAreaCover/area": 315,
+        "tripleThresholdAreaCover/area": 315,
+        "kerfExpandedAreaCover/cost": 35,
+        "thresholdCardinalityCover/cost": 35,
+        "pairedAreaCardinalityCover/cost": 35,
+        "multipleThresholdAreaCover/cost": 35,
+        "tripleThresholdAreaCover/cost": 35,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970021",
+      "oracle": {
+        "count": 2,
+        "area": 812,
+        "cost": 54
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 812,
+        "thresholdCardinalityCover/area": 437,
+        "pairedAreaCardinalityCover/area": 437,
+        "multipleThresholdAreaCover/area": 437,
+        "tripleThresholdAreaCover/area": 437,
+        "kerfExpandedAreaCover/cost": 54,
+        "thresholdCardinalityCover/cost": 27,
+        "pairedAreaCardinalityCover/cost": 27,
+        "multipleThresholdAreaCover/cost": 27,
+        "tripleThresholdAreaCover/cost": 27,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970022",
+      "oracle": {
+        "count": 2,
+        "area": 1046,
+        "cost": 157
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 2,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 1046,
+        "thresholdCardinalityCover/area": 1046,
+        "pairedAreaCardinalityCover/area": 1046,
+        "multipleThresholdAreaCover/area": 1046,
+        "tripleThresholdAreaCover/area": 1046,
+        "kerfExpandedAreaCover/cost": 157,
+        "thresholdCardinalityCover/cost": 157,
+        "pairedAreaCardinalityCover/cost": 157,
+        "multipleThresholdAreaCover/cost": 157,
+        "tripleThresholdAreaCover/cost": 157,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 2
+      }
+    },
+    {
+      "caseId": "dense-970023",
+      "oracle": {
+        "count": 2,
+        "area": 816,
+        "cost": 62
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 816,
+        "thresholdCardinalityCover/area": 408,
+        "pairedAreaCardinalityCover/area": 408,
+        "multipleThresholdAreaCover/area": 408,
+        "tripleThresholdAreaCover/area": 408,
+        "kerfExpandedAreaCover/cost": 62,
+        "thresholdCardinalityCover/cost": 31,
+        "pairedAreaCardinalityCover/cost": 31,
+        "multipleThresholdAreaCover/cost": 31,
+        "tripleThresholdAreaCover/cost": 31,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970025",
+      "oracle": {
+        "count": 2,
+        "area": 546,
+        "cost": 90
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 2,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 546,
+        "thresholdCardinalityCover/area": 546,
+        "pairedAreaCardinalityCover/area": 546,
+        "multipleThresholdAreaCover/area": 546,
+        "tripleThresholdAreaCover/area": 546,
+        "kerfExpandedAreaCover/cost": 90,
+        "thresholdCardinalityCover/cost": 90,
+        "pairedAreaCardinalityCover/cost": 90,
+        "multipleThresholdAreaCover/cost": 90,
+        "tripleThresholdAreaCover/cost": 90,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 2
+      }
+    },
+    {
+      "caseId": "dense-970026",
+      "oracle": {
+        "count": 2,
+        "area": 1040,
+        "cost": 168
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 520,
+        "thresholdCardinalityCover/area": 520,
+        "pairedAreaCardinalityCover/area": 520,
+        "multipleThresholdAreaCover/area": 520,
+        "tripleThresholdAreaCover/area": 520,
+        "kerfExpandedAreaCover/cost": 84,
+        "thresholdCardinalityCover/cost": 84,
+        "pairedAreaCardinalityCover/cost": 84,
+        "multipleThresholdAreaCover/cost": 84,
+        "tripleThresholdAreaCover/cost": 84,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970027",
+      "oracle": {
+        "count": 2,
+        "area": 1008,
+        "cost": 78
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 504,
+        "thresholdCardinalityCover/area": 504,
+        "pairedAreaCardinalityCover/area": 504,
+        "multipleThresholdAreaCover/area": 504,
+        "kerfExpandedAreaCover/cost": 39,
+        "thresholdCardinalityCover/cost": 39,
+        "pairedAreaCardinalityCover/cost": 39,
+        "multipleThresholdAreaCover/cost": 39,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970029",
+      "oracle": {
+        "count": 2,
+        "area": 672,
+        "cost": 112
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 672,
+        "thresholdCardinalityCover/area": 336,
+        "pairedAreaCardinalityCover/area": 672,
+        "multipleThresholdAreaCover/area": 672,
+        "tripleThresholdAreaCover/area": 672,
+        "kerfExpandedAreaCover/cost": 112,
+        "thresholdCardinalityCover/cost": 56,
+        "pairedAreaCardinalityCover/cost": 112,
+        "multipleThresholdAreaCover/cost": 112,
+        "tripleThresholdAreaCover/cost": 112,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970031",
+      "oracle": {
+        "count": 2,
+        "area": 832,
+        "cost": 74
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 720,
+        "thresholdCardinalityCover/area": 416,
+        "pairedAreaCardinalityCover/area": 656,
+        "multipleThresholdAreaCover/area": 656,
+        "tripleThresholdAreaCover/area": 656,
+        "kerfExpandedAreaCover/cost": 39,
+        "thresholdCardinalityCover/cost": 26,
+        "pairedAreaCardinalityCover/cost": 39,
+        "multipleThresholdAreaCover/cost": 39,
+        "tripleThresholdAreaCover/cost": 39,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970032",
+      "oracle": {
+        "count": 2,
+        "area": 836,
+        "cost": 118
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 836,
+        "thresholdCardinalityCover/area": 418,
+        "pairedAreaCardinalityCover/area": 836,
+        "multipleThresholdAreaCover/area": 836,
+        "tripleThresholdAreaCover/area": 836,
+        "kerfExpandedAreaCover/cost": 118,
+        "thresholdCardinalityCover/cost": 59,
+        "pairedAreaCardinalityCover/cost": 118,
+        "multipleThresholdAreaCover/cost": 118,
+        "tripleThresholdAreaCover/cost": 118,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970034",
+      "oracle": {
+        "count": 3,
+        "area": 910,
+        "cost": 190
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 2,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 700,
+        "thresholdCardinalityCover/area": 560,
+        "pairedAreaCardinalityCover/area": 560,
+        "multipleThresholdAreaCover/area": 560,
+        "tripleThresholdAreaCover/area": 560,
+        "kerfExpandedAreaCover/cost": 174,
+        "thresholdCardinalityCover/cost": 103,
+        "pairedAreaCardinalityCover/cost": 103,
+        "multipleThresholdAreaCover/cost": 103,
+        "tripleThresholdAreaCover/cost": 103,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 3,
+        "itemCapacityLowerBound": 2
+      }
+    },
+    {
+      "caseId": "dense-970035",
+      "oracle": {
+        "count": 1,
+        "area": 266,
+        "cost": 15
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 266,
+        "thresholdCardinalityCover/area": 266,
+        "pairedAreaCardinalityCover/area": 266,
+        "multipleThresholdAreaCover/area": 266,
+        "tripleThresholdAreaCover/area": 266,
+        "kerfExpandedAreaCover/cost": 15,
+        "thresholdCardinalityCover/cost": 15,
+        "pairedAreaCardinalityCover/cost": 15,
+        "multipleThresholdAreaCover/cost": 15,
+        "tripleThresholdAreaCover/cost": 15,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970036",
+      "oracle": {
+        "count": 2,
+        "area": 856,
+        "cost": 123
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 2,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 856,
+        "thresholdCardinalityCover/area": 856,
+        "pairedAreaCardinalityCover/area": 856,
+        "multipleThresholdAreaCover/area": 856,
+        "tripleThresholdAreaCover/area": 856,
+        "kerfExpandedAreaCover/cost": 123,
+        "thresholdCardinalityCover/cost": 123,
+        "pairedAreaCardinalityCover/cost": 123,
+        "multipleThresholdAreaCover/cost": 123,
+        "tripleThresholdAreaCover/cost": 123,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 2
+      }
+    },
+    {
+      "caseId": "dense-970037",
+      "oracle": {
+        "count": 1,
+        "area": 456,
+        "cost": 68
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 456,
+        "thresholdCardinalityCover/area": 456,
+        "pairedAreaCardinalityCover/area": 456,
+        "multipleThresholdAreaCover/area": 456,
+        "tripleThresholdAreaCover/area": 456,
+        "kerfExpandedAreaCover/cost": 68,
+        "thresholdCardinalityCover/cost": 68,
+        "pairedAreaCardinalityCover/cost": 68,
+        "multipleThresholdAreaCover/cost": 68,
+        "tripleThresholdAreaCover/cost": 68,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970038",
+      "oracle": {
+        "count": 2,
+        "area": 448,
+        "cost": 80
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 448,
+        "thresholdCardinalityCover/area": 224,
+        "pairedAreaCardinalityCover/area": 285,
+        "multipleThresholdAreaCover/area": 285,
+        "tripleThresholdAreaCover/area": 285,
+        "kerfExpandedAreaCover/cost": 80,
+        "thresholdCardinalityCover/cost": 40,
+        "pairedAreaCardinalityCover/cost": 41,
+        "multipleThresholdAreaCover/cost": 41,
+        "tripleThresholdAreaCover/cost": 41,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970039",
+      "oracle": {
+        "count": 1,
+        "area": 323,
+        "cost": 11
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 323,
+        "thresholdCardinalityCover/area": 323,
+        "pairedAreaCardinalityCover/area": 323,
+        "multipleThresholdAreaCover/area": 323,
+        "tripleThresholdAreaCover/area": 323,
+        "kerfExpandedAreaCover/cost": 11,
+        "thresholdCardinalityCover/cost": 11,
+        "pairedAreaCardinalityCover/cost": 11,
+        "multipleThresholdAreaCover/cost": 11,
+        "tripleThresholdAreaCover/cost": 11,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970040",
+      "oracle": {
+        "count": 1,
+        "area": 315,
+        "cost": 39
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 315,
+        "thresholdCardinalityCover/area": 315,
+        "pairedAreaCardinalityCover/area": 315,
+        "multipleThresholdAreaCover/area": 315,
+        "tripleThresholdAreaCover/area": 315,
+        "kerfExpandedAreaCover/cost": 39,
+        "thresholdCardinalityCover/cost": 39,
+        "pairedAreaCardinalityCover/cost": 39,
+        "multipleThresholdAreaCover/cost": 39,
+        "tripleThresholdAreaCover/cost": 39,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970041",
+      "oracle": {
+        "count": 2,
+        "area": 597,
+        "cost": 103
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 2,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 570,
+        "thresholdCardinalityCover/area": 597,
+        "pairedAreaCardinalityCover/area": 597,
+        "multipleThresholdAreaCover/area": 597,
+        "tripleThresholdAreaCover/area": 597,
+        "kerfExpandedAreaCover/cost": 103,
+        "thresholdCardinalityCover/cost": 103,
+        "pairedAreaCardinalityCover/cost": 103,
+        "multipleThresholdAreaCover/cost": 103,
+        "tripleThresholdAreaCover/cost": 103,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 2
+      }
+    },
+    {
+      "caseId": "dense-970043",
+      "oracle": {
+        "count": 1,
+        "area": 625,
+        "cost": 50
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 625,
+        "thresholdCardinalityCover/area": 625,
+        "pairedAreaCardinalityCover/area": 625,
+        "multipleThresholdAreaCover/area": 625,
+        "tripleThresholdAreaCover/area": 625,
+        "kerfExpandedAreaCover/cost": 50,
+        "thresholdCardinalityCover/cost": 50,
+        "pairedAreaCardinalityCover/cost": 50,
+        "multipleThresholdAreaCover/cost": 50,
+        "tripleThresholdAreaCover/cost": 50,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970045",
+      "oracle": {
+        "count": 1,
+        "area": 462,
+        "cost": 62
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 462,
+        "thresholdCardinalityCover/area": 462,
+        "pairedAreaCardinalityCover/area": 462,
+        "multipleThresholdAreaCover/area": 462,
+        "tripleThresholdAreaCover/area": 462,
+        "kerfExpandedAreaCover/cost": 62,
+        "thresholdCardinalityCover/cost": 62,
+        "pairedAreaCardinalityCover/cost": 62,
+        "multipleThresholdAreaCover/cost": 62,
+        "tripleThresholdAreaCover/cost": 62,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970046",
+      "oracle": {
+        "count": 1,
+        "area": 375,
+        "cost": 38
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 375,
+        "thresholdCardinalityCover/area": 208,
+        "pairedAreaCardinalityCover/area": 208,
+        "multipleThresholdAreaCover/area": 208,
+        "kerfExpandedAreaCover/cost": 38,
+        "thresholdCardinalityCover/cost": 38,
+        "pairedAreaCardinalityCover/cost": 38,
+        "multipleThresholdAreaCover/cost": 38,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970047",
+      "oracle": {
+        "count": 2,
+        "area": 641,
+        "cost": 136
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 532,
+        "thresholdCardinalityCover/area": 266,
+        "pairedAreaCardinalityCover/area": 375,
+        "multipleThresholdAreaCover/area": 375,
+        "tripleThresholdAreaCover/area": 375,
+        "kerfExpandedAreaCover/cost": 136,
+        "thresholdCardinalityCover/cost": 68,
+        "pairedAreaCardinalityCover/cost": 68,
+        "multipleThresholdAreaCover/cost": 68,
+        "tripleThresholdAreaCover/cost": 68,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970048",
+      "oracle": {
+        "count": 2,
+        "area": 715,
+        "cost": 83
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 715,
+        "thresholdCardinalityCover/area": 390,
+        "pairedAreaCardinalityCover/area": 390,
+        "multipleThresholdAreaCover/area": 390,
+        "tripleThresholdAreaCover/area": 390,
+        "kerfExpandedAreaCover/cost": 83,
+        "thresholdCardinalityCover/cost": 51,
+        "pairedAreaCardinalityCover/cost": 51,
+        "multipleThresholdAreaCover/cost": 51,
+        "tripleThresholdAreaCover/cost": 51,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970052",
+      "oracle": {
+        "count": 2,
+        "area": 569,
+        "cost": 26
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 569,
+        "thresholdCardinalityCover/area": 361,
+        "pairedAreaCardinalityCover/area": 416,
+        "multipleThresholdAreaCover/area": 416,
+        "tripleThresholdAreaCover/area": 416,
+        "kerfExpandedAreaCover/cost": 26,
+        "thresholdCardinalityCover/cost": 13,
+        "pairedAreaCardinalityCover/cost": 26,
+        "multipleThresholdAreaCover/cost": 26,
+        "tripleThresholdAreaCover/cost": 26,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970053",
+      "oracle": {
+        "count": 1,
+        "area": 494,
+        "cost": 57
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 494,
+        "thresholdCardinalityCover/area": 494,
+        "pairedAreaCardinalityCover/area": 494,
+        "multipleThresholdAreaCover/area": 494,
+        "tripleThresholdAreaCover/area": 494,
+        "kerfExpandedAreaCover/cost": 57,
+        "thresholdCardinalityCover/cost": 57,
+        "pairedAreaCardinalityCover/cost": 57,
+        "multipleThresholdAreaCover/cost": 57,
+        "tripleThresholdAreaCover/cost": 57,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970054",
+      "oracle": {
+        "count": 1,
+        "area": 441,
+        "cost": 23
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 441,
+        "thresholdCardinalityCover/area": 270,
+        "pairedAreaCardinalityCover/area": 270,
+        "multipleThresholdAreaCover/area": 270,
+        "tripleThresholdAreaCover/area": 270,
+        "kerfExpandedAreaCover/cost": 23,
+        "thresholdCardinalityCover/cost": 23,
+        "pairedAreaCardinalityCover/cost": 23,
+        "multipleThresholdAreaCover/cost": 23,
+        "tripleThresholdAreaCover/cost": 23,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970055",
+      "oracle": {
+        "count": 2,
+        "area": 576,
+        "cost": 128
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 288,
+        "thresholdCardinalityCover/area": 288,
+        "pairedAreaCardinalityCover/area": 288,
+        "multipleThresholdAreaCover/area": 288,
+        "kerfExpandedAreaCover/cost": 64,
+        "thresholdCardinalityCover/cost": 64,
+        "pairedAreaCardinalityCover/cost": 64,
+        "multipleThresholdAreaCover/cost": 64,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970056",
+      "oracle": {
+        "count": 2,
+        "area": 768,
+        "cost": 120
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 714,
+        "thresholdCardinalityCover/area": 357,
+        "pairedAreaCardinalityCover/area": 714,
+        "multipleThresholdAreaCover/area": 714,
+        "tripleThresholdAreaCover/area": 714,
+        "kerfExpandedAreaCover/cost": 120,
+        "thresholdCardinalityCover/cost": 60,
+        "pairedAreaCardinalityCover/cost": 120,
+        "multipleThresholdAreaCover/cost": 120,
+        "tripleThresholdAreaCover/cost": 120,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970058",
+      "oracle": {
+        "count": 2,
+        "area": 836,
+        "cost": 88
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 836,
+        "thresholdCardinalityCover/area": 550,
+        "pairedAreaCardinalityCover/area": 836,
+        "multipleThresholdAreaCover/area": 836,
+        "tripleThresholdAreaCover/area": 836,
+        "kerfExpandedAreaCover/cost": 88,
+        "thresholdCardinalityCover/cost": 40,
+        "pairedAreaCardinalityCover/cost": 88,
+        "multipleThresholdAreaCover/cost": 88,
+        "tripleThresholdAreaCover/cost": 88,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970059",
+      "oracle": {
+        "count": 1,
+        "area": 625,
+        "cost": 12
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 625,
+        "thresholdCardinalityCover/area": 625,
+        "pairedAreaCardinalityCover/area": 625,
+        "multipleThresholdAreaCover/area": 625,
+        "tripleThresholdAreaCover/area": 625,
+        "kerfExpandedAreaCover/cost": 12,
+        "thresholdCardinalityCover/cost": 12,
+        "pairedAreaCardinalityCover/cost": 12,
+        "multipleThresholdAreaCover/cost": 12,
+        "tripleThresholdAreaCover/cost": 12,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970060",
+      "oracle": {
+        "count": 2,
+        "area": 672,
+        "cost": 152
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 2,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 672,
+        "thresholdCardinalityCover/area": 672,
+        "pairedAreaCardinalityCover/area": 672,
+        "multipleThresholdAreaCover/area": 672,
+        "tripleThresholdAreaCover/area": 672,
+        "kerfExpandedAreaCover/cost": 152,
+        "thresholdCardinalityCover/cost": 152,
+        "pairedAreaCardinalityCover/cost": 152,
+        "multipleThresholdAreaCover/cost": 152,
+        "tripleThresholdAreaCover/cost": 152,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 2,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 2
+      }
+    },
+    {
+      "caseId": "dense-970062",
+      "oracle": {
+        "count": 1,
+        "area": 270,
+        "cost": 69
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 270,
+        "thresholdCardinalityCover/area": 270,
+        "pairedAreaCardinalityCover/area": 270,
+        "multipleThresholdAreaCover/area": 270,
+        "tripleThresholdAreaCover/area": 270,
+        "kerfExpandedAreaCover/cost": 69,
+        "thresholdCardinalityCover/cost": 69,
+        "pairedAreaCardinalityCover/cost": 69,
+        "multipleThresholdAreaCover/cost": 69,
+        "tripleThresholdAreaCover/cost": 69,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970065",
+      "oracle": {
+        "count": 3,
+        "area": 912,
+        "cost": 146
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 624,
+        "thresholdCardinalityCover/area": 288,
+        "pairedAreaCardinalityCover/area": 576,
+        "multipleThresholdAreaCover/area": 576,
+        "tripleThresholdAreaCover/area": 576,
+        "kerfExpandedAreaCover/cost": 78,
+        "thresholdCardinalityCover/cost": 68,
+        "pairedAreaCardinalityCover/cost": 107,
+        "multipleThresholdAreaCover/cost": 107,
+        "tripleThresholdAreaCover/cost": 107,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970066",
+      "oracle": {
+        "count": 2,
+        "area": 644,
+        "cost": 180
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 322,
+        "thresholdCardinalityCover/area": 322,
+        "pairedAreaCardinalityCover/area": 322,
+        "multipleThresholdAreaCover/area": 322,
+        "kerfExpandedAreaCover/cost": 90,
+        "thresholdCardinalityCover/cost": 90,
+        "pairedAreaCardinalityCover/cost": 90,
+        "multipleThresholdAreaCover/cost": 90,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970068",
+      "oracle": {
+        "count": 1,
+        "area": 624,
+        "cost": 60
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 624,
+        "thresholdCardinalityCover/area": 624,
+        "pairedAreaCardinalityCover/area": 624,
+        "multipleThresholdAreaCover/area": 624,
+        "tripleThresholdAreaCover/area": 624,
+        "kerfExpandedAreaCover/cost": 60,
+        "thresholdCardinalityCover/cost": 60,
+        "pairedAreaCardinalityCover/cost": 60,
+        "multipleThresholdAreaCover/cost": 60,
+        "tripleThresholdAreaCover/cost": 60,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970070",
+      "oracle": {
+        "count": 1,
+        "area": 252,
+        "cost": 13
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 252,
+        "thresholdCardinalityCover/area": 252,
+        "pairedAreaCardinalityCover/area": 252,
+        "multipleThresholdAreaCover/area": 252,
+        "kerfExpandedAreaCover/cost": 13,
+        "thresholdCardinalityCover/cost": 13,
+        "pairedAreaCardinalityCover/cost": 13,
+        "multipleThresholdAreaCover/cost": 13,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970073",
+      "oracle": {
+        "count": 2,
+        "area": 1092,
+        "cost": 180
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 546,
+        "thresholdCardinalityCover/area": 546,
+        "pairedAreaCardinalityCover/area": 546,
+        "multipleThresholdAreaCover/area": 546,
+        "tripleThresholdAreaCover/area": 546,
+        "kerfExpandedAreaCover/cost": 90,
+        "thresholdCardinalityCover/cost": 90,
+        "pairedAreaCardinalityCover/cost": 90,
+        "multipleThresholdAreaCover/cost": 90,
+        "tripleThresholdAreaCover/cost": 90,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970074",
+      "oracle": {
+        "count": 2,
+        "area": 468,
+        "cost": 36
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 2,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 312,
+        "thresholdCardinalityCover/area": 468,
+        "pairedAreaCardinalityCover/area": 468,
+        "multipleThresholdAreaCover/area": 468,
+        "tripleThresholdAreaCover/area": 468,
+        "kerfExpandedAreaCover/cost": 24,
+        "thresholdCardinalityCover/cost": 36,
+        "pairedAreaCardinalityCover/cost": 36,
+        "multipleThresholdAreaCover/cost": 36,
+        "tripleThresholdAreaCover/cost": 36,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 2
+      }
+    },
+    {
+      "caseId": "dense-970075",
+      "oracle": {
+        "count": 2,
+        "area": 756,
+        "cost": 158
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 606,
+        "thresholdCardinalityCover/area": 378,
+        "pairedAreaCardinalityCover/area": 606,
+        "multipleThresholdAreaCover/area": 606,
+        "tripleThresholdAreaCover/area": 606,
+        "kerfExpandedAreaCover/cost": 97,
+        "thresholdCardinalityCover/cost": 79,
+        "pairedAreaCardinalityCover/cost": 97,
+        "multipleThresholdAreaCover/cost": 97,
+        "tripleThresholdAreaCover/cost": 97,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970078",
+      "oracle": {
+        "count": 3,
+        "area": 1142,
+        "cost": 122
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 3,
+        "pairedAreaCardinalityCover/count": 3,
+        "multipleThresholdAreaCover/count": 3,
+        "tripleThresholdAreaCover/count": 3,
+        "kerfExpandedAreaCover/area": 828,
+        "thresholdCardinalityCover/area": 1142,
+        "pairedAreaCardinalityCover/area": 1142,
+        "multipleThresholdAreaCover/area": 1142,
+        "tripleThresholdAreaCover/area": 1142,
+        "kerfExpandedAreaCover/cost": 52,
+        "thresholdCardinalityCover/cost": 122,
+        "pairedAreaCardinalityCover/cost": 122,
+        "multipleThresholdAreaCover/cost": 122,
+        "tripleThresholdAreaCover/cost": 122,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 3
+      }
+    },
+    {
+      "caseId": "dense-970080",
+      "oracle": {
+        "count": 2,
+        "area": 688,
+        "cost": 53
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 688,
+        "thresholdCardinalityCover/area": 336,
+        "pairedAreaCardinalityCover/area": 688,
+        "multipleThresholdAreaCover/area": 688,
+        "tripleThresholdAreaCover/area": 688,
+        "kerfExpandedAreaCover/cost": 53,
+        "thresholdCardinalityCover/cost": 15,
+        "pairedAreaCardinalityCover/cost": 53,
+        "multipleThresholdAreaCover/cost": 53,
+        "tripleThresholdAreaCover/cost": 53,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970082",
+      "oracle": {
+        "count": 1,
+        "area": 324,
+        "cost": 28
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 324,
+        "thresholdCardinalityCover/area": 324,
+        "pairedAreaCardinalityCover/area": 324,
+        "multipleThresholdAreaCover/area": 324,
+        "tripleThresholdAreaCover/area": 324,
+        "kerfExpandedAreaCover/cost": 28,
+        "thresholdCardinalityCover/cost": 28,
+        "pairedAreaCardinalityCover/cost": 28,
+        "multipleThresholdAreaCover/cost": 28,
+        "tripleThresholdAreaCover/cost": 28,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970083",
+      "oracle": {
+        "count": 2,
+        "area": 864,
+        "cost": 130
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 2,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 864,
+        "thresholdCardinalityCover/area": 672,
+        "pairedAreaCardinalityCover/area": 672,
+        "multipleThresholdAreaCover/area": 864,
+        "tripleThresholdAreaCover/area": 864,
+        "kerfExpandedAreaCover/cost": 130,
+        "thresholdCardinalityCover/cost": 88,
+        "pairedAreaCardinalityCover/cost": 88,
+        "multipleThresholdAreaCover/cost": 130,
+        "tripleThresholdAreaCover/cost": 130,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 2
+      }
+    },
+    {
+      "caseId": "dense-970084",
+      "oracle": {
+        "count": 1,
+        "area": 336,
+        "cost": 70
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 336,
+        "thresholdCardinalityCover/area": 336,
+        "pairedAreaCardinalityCover/area": 336,
+        "multipleThresholdAreaCover/area": 336,
+        "tripleThresholdAreaCover/area": 336,
+        "kerfExpandedAreaCover/cost": 70,
+        "thresholdCardinalityCover/cost": 70,
+        "pairedAreaCardinalityCover/cost": 70,
+        "multipleThresholdAreaCover/cost": 70,
+        "tripleThresholdAreaCover/cost": 70,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970086",
+      "oracle": {
+        "count": 2,
+        "area": 720,
+        "cost": 38
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 720,
+        "thresholdCardinalityCover/area": 360,
+        "pairedAreaCardinalityCover/area": 360,
+        "multipleThresholdAreaCover/area": 360,
+        "tripleThresholdAreaCover/area": 360,
+        "kerfExpandedAreaCover/cost": 38,
+        "thresholdCardinalityCover/cost": 19,
+        "pairedAreaCardinalityCover/cost": 19,
+        "multipleThresholdAreaCover/cost": 19,
+        "tripleThresholdAreaCover/cost": 19,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970088",
+      "oracle": {
+        "count": 1,
+        "area": 572,
+        "cost": 65
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 572,
+        "thresholdCardinalityCover/area": 280,
+        "pairedAreaCardinalityCover/area": 572,
+        "multipleThresholdAreaCover/area": 572,
+        "tripleThresholdAreaCover/area": 572,
+        "kerfExpandedAreaCover/cost": 65,
+        "thresholdCardinalityCover/cost": 57,
+        "pairedAreaCardinalityCover/cost": 65,
+        "multipleThresholdAreaCover/cost": 65,
+        "tripleThresholdAreaCover/cost": 65,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970089",
+      "oracle": {
+        "count": 2,
+        "area": 620,
+        "cost": 128
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 368,
+        "thresholdCardinalityCover/area": 252,
+        "pairedAreaCardinalityCover/area": 252,
+        "multipleThresholdAreaCover/area": 252,
+        "tripleThresholdAreaCover/area": 252,
+        "kerfExpandedAreaCover/cost": 68,
+        "thresholdCardinalityCover/cost": 60,
+        "pairedAreaCardinalityCover/cost": 60,
+        "multipleThresholdAreaCover/cost": 60,
+        "tripleThresholdAreaCover/cost": 60,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970093",
+      "oracle": {
+        "count": 2,
+        "area": 840,
+        "cost": 76
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 2,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 644,
+        "thresholdCardinalityCover/area": 448,
+        "pairedAreaCardinalityCover/area": 448,
+        "multipleThresholdAreaCover/area": 448,
+        "tripleThresholdAreaCover/area": 448,
+        "kerfExpandedAreaCover/cost": 76,
+        "thresholdCardinalityCover/cost": 76,
+        "pairedAreaCardinalityCover/cost": 76,
+        "multipleThresholdAreaCover/cost": 76,
+        "tripleThresholdAreaCover/cost": 76,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 2,
+        "itemCapacityLowerBound": 2
+      }
+    },
+    {
+      "caseId": "dense-970094",
+      "oracle": {
+        "count": 1,
+        "area": 624,
+        "cost": 27
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 624,
+        "thresholdCardinalityCover/area": 368,
+        "pairedAreaCardinalityCover/area": 624,
+        "multipleThresholdAreaCover/area": 624,
+        "tripleThresholdAreaCover/area": 624,
+        "kerfExpandedAreaCover/cost": 27,
+        "thresholdCardinalityCover/cost": 27,
+        "pairedAreaCardinalityCover/cost": 27,
+        "multipleThresholdAreaCover/cost": 27,
+        "tripleThresholdAreaCover/cost": 27,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970095",
+      "oracle": {
+        "count": 3,
+        "area": 784,
+        "cost": 91
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 2,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 432,
+        "thresholdCardinalityCover/area": 432,
+        "pairedAreaCardinalityCover/area": 568,
+        "multipleThresholdAreaCover/area": 568,
+        "tripleThresholdAreaCover/area": 568,
+        "kerfExpandedAreaCover/cost": 36,
+        "thresholdCardinalityCover/cost": 55,
+        "pairedAreaCardinalityCover/cost": 73,
+        "multipleThresholdAreaCover/cost": 73,
+        "tripleThresholdAreaCover/cost": 73,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 3,
+        "itemCapacityLowerBound": 2
+      }
+    },
+    {
+      "caseId": "dense-970097",
+      "oracle": {
+        "count": 1,
+        "area": 442,
+        "cost": 61
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 442,
+        "thresholdCardinalityCover/area": 442,
+        "pairedAreaCardinalityCover/area": 442,
+        "multipleThresholdAreaCover/area": 442,
+        "tripleThresholdAreaCover/area": 442,
+        "kerfExpandedAreaCover/cost": 61,
+        "thresholdCardinalityCover/cost": 61,
+        "pairedAreaCardinalityCover/cost": 61,
+        "multipleThresholdAreaCover/cost": 61,
+        "tripleThresholdAreaCover/cost": 61,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "dense-970098",
+      "oracle": {
+        "count": 3,
+        "area": 976,
+        "cost": 106
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 3,
+        "thresholdCardinalityCover/count": 2,
+        "pairedAreaCardinalityCover/count": 2,
+        "multipleThresholdAreaCover/count": 2,
+        "tripleThresholdAreaCover/count": 2,
+        "kerfExpandedAreaCover/area": 924,
+        "thresholdCardinalityCover/area": 616,
+        "pairedAreaCardinalityCover/area": 720,
+        "multipleThresholdAreaCover/area": 720,
+        "tripleThresholdAreaCover/area": 720,
+        "kerfExpandedAreaCover/cost": 57,
+        "thresholdCardinalityCover/cost": 38,
+        "pairedAreaCardinalityCover/cost": 57,
+        "multipleThresholdAreaCover/cost": 57,
+        "tripleThresholdAreaCover/cost": 57,
+        "kerfAreaLowerBound": 3,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 2
+      }
+    },
+    {
+      "caseId": "seven-types",
+      "oracle": {
+        "count": 2,
+        "area": 288,
+        "cost": 20
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "multipleThresholdAreaCover/count": 1,
+        "tripleThresholdAreaCover/count": 1,
+        "kerfExpandedAreaCover/area": 144,
+        "thresholdCardinalityCover/area": 144,
+        "pairedAreaCardinalityCover/area": 144,
+        "multipleThresholdAreaCover/area": 144,
+        "tripleThresholdAreaCover/area": 144,
+        "kerfExpandedAreaCover/cost": 10,
+        "thresholdCardinalityCover/cost": 10,
+        "pairedAreaCardinalityCover/cost": 10,
+        "multipleThresholdAreaCover/cost": 10,
+        "tripleThresholdAreaCover/cost": 10,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 0,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1
+      }
+    },
+    {
+      "caseId": "fullspan-1",
+      "oracle": {
+        "count": 1,
+        "area": 348,
+        "cost": 10
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "kerfExpandedAreaCover/area": 348,
+        "thresholdCardinalityCover/area": 348,
+        "pairedAreaCardinalityCover/area": 348,
+        "kerfExpandedAreaCover/cost": 10,
+        "thresholdCardinalityCover/cost": 10,
+        "pairedAreaCardinalityCover/cost": 10,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1,
+        "fullSpan": 1
+      }
+    },
+    {
+      "caseId": "fullspan-2",
+      "oracle": {
+        "count": 1,
+        "area": 348,
+        "cost": 10
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 1,
+        "thresholdCardinalityCover/count": 1,
+        "pairedAreaCardinalityCover/count": 1,
+        "kerfExpandedAreaCover/area": 348,
+        "thresholdCardinalityCover/area": 348,
+        "pairedAreaCardinalityCover/area": 348,
+        "kerfExpandedAreaCover/cost": 10,
+        "thresholdCardinalityCover/cost": 10,
+        "pairedAreaCardinalityCover/cost": 10,
+        "kerfAreaLowerBound": 1,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 1,
+        "fullSpan": 1
+      }
+    },
+    {
+      "caseId": "fullspan-3",
+      "oracle": {
+        "count": 2,
+        "area": 696,
+        "cost": 20
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 2,
+        "pairedAreaCardinalityCover/count": 2,
+        "kerfExpandedAreaCover/area": 696,
+        "thresholdCardinalityCover/area": 696,
+        "pairedAreaCardinalityCover/area": 696,
+        "kerfExpandedAreaCover/cost": 20,
+        "thresholdCardinalityCover/cost": 20,
+        "pairedAreaCardinalityCover/cost": 20,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 1,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 2,
+        "fullSpan": 2
+      }
+    },
+    {
+      "caseId": "fullspan-4",
+      "oracle": {
+        "count": 2,
+        "area": 696,
+        "cost": 20
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 2,
+        "pairedAreaCardinalityCover/count": 2,
+        "kerfExpandedAreaCover/area": 696,
+        "thresholdCardinalityCover/area": 696,
+        "pairedAreaCardinalityCover/area": 696,
+        "kerfExpandedAreaCover/cost": 20,
+        "thresholdCardinalityCover/cost": 20,
+        "pairedAreaCardinalityCover/cost": 20,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 2,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 2,
+        "fullSpan": 2
+      }
+    },
+    {
+      "caseId": "fullspan-5",
+      "oracle": {
+        "count": 3,
+        "area": 1044,
+        "cost": 30
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 2,
+        "thresholdCardinalityCover/count": 3,
+        "pairedAreaCardinalityCover/count": 3,
+        "kerfExpandedAreaCover/area": 696,
+        "thresholdCardinalityCover/area": 1044,
+        "pairedAreaCardinalityCover/area": 1044,
+        "kerfExpandedAreaCover/cost": 20,
+        "thresholdCardinalityCover/cost": 30,
+        "pairedAreaCardinalityCover/cost": 30,
+        "kerfAreaLowerBound": 2,
+        "halfSpanLowerBound": 2,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 3,
+        "fullSpan": 3
+      }
+    },
+    {
+      "caseId": "fullspan-6",
+      "oracle": {
+        "count": 3,
+        "area": 1044,
+        "cost": 30
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 3,
+        "thresholdCardinalityCover/count": 3,
+        "pairedAreaCardinalityCover/count": 3,
+        "kerfExpandedAreaCover/area": 1044,
+        "thresholdCardinalityCover/area": 1044,
+        "pairedAreaCardinalityCover/area": 1044,
+        "kerfExpandedAreaCover/cost": 30,
+        "thresholdCardinalityCover/cost": 30,
+        "pairedAreaCardinalityCover/cost": 30,
+        "kerfAreaLowerBound": 3,
+        "halfSpanLowerBound": 2,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 3,
+        "fullSpan": 3
+      }
+    },
+    {
+      "caseId": "fullspan-7",
+      "oracle": {
+        "count": 4,
+        "area": 1392,
+        "cost": 40
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 3,
+        "thresholdCardinalityCover/count": 4,
+        "pairedAreaCardinalityCover/count": 4,
+        "kerfExpandedAreaCover/area": 1044,
+        "thresholdCardinalityCover/area": 1392,
+        "pairedAreaCardinalityCover/area": 1392,
+        "kerfExpandedAreaCover/cost": 30,
+        "thresholdCardinalityCover/cost": 40,
+        "pairedAreaCardinalityCover/cost": 40,
+        "kerfAreaLowerBound": 3,
+        "halfSpanLowerBound": 2,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 4,
+        "fullSpan": 4
+      }
+    },
+    {
+      "caseId": "fullspan-8",
+      "oracle": {
+        "count": 4,
+        "area": 1392,
+        "cost": 40
+      },
+      "bounds": {
+        "kerfExpandedAreaCover/count": 3,
+        "thresholdCardinalityCover/count": 4,
+        "pairedAreaCardinalityCover/count": 4,
+        "kerfExpandedAreaCover/area": 1044,
+        "thresholdCardinalityCover/area": 1392,
+        "pairedAreaCardinalityCover/area": 1392,
+        "kerfExpandedAreaCover/cost": 30,
+        "thresholdCardinalityCover/cost": 40,
+        "pairedAreaCardinalityCover/cost": 40,
+        "kerfAreaLowerBound": 3,
+        "halfSpanLowerBound": 3,
+        "incompatibilityLowerBound": 1,
+        "itemCapacityLowerBound": 4,
+        "fullSpan": 4
+      }
+    }
+  ]
+}

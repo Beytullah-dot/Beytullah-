@@ -133,3 +133,5 @@ Plan ve paket kabul ölçütleri `BEYTHAUS-CUT-RELEASE-ROADMAP.md` ve `BEYTHAUS-
 - `docs/ENGINE-ARCHITECTURE.md`, `docs/BULUT-SENKRONIZASYON.md`, `tests/README.md`: kod sözleşmesi, bulut ve bağımsız testlerin ayrıntıları.
 
 **Güncel oturum:** Aşama 0 test ve ölçüm çalışması [PR #60](https://github.com/Beytullah-dot/Beytullah-/pull/60) içinde tutulur. Sonuçlar ve kalan kabul açıkları `tests/MOTOR-APARTMENT-STAGE0-RESULTS.md` dosyasındadır. Motor tamamlanma veya ürün v1 kabulü ilan edilmedi.
+
+**PR #61 kapanış çalışması (24 Kasım):** Kullanıcı beş kapanış maddesini yetkilendirdi; merge ve Aşama 2 yasak. 912041/913243 eksik planları ayrı JSON olarak kaydedildi; B3 kurucu/sabit-yön Worker kapsamı. Test bayrağı örtük açılmıyor; false/eksik/undefined aynı sonuç testi var. Kapasite paketinin 60 saniyesi tek vaka değil 105 vaka toplamıydı; kapalı/açık yeniden ölçümleri results/capacity-*.json. Üç oda için tarayıcı/PDF CI kanıtı hazırlanıyor. Henüz kullanıcı görsel onayı yok.

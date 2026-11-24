@@ -1,0 +1,73 @@
+{
+  "synthetic": true,
+  "witnessProvided": false,
+  "state": {
+    "project": "WC - duvar dolabı",
+    "unit": "mm",
+    "kerf": 4,
+    "trim": 5,
+    "allowNarrowScrapCuts": true,
+    "mode": "guillotine",
+    "objective": "area",
+    "priceMode": "panel",
+    "materialMode": "single",
+    "singleMaterial": "Beyaz panel",
+    "singleCategory": "panel",
+    "partsThicknessEnabled": true,
+    "stocksThicknessEnabled": true,
+    "useRemnantStock": false,
+    "offcutMinEdgeMm": 50,
+    "offcutMinAreaCm2": 100,
+    "parts": [
+      {
+        "id": "p0",
+        "l": 600,
+        "w": 300,
+        "qty": 2,
+        "label": "Yan panel",
+        "t": 18,
+        "category": "panel",
+        "material": "Beyaz panel",
+        "grain": "length",
+        "rotate": false
+      },
+      {
+        "id": "p1",
+        "l": 364,
+        "w": 300,
+        "qty": 3,
+        "label": "Taban ve raf",
+        "t": 18,
+        "category": "panel",
+        "material": "Beyaz panel",
+        "grain": "length",
+        "rotate": false
+      },
+      {
+        "id": "p2",
+        "l": 596,
+        "w": 196,
+        "qty": 2,
+        "label": "Kapak",
+        "t": 18,
+        "category": "panel",
+        "material": "Beyaz panel",
+        "grain": "length",
+        "rotate": false
+      }
+    ],
+    "stocks": [
+      {
+        "id": "s0",
+        "l": 1215,
+        "w": 920,
+        "qty": 8,
+        "t": 18,
+        "category": "panel",
+        "material": "Beyaz panel",
+        "price": 1000,
+        "priceUnit": "panel"
+      }
+    ]
+  }
+}

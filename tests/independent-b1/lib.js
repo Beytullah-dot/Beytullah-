@@ -6,7 +6,7 @@
  */
 const fs = require('node:fs'), path = require('node:path'), vm = require('node:vm');
 
-const allowNarrowScrapCuts = process.env.BEY_NARROW_SCRAP !== '0';
+const allowNarrowScrapCuts = process.env.BEY_NARROW_SCRAP === '1';
 const SRC = process.env.BEY_SRC ? path.resolve(process.env.BEY_SRC) : path.resolve(__dirname, '../../docs');
 
 // ---------------------------------------------------------------- engine loader
@@ -32,12 +32,6 @@ function loadWorker(file) {
   vm.createContext(g);
   g.importScripts = (...names) => { for (const n of names) vm.runInContext(fs.readFileSync(path.join(SRC, n.replace(/^\.\//, '')), 'utf8'), g, { filename: n }); };
   vm.runInContext(fs.readFileSync(path.join(SRC, file), 'utf8'), g, { filename: file });
-  const handle = g.onmessage;
-  g.onmessage = event => {
-    const job = structuredClone(event.data);
-    if (job.data) job.data.allowNarrowScrapCuts = allowNarrowScrapCuts;
-    return handle({data: job});
-  };
   return g;
 }
 

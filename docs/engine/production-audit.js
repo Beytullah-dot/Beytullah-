@@ -47,7 +47,7 @@ function auditGuillotineCuts(bin,cfg){
  const errors=[],tol=1e-5,eq=(a,b)=>Math.abs(a-b)<=tol;
  const leaves=[{x:cfg.trim,y:cfg.trim,w:bin.stock.l-2*cfg.trim,h:bin.stock.w-2*cfg.trim}];
  const usable={...leaves[0]},gaps=[];
- const narrow=cfg.allowNarrowScrapCuts===true||(cfg.allowNarrowScrapCuts===undefined&&state.allowNarrowScrapCuts===true);
+ const narrow=cfg.allowNarrowScrapCuts===true;
  const same=(a,b)=>eq(a.x,b.x)&&eq(a.y,b.y)&&eq(a.w,b.w)&&eq(a.h,b.h);
  function issue(msg){if(errors.length<10)errors.push(msg)}
  if(!Array.isArray(bin.cuts)){issue('Kesim adımları eksik.');return errors}

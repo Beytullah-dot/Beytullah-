@@ -65,7 +65,7 @@ function fixture(family,N){
  }else throw Error('unregistered family');
  const K=new Set(parts.map(p=>[
   p.l,p.w,p.material,p.category,p.t,p.grain,p.rotate].join('|'))).size;
- return {family,N,K,parts,stocks,kerf,trim,m3:25000};
+ return {family,N,K,parts,stocks,kerf,trim,m3:25000,allowNarrowScrapCuts:process.env.BEY_NARROW_SCRAP==='1'};
 }
 function runChild(){
  const family=process.argv[3],N=Number(process.argv[4]),objective=process.argv[5];
@@ -85,7 +85,7 @@ function runChild(){
   getState:()=>({mode:'guillotine',priceMode:'panel'}),
   val:Number,mkey:x=>String(x||'').toLowerCase(),fmt:Number
  });
- const independent=require('./optimization-oracle.cjs').audit;
+ const independent=(data,plan)=>{const v=require('./physical-guillotine-verifier.cjs').verifyPlan(data,plan);return {...v,issues:v.errors}};
  const verify=plan=>{
   assert(plan&&Array.isArray(plan.bins),'Missing physical plan');
   assert.equal(plan.placedCount,N,'Partial candidate placed count');
@@ -130,7 +130,7 @@ function runChild(){
   window.BeythausFullSpanPatternExact;
  const searchStart=performance.now();
  const exact=solver.solve(data.parts,data.stocks,{
-  objective,trim:data.trim,kerf:data.kerf,
+  objective,trim:data.trim,kerf:data.kerf,allowNarrowScrapCuts:data.allowNarrowScrapCuts,
   m3:data.m3,priceMode:'panel',
   maxMs:850,maxNodes:80000,maxPatterns:12000,maxStates:12000
  });
@@ -148,7 +148,7 @@ function runChild(){
  else assert.equal(exact.plan,null,'Unproven exact search leaked plan');
  const twoStage=(family==='nested8'||family==='strip4')?
   window.BeythausTwoStageStripExact.solve(data.parts,data.stocks,{
-   objective,trim:data.trim,kerf:data.kerf,m3:data.m3,priceMode:'panel',
+   objective,trim:data.trim,kerf:data.kerf,allowNarrowScrapCuts:data.allowNarrowScrapCuts,m3:data.m3,priceMode:'panel',
    maxMs:350,maxNodes:40000,maxPatterns:6000,maxStates:6000}):null;
  const twoStageClassOptimal=twoStage?.status==='optimal-two-stage-class';
  const twoStageAudited=twoStageClassOptimal?verify(twoStage.plan):false;
@@ -239,7 +239,7 @@ function baselineChild(){
  if(complete){
   assert.equal(engine.auditCutPlan(plan,data).ok,true,
    'Baseline main engine failed production physical audit');
-  const independent=require('./optimization-oracle.cjs').audit(data,plan,'guillotine');
+  const independent=(()=>{const v=require('./physical-guillotine-verifier.cjs').verifyPlan(data,plan);return {...v,issues:v.errors}})();
   assert.equal(independent.ok,true,'Baseline main engine failed independent oracle');
   const p=window.BeythausOptimalityCertificate.certify(plan,data,{
    objective,auditOK:true,maxMs:900,maxStates:30000,
@@ -350,5 +350,8 @@ function main(){
  console.log('CAPACITY-SUMMARY '+JSON.stringify(report.result));
  console.log('CAPACITY-BY-CLASS '+JSON.stringify(grouped));
 }
-if(process.argv[2]==='--case')runChild();
+if(require.main===module){if(process.argv[2]==='--case')runChild();
 else if(process.argv[2]==='--baseline')baselineChild();else main();
+
+}
+module.exports={fixture};

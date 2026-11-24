@@ -33,7 +33,7 @@ for(let i=0;i<count;i++){
     if(!v.complete){
       if(str.feasible)S.missedByEngineOnly.strict++;else if(rel.feasible)S.missedByEngineOnly.relaxed++;
       consW.messages.length=0;
-      consW.onmessage({data:{type:'construct',requestId:1,mode:'guillotine',objective:obj,priceMode:'panel',m3:null,data:{parts:data.parts,stocks:data.stocks,kerf:data.kerf,trim:data.trim}}});
+      consW.onmessage({data:{type:'construct',requestId:1,mode:'guillotine',objective:obj,priceMode:'panel',m3:null,data:{parts:data.parts,stocks:data.stocks,kerf:data.kerf,trim:data.trim,allowNarrowScrapCuts:data.allowNarrowScrapCuts===true}}});
       const r=consW.result;
       if(r&&r.status==='feasible-uncertified'&&r.plan){
         const vv=L.verifyPlan(data,r.plan);
@@ -64,7 +64,7 @@ for(let i=0;i<count;i++){
     }
     // ---- claims 2: exact count worker (what the UI shows as 'Minimum stok sayısı kanıtlandı')
     solveW.messages.length=0;
-    solveW.onmessage({data:{type:'solve',requestId:2,mode:'guillotine',data:{parts:data.parts,stocks:data.stocks,kerf:data.kerf,trim:data.trim},
+    solveW.onmessage({data:{type:'solve',requestId:2,mode:'guillotine',data:{parts:data.parts,stocks:data.stocks,kerf:data.kerf,trim:data.trim,allowNarrowScrapCuts:data.allowNarrowScrapCuts===true},
       incumbentBins:plan.bins.map(b=>({stockId:b.stock.id,material:b.stock.material})),bounds:plan.stockProof.details||[],timeBudgetMs:3000,maxNodes:300000}});
     const sr=solveW.result;
     if(sr&&sr.status==='optimal'){
@@ -80,7 +80,7 @@ for(let i=0;i<count;i++){
     }
     // ---- claims 3: economy worker for the selected objective
     solveW.messages.length=0;
-    solveW.onmessage({data:{type:'economy',requestId:3,cutMode:'guillotine',objective:obj,priceMode:'panel',m3:null,data:{parts:data.parts,stocks:data.stocks,kerf:data.kerf,trim:data.trim},
+    solveW.onmessage({data:{type:'economy',requestId:3,cutMode:'guillotine',objective:obj,priceMode:'panel',m3:null,data:{parts:data.parts,stocks:data.stocks,kerf:data.kerf,trim:data.trim,allowNarrowScrapCuts:data.allowNarrowScrapCuts===true},
       incumbentBins:plan.bins.map(b=>({stockId:b.stock.id,material:b.stock.material})),timeBudgetMs:3000,maxNodes:300000}});
     const er=solveW.result;
     if(er&&er.type==='economy-finished'&&er.status==='optimal'){
