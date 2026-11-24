@@ -44,7 +44,7 @@ mutate(plan => { plan.bins[0].placed[0].w += 10; });
 // The tie-break must not trust a forged free-rectangle list.
 const forged = structuredClone(sample.witness);
 forged.bins[0].free = [{ x: 0, y: 0, w: 1e9, h: 1e9 }];
-assert.equal(R.score(sample.data, forged).largestOffcut, sample.witnessScore.largestOffcut);
+assert.equal(R.score(sample.data, forged).ok, false);
 
 const missingPrice = structuredClone(sample.data);
 missingPrice.stocks[0].price = null;

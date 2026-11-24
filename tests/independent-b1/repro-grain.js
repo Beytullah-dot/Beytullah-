@@ -1,0 +1,12 @@
+'use strict';
+const L=require('./lib.js'),G=require('./gen.js');
+const seed=+(process.argv[2]||920028);
+const data=G.family('grain',seed);
+const {engine}=L.loadEngine();const W=L.loadWorker('optimization-worker.js');
+console.log(JSON.stringify({kerf:data.kerf,trim:data.trim,parts:data.parts.map(p=>[p.id,p.l,p.w,p.rotate,p.grain]),stocks:data.stocks.map(s=>[s.id,s.l,s.w,s.qty])}));
+const plan=engine.optimize(JSON.parse(JSON.stringify(data)),true,false,'area');
+console.log('main plan verify:',JSON.stringify(L.verifyPlan(data,plan).errors));
+plan.stockProof=engine.certifyStockCount(plan,data,engine.auditCutPlan(plan,data));
+W.onmessage({data:{type:'solve',requestId:2,mode:'guillotine',data:{parts:data.parts,stocks:data.stocks,kerf:data.kerf,trim:data.trim},incumbentBins:plan.bins.map(b=>({stockId:b.stock.id,material:b.stock.material})),bounds:plan.stockProof.details||[],timeBudgetMs:3000,maxNodes:300000}});
+const r=W.result;console.log(r.status);
+for(const g of r.groups)if(g.layout)for(const b of g.layout)console.log(JSON.stringify(b.pieces.map(p=>[p.id,p.x,p.y,p.w,p.h,p.rotated])));
