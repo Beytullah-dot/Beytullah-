@@ -38,7 +38,7 @@ const EconomicExact=(()=>{
    if(!groupParts.has(key))groupParts.set(key,[]);
    groupParts.get(key).push(part)
   }
-  const cfg={trim:data.trim,kerf:data.kerf,priceMode:job.priceMode,m3:job.m3};
+  const cfg={trim:data.trim,kerf:data.kerf,allowNarrowScrapCuts:data.allowNarrowScrapCuts===true,priceMode:job.priceMode,m3:job.m3};
   const groups=[],partLimit=job.cutMode==='guillotine'?10:13;
   let allProven=true;
   for(const [material,parts] of groupParts){

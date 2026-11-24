@@ -27,9 +27,11 @@ const GuillotineExact=(()=>{
   function perform(rect,axis,firstSize,label){
    const alongX=axis==='vertical',total=alongX?rect.w:rect.h;
    const secondSize=total-firstSize-k;
-   if(firstSize<=tolerance||secondSize< -tolerance)return null;
+   if(firstSize<=tolerance||firstSize>=total-tolerance)return null;
+   if(secondSize< -tolerance&&cfg.allowNarrowScrapCuts!==true)return null;
    const at=(alongX?rect.x:rect.y)+firstSize+k/2;
    cuts.push({axis,at,source:{...rect},number:cuts.length+1,
+    ...(secondSize < -tolerance ? {overhang:true} : {}),
     label:label||'Kesim grubu',
     x1:alongX?at:rect.x,y1:alongX?rect.y:at,
     x2:alongX?at:rect.x+rect.w,y2:alongX?rect.y+rect.h:at});
@@ -125,7 +127,8 @@ const GuillotineExact=(()=>{
      const i=31-Math.clz32(sub),p=pieces[i];
      const yes=orientations(p.p).some(o=>{
       const w=o.rotated?p.w:p.l,h=o.rotated?p.l:p.w;
-      return w<=W&&h<=H&&(w===W||W-w>=k)&&(h===H||H-h>=k)
+      return w<=W&&h<=H&&(cfg.allowNarrowScrapCuts===true||
+       (w===W||W-w>=k)&&(h===H||H-h>=k))
      });
      memo.set(key,yes);return yes
     }

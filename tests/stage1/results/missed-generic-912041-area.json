@@ -1,0 +1,394 @@
+{
+  "seed": 912041,
+  "family": "generic",
+  "objective": "area",
+  "data": {
+    "parts": [
+      {
+        "id": "p0",
+        "origin": "p0",
+        "label": "P0",
+        "l": 14,
+        "w": 3,
+        "t": null,
+        "category": "panel",
+        "grain": "",
+        "material": "panel|a",
+        "rotate": true,
+        "order": 0
+      },
+      {
+        "id": "p1",
+        "origin": "p1",
+        "label": "P1",
+        "l": 7,
+        "w": 6,
+        "t": null,
+        "category": "panel",
+        "grain": "",
+        "material": "panel|a",
+        "rotate": false,
+        "order": 1
+      },
+      {
+        "id": "p2",
+        "origin": "p2",
+        "label": "P2",
+        "l": 13,
+        "w": 4,
+        "t": null,
+        "category": "panel",
+        "grain": "",
+        "material": "panel|a",
+        "rotate": true,
+        "order": 2
+      },
+      {
+        "id": "p3",
+        "origin": "p3",
+        "label": "P3",
+        "l": 5,
+        "w": 9,
+        "t": null,
+        "category": "panel",
+        "grain": "",
+        "material": "panel|a",
+        "rotate": true,
+        "order": 3
+      },
+      {
+        "id": "p4",
+        "origin": "p4",
+        "label": "P4",
+        "l": 11,
+        "w": 11,
+        "t": null,
+        "category": "panel",
+        "grain": "",
+        "material": "panel|a",
+        "rotate": true,
+        "order": 4
+      }
+    ],
+    "stocks": [
+      {
+        "id": "s0",
+        "l": 25,
+        "w": 20,
+        "t": null,
+        "qty": 1,
+        "price": 12,
+        "category": "panel",
+        "priceUnit": "panel",
+        "grain": "",
+        "material": "panel|a",
+        "order": 0
+      }
+    ],
+    "kerf": 2,
+    "trim": 0,
+    "m3": null,
+    "allowNarrowScrapCuts": true
+  },
+  "initialPlan": {
+    "bins": [
+      {
+        "stock": {
+          "id": "s0",
+          "l": 25,
+          "w": 20,
+          "t": null,
+          "qty": 1,
+          "price": 12,
+          "category": "panel",
+          "priceUnit": "panel",
+          "grain": "",
+          "material": "panel|a",
+          "order": 0
+        },
+        "x": 0,
+        "y": 0,
+        "w": 25,
+        "h": 20,
+        "free": [
+          {
+            "x": 13,
+            "y": 15,
+            "w": 4,
+            "h": 5
+          },
+          {
+            "x": 19,
+            "y": 11,
+            "w": 5,
+            "h": 9
+          },
+          {
+            "x": 9,
+            "y": 13,
+            "w": 2,
+            "h": 7
+          }
+        ],
+        "placed": [
+          {
+            "id": "p4",
+            "origin": "p4",
+            "label": "P4",
+            "l": 11,
+            "w": 11,
+            "t": null,
+            "category": "panel",
+            "grain": "",
+            "material": "panel|a",
+            "rotate": true,
+            "order": 4,
+            "jitter": 0.6702938298694789,
+            "x": 0,
+            "y": 0,
+            "h": 11,
+            "rotated": false
+          },
+          {
+            "id": "p2",
+            "origin": "p2",
+            "label": "P2",
+            "l": 13,
+            "w": 4,
+            "t": null,
+            "category": "panel",
+            "grain": "",
+            "material": "panel|a",
+            "rotate": true,
+            "order": 2,
+            "jitter": 0.7173056118190289,
+            "x": 13,
+            "y": 0,
+            "h": 13,
+            "rotated": true
+          },
+          {
+            "id": "p3",
+            "origin": "p3",
+            "label": "P3",
+            "l": 5,
+            "w": 5,
+            "t": null,
+            "category": "panel",
+            "grain": "",
+            "material": "panel|a",
+            "rotate": true,
+            "order": 3,
+            "jitter": 0.20953631098382175,
+            "x": 19,
+            "y": 0,
+            "h": 9,
+            "rotated": false
+          },
+          {
+            "id": "p1",
+            "origin": "p1",
+            "label": "P1",
+            "l": 7,
+            "w": 7,
+            "t": null,
+            "category": "panel",
+            "grain": "",
+            "material": "panel|a",
+            "rotate": false,
+            "order": 1,
+            "jitter": 0.7951306158211082,
+            "x": 0,
+            "y": 13,
+            "h": 6,
+            "rotated": false
+          }
+        ],
+        "cuts": [
+          {
+            "x1": 12,
+            "y1": 0,
+            "x2": 12,
+            "y2": 20,
+            "axis": "vertical",
+            "at": 12,
+            "source": {
+              "x": 0,
+              "y": 0,
+              "w": 25,
+              "h": 20
+            },
+            "label": "P4",
+            "number": 1
+          },
+          {
+            "x1": 0,
+            "y1": 12,
+            "x2": 11,
+            "y2": 12,
+            "axis": "horizontal",
+            "at": 12,
+            "source": {
+              "x": 0,
+              "y": 0,
+              "w": 11,
+              "h": 20
+            },
+            "label": "P4",
+            "number": 2
+          },
+          {
+            "x1": 18,
+            "y1": 0,
+            "x2": 18,
+            "y2": 20,
+            "axis": "vertical",
+            "at": 18,
+            "source": {
+              "x": 13,
+              "y": 0,
+              "w": 12,
+              "h": 20
+            },
+            "label": "P2",
+            "number": 3
+          },
+          {
+            "x1": 13,
+            "y1": 14,
+            "x2": 17,
+            "y2": 14,
+            "axis": "horizontal",
+            "at": 14,
+            "source": {
+              "x": 13,
+              "y": 0,
+              "w": 4,
+              "h": 20
+            },
+            "label": "P2",
+            "number": 4
+          },
+          {
+            "x1": 25,
+            "y1": 0,
+            "x2": 25,
+            "y2": 20,
+            "axis": "vertical",
+            "at": 25,
+            "overhang": true,
+            "source": {
+              "x": 19,
+              "y": 0,
+              "w": 6,
+              "h": 20
+            },
+            "label": "P3",
+            "number": 5
+          },
+          {
+            "x1": 19,
+            "y1": 10,
+            "x2": 24,
+            "y2": 10,
+            "axis": "horizontal",
+            "at": 10,
+            "source": {
+              "x": 19,
+              "y": 0,
+              "w": 5,
+              "h": 20
+            },
+            "label": "P3",
+            "number": 6
+          },
+          {
+            "x1": 8,
+            "y1": 13,
+            "x2": 8,
+            "y2": 20,
+            "axis": "vertical",
+            "at": 8,
+            "source": {
+              "x": 0,
+              "y": 13,
+              "w": 11,
+              "h": 7
+            },
+            "label": "P1",
+            "number": 7
+          },
+          {
+            "x1": 0,
+            "y1": 20,
+            "x2": 7,
+            "y2": 20,
+            "axis": "horizontal",
+            "at": 20,
+            "overhang": true,
+            "source": {
+              "x": 0,
+              "y": 13,
+              "w": 7,
+              "h": 7
+            },
+            "label": "P1",
+            "number": 8
+          }
+        ]
+      }
+    ],
+    "unplaced": [
+      {
+        "id": "p0",
+        "origin": "p0",
+        "label": "P0",
+        "l": 14,
+        "w": 3,
+        "t": null,
+        "category": "panel",
+        "grain": "",
+        "material": "panel|a",
+        "rotate": true,
+        "order": 0,
+        "jitter": 0.06120077008381486
+      }
+    ],
+    "partArea": 260,
+    "stockArea": 500,
+    "cost": 12,
+    "unknownCostBins": 0,
+    "placedCount": 4,
+    "search": {
+      "baselineStockCount": 1,
+      "savedStockCount": 0,
+      "refinementAttempts": 0,
+      "refinementSteps": 0,
+      "offcutAttempts": 0,
+      "offcutImprovements": 0,
+      "offcutAreaGain": 0,
+      "offcutTimeLimited": false,
+      "blockRepairAttempts": 18,
+      "blockRepairCandidates": 0,
+      "blockRescuedPieces": 0
+    }
+  },
+  "constructive": {
+    "type": "construct-finished",
+    "requestId": 1,
+    "status": "unknown-class",
+    "plan": null,
+    "proof": "none",
+    "researchOnly": true,
+    "nodes": 0,
+    "elapsedMs": 0,
+    "resourceExhausted": false
+  },
+  "oracle": {
+    "count": 1,
+    "area": 500,
+    "cost": 12
+  },
+  "solve": "not launched: no complete incumbent",
+  "economy": "not launched: no complete incumbent"
+}

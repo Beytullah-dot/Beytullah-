@@ -1,0 +1,110 @@
+[
+  {
+    "seed": 912041,
+    "enabled": false,
+    "initialUnplaced": 1,
+    "constructive": {
+      "type": "construct-finished",
+      "requestId": 1,
+      "status": "unknown-class",
+      "plan": null,
+      "proof": "none",
+      "researchOnly": true,
+      "nodes": 0,
+      "elapsedMs": 0,
+      "resourceExhausted": false
+    },
+    "receivedFlag": false,
+    "exactStatus": "feasible",
+    "exactNodes": 546,
+    "independentAudit": {
+      "ok": true,
+      "errors": [],
+      "count": 1,
+      "area": 500,
+      "cost": 12,
+      "placed": 5,
+      "complete": true
+    },
+    "classification": "B3 heuristic search miss; constructive fixed-orientation class excludes rotatable parts; solve/economy not launched without complete incumbent"
+  },
+  {
+    "seed": 912041,
+    "enabled": true,
+    "initialUnplaced": 1,
+    "constructive": {
+      "type": "construct-finished",
+      "requestId": 1,
+      "status": "unknown-class",
+      "plan": null,
+      "proof": "none",
+      "researchOnly": true,
+      "nodes": 0,
+      "elapsedMs": 0,
+      "resourceExhausted": false
+    },
+    "receivedFlag": true,
+    "exactStatus": "feasible",
+    "exactNodes": 546,
+    "independentAudit": {
+      "ok": true,
+      "errors": [],
+      "count": 1,
+      "area": 500,
+      "cost": 12,
+      "placed": 5,
+      "complete": true
+    },
+    "classification": "B3 heuristic search miss; constructive fixed-orientation class excludes rotatable parts; solve/economy not launched without complete incumbent"
+  },
+  {
+    "seed": 913243,
+    "enabled": false,
+    "initialUnplaced": 2,
+    "constructive": {
+      "type": "construct-finished",
+      "requestId": 1,
+      "status": "unknown-class",
+      "plan": null,
+      "proof": "none",
+      "researchOnly": true,
+      "nodes": 0,
+      "elapsedMs": 0,
+      "resourceExhausted": false
+    },
+    "receivedFlag": false,
+    "exactStatus": "infeasible",
+    "exactNodes": 2515,
+    "independentAudit": null,
+    "classification": "B3 heuristic search miss; constructive fixed-orientation class excludes rotatable parts; solve/economy not launched without complete incumbent"
+  },
+  {
+    "seed": 913243,
+    "enabled": true,
+    "initialUnplaced": 1,
+    "constructive": {
+      "type": "construct-finished",
+      "requestId": 1,
+      "status": "unknown-class",
+      "plan": null,
+      "proof": "none",
+      "researchOnly": true,
+      "nodes": 0,
+      "elapsedMs": 0,
+      "resourceExhausted": false
+    },
+    "receivedFlag": true,
+    "exactStatus": "feasible",
+    "exactNodes": 92,
+    "independentAudit": {
+      "ok": true,
+      "errors": [],
+      "count": 2,
+      "area": 480,
+      "cost": 52,
+      "placed": 5,
+      "complete": true
+    },
+    "classification": "B3 heuristic search miss; constructive fixed-orientation class excludes rotatable parts; solve/economy not launched without complete incumbent"
+  }
+]

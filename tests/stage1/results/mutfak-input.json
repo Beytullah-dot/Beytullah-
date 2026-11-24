@@ -1,0 +1,61 @@
+{
+  "synthetic": true,
+  "witnessProvided": false,
+  "state": {
+    "project": "Mutfak - alt dolap modülleri",
+    "unit": "mm",
+    "kerf": 4,
+    "trim": 5,
+    "allowNarrowScrapCuts": true,
+    "mode": "guillotine",
+    "objective": "area",
+    "priceMode": "panel",
+    "materialMode": "single",
+    "singleMaterial": "Beyaz panel",
+    "singleCategory": "panel",
+    "partsThicknessEnabled": true,
+    "stocksThicknessEnabled": true,
+    "useRemnantStock": false,
+    "offcutMinEdgeMm": 50,
+    "offcutMinAreaCm2": 100,
+    "parts": [
+      {
+        "id": "p0",
+        "l": 810,
+        "w": 560,
+        "qty": 6,
+        "label": "Yan panel",
+        "t": 18,
+        "category": "panel",
+        "material": "Beyaz panel",
+        "grain": "length",
+        "rotate": false
+      },
+      {
+        "id": "p1",
+        "l": 564,
+        "w": 560,
+        "qty": 4,
+        "label": "Taban ve raf",
+        "t": 18,
+        "category": "panel",
+        "material": "Beyaz panel",
+        "grain": "length",
+        "rotate": false
+      }
+    ],
+    "stocks": [
+      {
+        "id": "s0",
+        "l": 2450,
+        "w": 1230,
+        "qty": 8,
+        "t": 18,
+        "category": "panel",
+        "material": "Beyaz panel",
+        "price": 1000,
+        "priceUnit": "panel"
+      }
+    ]
+  }
+}

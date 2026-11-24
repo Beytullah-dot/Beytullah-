@@ -42,3 +42,12 @@ jobs:
             sleep 1
           done
           node tests/ios-webkit-acceptance.cjs
+          node tests/stage1/closure/browser-pdf.cjs
+
+      - name: Stage 1 screen and production PDF evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage1-browser-pdf-evidence
+          path: tests/stage1/results/visual/
+          if-no-files-found: error

@@ -270,7 +270,7 @@
    let strip={status:'unknown-class',objectiveValue:null};
    if(stripSolver)try{
     strip=stripSolver(parts,stocks,{
-     objective,trim:data.trim,kerf:data.kerf,priceMode,m3,
+     objective,trim:data.trim,kerf:data.kerf,allowNarrowScrapCuts:data.allowNarrowScrapCuts===true,priceMode,m3,
      maxStates:Math.min(maxStates,25000),maxNodes:750000,
      maxMs:Math.min(remaining(),400)
     });

@@ -13,7 +13,7 @@
 const POLICY=root.BeythausMaterialPolicy;
 const spent=()=>Date.now();
 const unknown=(status,detail={})=>({status,objectiveValue:null,plan:null,...detail});
-function solve(parts,stocks,{trim=0,kerf=0,objective='cost',
+function solve(parts,stocks,{trim=0,kerf=0,allowNarrowScrapCuts=false,objective='cost',
  priceMode='panel',m3=25000,maxStates=12000,maxNodes=450000,
  maxMs=1500}={}){
  const begun=spent(),end=begun+maxMs;
@@ -115,9 +115,9 @@ function solve(parts,stocks,{trim=0,kerf=0,objective='cost',
    if(i===demand.length){
     if(!count)return true;
     // H = sum(h_i) + (count-1)*k + residual.
-    // Positive residual smaller than kerf cannot be separated by a saw.
+    // Strict mode requires a full final kerf; opt-in narrow scrap may consume the last sliver.
     const residual=board.H+k-occupied;
-    if(residual<0||residual>0&&residual<k)return true;
+    if(residual<0||!allowNarrowScrapCuts&&residual>0&&residual<k)return true;
     board.patterns.push({counts:vector.slice(),used:occupied,residual,count});
     patternsCreated++;
     if(patternsCreated>maxStates*4){limited=true;return false}
@@ -190,6 +190,7 @@ function solve(parts,stocks,{trim=0,kerf=0,objective='cost',
   const split=(span)=>{
    const at=leaf.y+span+kerf/2,src={...leaf};
    bin.cuts.push({source:src,axis:'horizontal',at,
+    ...(src.h-span-kerf < -1e-6 ? {overhang:true} : {}),
     number:bin.cuts.length+1,label:'Exact full-span guillotine',
     x1:src.x,y1:at,x2:src.x+src.w,y2:at});
    const kept={x:src.x,y:src.y,w:src.w,h:span};

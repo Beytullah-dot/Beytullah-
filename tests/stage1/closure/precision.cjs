@@ -1,0 +1,10 @@
+'use strict';
+const assert=require('assert/strict'),V=require('../../physical-guillotine-verifier.cjs');
+const part={id:'p',l:10.0009,w:8.123456,material:'m',t:18,rotate:false};
+const stock={id:'s',l:part.l,w:part.w,material:'m',t:18,qty:1,price:10};
+const data={parts:[part],stocks:[stock],trim:0,kerf:0};
+const plan={bins:[{stock,placed:[{...part,x:0,y:0,w:part.l,h:part.w,rotated:false}],cuts:[],free:[]}],unplaced:[]};
+assert(V.verifyPlan(data,plan).ok);
+const bad=structuredClone(plan);bad.bins[0].placed[0].x=0.00000001;
+assert.throws(()=>V.verifyPlan(data,bad),/non-grid/);
+console.log('Independent verifier: four/six-decimal coordinates preserved; unsupported sub-grid coordinate rejected.');

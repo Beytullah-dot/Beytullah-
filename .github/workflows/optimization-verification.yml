@@ -39,6 +39,8 @@ jobs:
           node-version: '22'
       - name: Verify module architecture and independent production audit
         run: node tests/engine-contract.cjs
+      - name: Verify independent narrow-scrap physical rules
+        run: node tests/narrow-scrap-verifier.cjs
       - name: Verify commercial project generator, independent witnesses and area relaxation
         run: node tests/commercial-stage0/selftest.cjs
       - name: Verify analytical geometric lower bounds
@@ -101,6 +103,13 @@ jobs:
         run: node tests/economic-acceptance.cjs
       - name: Verify mobile-friendly sequential Worker scheduling
         run: node tests/economic-orchestration.cjs
+      - name: Verify Stage 1 default-off, physical overhang and relaxed lower bounds
+        run: |
+          node tests/stage1/core.cjs
+          node tests/stage1/closure/precision.cjs
+          node tests/stage1/closure/default-off.cjs
+          node tests/stage1/closure/bounds-relaxed.cjs
+          node tests/stage1/closure/missed-diagnosis.cjs
       - name: Verify optimizer and proof claims
         run: node tests/optimization-regression.cjs --json optimization-report.json
       - name: Publish test report

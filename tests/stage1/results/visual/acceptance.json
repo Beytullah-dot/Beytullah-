@@ -1,0 +1,29 @@
+[
+  {
+    "id": "mutfak",
+    "pieces": 10,
+    "sheets": 2,
+    "overhangCuts": 2,
+    "independentOK": true,
+    "errors": [],
+    "pdfButton": "downloadPdfTopBtn"
+  },
+  {
+    "id": "banyo",
+    "pieces": 7,
+    "sheets": 3,
+    "overhangCuts": 1,
+    "independentOK": true,
+    "errors": [],
+    "pdfButton": "downloadPdfTopBtn"
+  },
+  {
+    "id": "wc",
+    "pieces": 7,
+    "sheets": 1,
+    "overhangCuts": 1,
+    "independentOK": true,
+    "errors": [],
+    "pdfButton": "downloadPdfTopBtn"
+  }
+]

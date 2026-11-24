@@ -2,7 +2,7 @@
 
 > **Tek giriş belgesi.** Yeni bir sohbet veya geliştirme oturumunda önce bu dosyayı ve `AGENTS.md`'yi oku. Bu belge **geçmiş PR günlüğü değildir**; güncel ürün sözleşmesi, doğrulanmış teknik durum, açık riskler ve sonraki adımdır.
 >
-> **Durum kesiti:** 23 Kasım 2026, Türkiye. Son doğrulanmış **motor kodu**: `27d0513c155d87128e18b8718aeb034aea427153` (PR #58 sonrası). Belgeyi güncelleyen commit bu SHA'dan daha yeni olabilir. **Her seferinde gerçek `master` HEAD, PR, CI ve Pages durumunu yeniden doğrula. Bu motor çalışmasında gerçek Supabase stok/Auth/üretim verisine erişme.**
+> **Durum kesiti:** 24 Kasım 2026, Türkiye. Son doğrulanmış **motor kodu**: `27d0513c155d87128e18b8718aeb034aea427153` (PR #58 sonrası). Belgeyi güncelleyen commit bu SHA'dan daha yeni olabilir. **Her seferinde gerçek `master` HEAD, PR, CI ve Pages durumunu yeniden doğrula. Bu motor çalışmasında gerçek Supabase stok/Auth/üretim verisine erişme.**
 >
 > **Depo:** https://github.com/Beytullah-dot/Beytullah- · **Canlı uygulama:** https://beytullah-dot.github.io/Beytullah-/ · **Yayın:** `master` → `docs/` · **Supabase:** `pdqgpupdqgrxejvjpdzs`.
 
@@ -100,14 +100,14 @@ Beythaus Cut; panel ve masif ahşap için **iki boyutlu, fiziksel giyotin kesim*
 23 Kasım kullanıcı talimatı önceki Worker önceliğinin yerini aldı. Her aşama sonunda ölçüm ve riskleri raporlayıp dur. Yeni aşama için bulgu/öneri onayı al.
 
 0. **Ticari ölçüm** — Onaylanan zarf 100–260 parça, 25–90 tip, 3–7 grup. 20 geliştirme ve 40 kabul tohumu. Yeni kaynak `tests/commercial-stage0/`, sonuç `tests/MOTOR-APARTMENT-STAGE0-RESULTS.md`. İlk eşikler onaylandı. Üreteç, bağımsız fiziksel tanık, güvenli alan örtüsü alt sınırı ve süre bütçeli referans araması test katmanındadır. Ölçülen örneklem 129–225 parça, 28–65 tip, 3–5 gruptur. Uç değerler ve gerçek atölye dağılımı açıktır.
-   **Aşama 0 ölçüm sonucu** — 40 kabul projesinde iki hedefte de 40/40 tam plan. Bilinen en iyi levha sayısıyla eşit 37/40; kalan üçünde 1 fazla levha. Bilinen en iyi maliyete p95 uzaklık %5,88. Güvenli alt sınır farkı p95 levhada %21,43, maliyette %27,64. İlk geçerli plan p95 yaklaşık 0,42 saniye; kısa koşu en yüksek RSS 71,3 MiB, uzun koşu 225,2 MiB. Geçerlilik, süre ve bellek kapıları örneklemde geçti. İki kalite kapısı iki hedefte de kaldı. 300 kaydedilmiş plan tekrar bağımsız denetlendi. Yanlış optimum etiketi bu deneyde ölçülmedi. Gerçek iPhone ve zarf uçları açık. Aşama 1 için kullanıcı onayı bekleniyor.
+   **Aşama 0 ölçüm sonucu** — 40 kabul projesinde iki hedefte de 40/40 tam plan. Bilinen en iyi levha sayısıyla eşit 37/40; kalan üçünde 1 fazla levha. Bilinen en iyi maliyete p95 uzaklık %5,88. Güvenli alt sınır farkı p95 levhada %21,43, maliyette %27,64. İlk geçerli plan p95 yaklaşık 0,42 saniye; kısa koşu en yüksek RSS 71,3 MiB, uzun koşu 225,2 MiB. Geçerlilik, süre ve bellek kapıları örneklemde geçti. İki kalite kapısı iki hedefte de kaldı. 300 kaydedilmiş plan tekrar bağımsız denetlendi. Yanlış optimum etiketi bu deneyde ölçülmedi. Gerçek iPhone ve zarf uçları açık. Aşama 1 kullanıcı tarafından 24 Kasımda onaylandı. Bağımsız doğrulayıcı ilk ayrı commit faf2a96 olarak hazırlandı. Motor ve operatör ayarı geliştirme dalında kodlandı; kapasite regresyonunun 60 s sınırı ve yönlü büyük oracle kapsamı nedeniyle Aşama 1 durduruldu, kabul/yayın yok. Ayrıntı: tests/stage1/RESULTS.md.
 1. **B1 dar artık** — Parça yanındaki `0 < artık < kerf` son kesim davranışını yerleşim/audit/exact katmanlarında tutarlı ele al. Kullanıcının bağımsız paketindeki `relaxed` oracle bu fiziğe izin verir, kesim tekrarı ise hâlâ taşmayı reddeder. Bağımsız doğrulayıcı da ayrı testlerle güncellenmelidir. Eski alt sınırların tümünü yeni fiziksel modelde yeniden değerlendir.
 2. **B2/B5 az tip, çok kopya** — Çarpanlı DP/Pareto veya güçlü sezgisel ile partLimit ve gereksiz düğüm tüketimini ele al.
 3. **B3 küçük iş kurtarma** — En fazla 8 parçalı tam alt küme DP son fallback.
 4. **B4 aday havuzu** — Bütün hedeflerin adaylarını seçili hedefe göre değerlendir.
 5. **Dil/Worker sadeleştirme** — Kanıt kapsamı, kullanıcı dili, ana optimize yükünün Worker'a taşınması. İptal, geç sonuç, değişen proje/hedef ve bellek regresyonlarını doğrula.
 
-**Aşama 0 onayı Aşama 1 uygulamasına geçiş onayı değildir.** Üretim motoru kodu hâlâ `27d0513…` sürümüdür. `tests/commercial-stage0/results/campaign.json.gz` sentetik girdileri, fiziksel tanıkları ve seçilen planları içerir. B1–B6 düzeltmeleri henüz uygulanmış sayılmaz.
+**Aşama 0 onayı Aşama 1 uygulamasına geçiş onayı değildir.** Üretim motoru kodu hâlâ `27d0513…` sürümüdür. `tests/commercial-stage0/results/campaign.json.gz` sentetik girdileri, fiziksel tanıkları ve seçilen planları içerir. B1 geliştirme dalında kısmen uygulandı; tamamlanmış/yayınlanmış sayılmaz. B2–B6 başlamadı. Aşama 0 koşucusunun boş bounds aktarımı bulundu; düzeltilmiş önce/sonra ölçümü Stage1 raporundadır.
 
 Motor aşamalarının ardından ürün v1 için izole sunucu fiziksel guard ve atomik stok yarışları, PDF/üretim/artık tutarlılığı, gerçek iPhone Safari ve iki gerçek kullanıcı kabulü sürer. Gerçek Supabase stok/Auth/üretim verileri bu çalışma kapsamı dışındadır. Canlı migration için önceki güvenlik sınırları geçerlidir.
 
@@ -133,3 +133,5 @@ Plan ve paket kabul ölçütleri `BEYTHAUS-CUT-RELEASE-ROADMAP.md` ve `BEYTHAUS-
 - `docs/ENGINE-ARCHITECTURE.md`, `docs/BULUT-SENKRONIZASYON.md`, `tests/README.md`: kod sözleşmesi, bulut ve bağımsız testlerin ayrıntıları.
 
 **Güncel oturum:** Aşama 0 test ve ölçüm çalışması [PR #60](https://github.com/Beytullah-dot/Beytullah-/pull/60) içinde tutulur. Sonuçlar ve kalan kabul açıkları `tests/MOTOR-APARTMENT-STAGE0-RESULTS.md` dosyasındadır. Motor tamamlanma veya ürün v1 kabulü ilan edilmedi.
+
+**PR #61 kapanış durumu (24 Kasım):** Merge ve Aşama 2 yasak; kullanıcı onayı bekleniyor. Güncel rapor `tests/stage1/CLOSURE-RESULTS.md`. 912041/913243 üretim akışında eksik kalıyor: motor araması ve yapıcı Worker sınıf engeli, B3 kapsamına bırakıldı. Varsayılan kapalı; eksik/undefined eşdeğerlik testi geçti. 105 iş kapalı/açık tamamlandı; önceki 60 saniye tek vaka değil tüm kampanyanın sınırıydı. Üç oda ekranı, bağımsız doğrulanmış planı ve gerçek PDF’si `tests/stage1/results/visual/` altında; PDF sayfa taşması düzeltildi. Canlı Supabase/Auth/üretim verisine dokunulmadı.

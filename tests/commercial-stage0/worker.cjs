@@ -69,7 +69,7 @@ if (mode === 'baseline') {
       worker.onmessage({ data: { type, requestId: 2, mode: 'guillotine', cutMode: 'guillotine',
         objective: 'cost', priceMode: 'panel', m3: null, data: structuredClone(data),
         incumbentBins: plan.bins.map(bin => ({ stockId: bin.stock.id, material: bin.stock.material })),
-        bounds: [], timeBudgetMs: Math.floor(remaining), maxNodes: 300000 } });
+        bounds: engine.certifyStockCount(plan,data,engine.auditCutPlan(plan,data)).details || [], timeBudgetMs: Math.floor(remaining), maxNodes: 300000 } });
       process.send?.({ type: 'worker-status', stage: type, status: worker.result?.status,
         groups: worker.result?.groups?.map(group => ({ material: group.material, status: group.status })) });
       publish(workerLayouts(worker.result, plan), `production-${type}-worker`);

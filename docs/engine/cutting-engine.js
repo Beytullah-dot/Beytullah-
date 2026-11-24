@@ -41,7 +41,7 @@ function evalFit(fr,w,h,variant){const dw=fr.w-w,dh=fr.h-h;if(dw< -1e-7||dh< -1e
 function binCost(s,cfg){const p=root.BeythausMaterialPolicy;if(p)return p.stockPrice(s,cfg);if(s.isRemnant)return 0;if(cfg.priceMode==='panel')return s.price>0?s.price:null;if(s.t===null||!(cfg.m3>0))return null;return s.l*s.w*s.t/1e9*cfg.m3}
 function mkBin(s,trim){let w=s.l-2*trim,h=s.w-2*trim;return{stock:s,x:trim,y:trim,w,h,free:[{x:trim,y:trim,w,h}],placed:[],cuts:[]}}
 function orientationChoices(it){const all=it.rotate&&(Math.abs(it.l-it.w)>1e-7||!!it.grain)?[[it.l,it.w,false],[it.w,it.l,true]]:[[it.l,it.w,false]];return all.filter(([, ,rotated])=>!root.BeythausMaterialPolicy||root.BeythausMaterialPolicy.grainAllows(it,null,rotated))}
-function findFit(bin,it,variant,cfg){if(it.t!==null&&(bin.stock.t===null||Math.abs(it.t-bin.stock.t)>1e-6))return null;let best=null;for(let j=0;j<bin.free.length;j++){const fr=bin.free[j];for(const [w,h,rotated]of orientationChoices(it)){if(root.BeythausMaterialPolicy&&!root.BeythausMaterialPolicy.grainAllows(it,bin.stock,rotated))continue;if(w>fr.w+1e-8||h>fr.h+1e-8)continue;if(cfg.mode==='guillotine'){const k=cfg.kerf,rx=fr.w-w,ry=fr.h-h;if(rx>1e-6&&rx<k-1e-6||ry>1e-6&&ry<k-1e-6)continue}let score=evalFit(fr,w,h,variant);if(score===Infinity)continue;const tie=(fr.x+fr.y)*.00001+Number(rotated)*.00001;score+=tie;if(!best||score<best.score)best={freeIndex:j,x:fr.x,y:fr.y,w,h,rotated,score,fr}}}return best}
+function findFit(bin,it,variant,cfg){if(it.t!==null&&(bin.stock.t===null||Math.abs(it.t-bin.stock.t)>1e-6))return null;let best=null;for(let j=0;j<bin.free.length;j++){const fr=bin.free[j];for(const [w,h,rotated]of orientationChoices(it)){if(root.BeythausMaterialPolicy&&!root.BeythausMaterialPolicy.grainAllows(it,bin.stock,rotated))continue;if(w>fr.w+1e-8||h>fr.h+1e-8)continue;if(cfg.mode==='guillotine'&&cfg.allowNarrowScrapCuts!==true){const k=cfg.kerf,rx=fr.w-w,ry=fr.h-h;if(rx>1e-6&&rx<k-1e-6||ry>1e-6&&ry<k-1e-6)continue}let score=evalFit(fr,w,h,variant);if(score===Infinity)continue;const tie=(fr.x+fr.y)*.00001+Number(rotated)*.00001;score+=tie;if(!best||score<best.score)best={freeIndex:j,x:fr.x,y:fr.y,w,h,rotated,score,fr}}}return best}
 
 function applyFit(bin,it,fit,cfg,splitVariant){
  const used={...it,x:fit.x,y:fit.y,w:fit.w,h:fit.h,rotated:fit.rotated};
@@ -53,7 +53,8 @@ function applyFit(bin,it,fit,cfg,splitVariant){
  bin.free.push(...children);
  function step(axis,source,at){
   const alongX=axis==='vertical',x1=alongX?at:source.x,y1=alongX?source.y:at,x2=alongX?at:source.x+source.w,y2=alongX?source.y+source.h:at;
-  bin.cuts.push({x1,y1,x2,y2,axis,at,source:{x:source.x,y:source.y,w:source.w,h:source.h},label:used.label,number:bin.cuts.length+1});
+  const remaining=(alongX?source.x+source.w:source.y+source.h)-at-cfg.kerf/2;
+  bin.cuts.push({x1,y1,x2,y2,axis,at,...(remaining < -1e-6 ? {overhang:true} : {}),source:{x:source.x,y:source.y,w:source.w,h:source.h},label:used.label,number:bin.cuts.length+1});
  }
  if(dir==='vertical'){
   if(dw>1e-6)step('vertical',rect,used.x+used.w+cfg.kerf/2);
@@ -219,7 +220,7 @@ function reduceByStrips(plan,items,stocks,cfg){
    const cost=binCost(stock,cfg);
    const candidate={...plan,bins,stockArea:bins.length*stock.l*stock.w,
     cost:cost===null?null:bins.length*cost,unknownCostBins:cost===null?bins.length:0};
-   if(auditCutPlan(candidate,{parts:items,stocks,kerf:cfg.kerf,trim:cfg.trim}).ok)return candidate
+   if(auditCutPlan(candidate,{parts:items,stocks,kerf:cfg.kerf,trim:cfg.trim,allowNarrowScrapCuts:cfg.allowNarrowScrapCuts===true}).ok)return candidate
   }
   for(const p of remaining)prices[p.i]*=1.1+random()*.5
  }
@@ -262,7 +263,7 @@ function refineUsableOffcuts(initial,items,originalStocks,cfg,options={}){
      Math.abs(candidate.stockArea-initial.stockArea)>1e-5)continue;
   const candidateMetrics=offcutMetrics(candidate);
   if(!betterOffcuts(candidateMetrics,metrics))continue;
-  if(!auditCutPlan(candidate,{parts:items,stocks:originalStocks,trim:cfg.trim,kerf:cfg.kerf}).ok)
+  if(!auditCutPlan(candidate,{parts:items,stocks:originalStocks,trim:cfg.trim,kerf:cfg.kerf,allowNarrowScrapCuts:cfg.allowNarrowScrapCuts===true}).ok)
    continue;
   best=candidate;metrics=candidateMetrics;info.improvements++;
  }
@@ -595,7 +596,7 @@ function exactRefinePlan(initial,data,cfg){
 }
 
 const blockRepair=blockRepairModule?.createRepair({packAttempt,auditCutPlan,binCost,compare});
-function optimize(data,enhanced=true,exact=true,objective='economic'){const groups=new Map(),stockgroups=new Map();for(const p of data.parts){const key=mkey(p.material,p.t);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(p)}for(const s of data.stocks){const key=mkey(s.material,s.t);if(!stockgroups.has(key))stockgroups.set(key,[]);stockgroups.get(key).push(s)}let result={bins:[],unplaced:[],partArea:0,stockArea:0,cost:0,unknownCostBins:0,placedCount:0},search={baselineStockCount:0,savedStockCount:0,refinementAttempts:0,refinementSteps:0,offcutAttempts:0,offcutImprovements:0,offcutAreaGain:0,offcutTimeLimited:false},cfg={objective,kerf:data.kerf,trim:data.trim,m3:data.m3,mode:state.mode,priceMode:state.priceMode};for(const [key,group]of groups){const stock=stockgroups.get(key)||[];let best=null;const trials=group.length<=35?144:group.length<=120?90:group.length<=400?40:14;for(let tr=0;tr<trials;tr++){const r=packAttempt(group,stock,cfg,tr);if(compare(r,best,objective)<0)best=r;if(best?.unplaced.length===0&&best?.bins.length===1&&best.stockArea<=group.reduce((a,p)=>a+p.l*p.w,0)*1.005)break}search.baselineStockCount+=best.bins.length;
+function optimize(data,enhanced=true,exact=true,objective='economic'){const groups=new Map(),stockgroups=new Map();for(const p of data.parts){const key=mkey(p.material,p.t);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(p)}for(const s of data.stocks){const key=mkey(s.material,s.t);if(!stockgroups.has(key))stockgroups.set(key,[]);stockgroups.get(key).push(s)}let result={bins:[],unplaced:[],partArea:0,stockArea:0,cost:0,unknownCostBins:0,placedCount:0},search={baselineStockCount:0,savedStockCount:0,refinementAttempts:0,refinementSteps:0,offcutAttempts:0,offcutImprovements:0,offcutAreaGain:0,offcutTimeLimited:false},cfg={objective,allowNarrowScrapCuts:data.allowNarrowScrapCuts===true,kerf:data.kerf,trim:data.trim,m3:data.m3,mode:state.mode,priceMode:state.priceMode};for(const [key,group]of groups){const stock=stockgroups.get(key)||[];let best=null;const trials=group.length<=35?144:group.length<=120?90:group.length<=400?40:14;for(let tr=0;tr<trials;tr++){const r=packAttempt(group,stock,cfg,tr);if(compare(r,best,objective)<0)best=r;if(best?.unplaced.length===0&&best?.bins.length===1&&best.stockArea<=group.reduce((a,p)=>a+p.l*p.w,0)*1.005)break}search.baselineStockCount+=best.bins.length;
 const refined=enhanced?improveGroupPacking(best,group,cfg):{solution:best,attempts:0,improvements:0};
 search.refinementAttempts+=refined.attempts;search.refinementSteps+=refined.improvements;
 search.savedStockCount+=best.bins.length-refined.solution.bins.length;
