@@ -39,6 +39,8 @@ jobs:
           node-version: '22'
       - name: Verify module architecture and independent production audit
         run: node tests/engine-contract.cjs
+      - name: Verify commercial project generator, independent witnesses and area relaxation
+        run: node tests/commercial-stage0/selftest.cjs
       - name: Verify analytical geometric lower bounds
         run: node tests/geometric-bounds.cjs
       - name: Verify heterogeneous 27-sheet kerf bounds and distinct exact objectives

@@ -1,0 +1,599 @@
+{
+  "manifest": {
+    "generator": "apartment-1",
+    "sourceCommit": "4d59586eb6b649279581d3730d1c3a34f2595184",
+    "motorCommit": "27d0513c155d87128e18b8718aeb034aea427153",
+    "started": "2026-11-23T19:32:32.004Z",
+    "node": "v24.22.3",
+    "platform": "linux/x64",
+    "cpu": "AMD EPYC 9V74 80-Core Processor",
+    "logicalCpus": 9,
+    "baselineMs": 5000,
+    "referenceMs": 60000,
+    "referenceConcurrency": 6,
+    "referencePool": "One shared count/cost candidate pool per project, bounded by referenceMs. Both short runs included.",
+    "developmentSeeds": [
+      230100,
+      230101,
+      230102,
+      230103,
+      230104,
+      230105,
+      230106,
+      230107,
+      230108,
+      230109,
+      230110,
+      230111,
+      230112,
+      230113,
+      230114,
+      230115,
+      230116,
+      230117,
+      230118,
+      230119
+    ],
+    "acceptanceSeeds": [
+      930100,
+      930101,
+      930102,
+      930103,
+      930104,
+      930105,
+      930106,
+      930107,
+      930108,
+      930109,
+      930110,
+      930111,
+      930112,
+      930113,
+      930114,
+      930115,
+      930116,
+      930117,
+      930118,
+      930119,
+      930120,
+      930121,
+      930122,
+      930123,
+      930124,
+      930125,
+      930126,
+      930127,
+      930128,
+      930129,
+      930130,
+      930131,
+      930132,
+      930133,
+      930134,
+      930135,
+      930136,
+      930137,
+      930138,
+      930139
+    ],
+    "status": "completed",
+    "pilot": false,
+    "finished": "2026-11-23T19:43:22.146Z",
+    "publishedSourceCommit": "a3280d4a6c5c497be67e46d3a2e8bbf1f6032116",
+    "sourceTree": "2c8207be1ecee87eb7f8b5a663002f18afa824af"
+  },
+  "auditedPlans": 300,
+  "instanceCount": 60,
+  "envelope": {
+    "parts": [
+      129,
+      225
+    ],
+    "types": [
+      28,
+      65
+    ],
+    "groups": [
+      3,
+      5
+    ]
+  },
+  "cohorts": {
+    "development": {
+      "count": {
+        "cases": 20,
+        "complete": 20,
+        "gap": {
+          "measured": 20,
+          "missing": 0,
+          "p50": 13.333333333333334,
+          "p95": 21.428571428571427,
+          "max": 26.666666666666668
+        },
+        "referenceGap": {
+          "measured": 20,
+          "missing": 0,
+          "p50": 7.6923076923076925,
+          "p95": 20,
+          "max": 20
+        },
+        "bestKnownGap": {
+          "measured": 20,
+          "missing": 0,
+          "p50": 0,
+          "p95": 6.25,
+          "max": 6.666666666666667
+        },
+        "firstValidMs": {
+          "measured": 20,
+          "missing": 0,
+          "p50": 308.781323,
+          "p95": 363.39185200000003,
+          "max": 385.12105599999995
+        },
+        "wallMs": {
+          "measured": 20,
+          "missing": 0,
+          "p50": 383.3107829999999,
+          "p95": 481.5901159999994,
+          "max": 490.44812499999995
+        },
+        "rssMiB": {
+          "measured": 20,
+          "missing": 0,
+          "p50": 68.75,
+          "p95": 69.96484375,
+          "max": 70.17578125
+        },
+        "referenceRssMiB": {
+          "measured": 20,
+          "missing": 0,
+          "p50": 201.6171875,
+          "p95": 206.6015625,
+          "max": 212.59375
+        },
+        "equalBestKnown": 17,
+        "maxCountExcess": 1,
+        "invalidCandidates": 0,
+        "timedOut": 0,
+        "gates": {
+          "complete": true,
+          "lowerBoundGap": false,
+          "bestKnown": false,
+          "firstValidLatency": true,
+          "memory": true
+        }
+      },
+      "cost": {
+        "cases": 20,
+        "complete": 20,
+        "gap": {
+          "measured": 20,
+          "missing": 0,
+          "p50": 16.75315884476534,
+          "p95": 23.284435604177027,
+          "max": 36.82981982639142
+        },
+        "referenceGap": {
+          "measured": 20,
+          "missing": 0,
+          "p50": 15.643153526970954,
+          "p95": 23.284435604177027,
+          "max": 34.13451017579692
+        },
+        "bestKnownGap": {
+          "measured": 20,
+          "missing": 0,
+          "p50": 0.43493288783916123,
+          "p95": 6.934345404887738,
+          "max": 9.35179897201599
+        },
+        "firstValidMs": {
+          "measured": 20,
+          "missing": 0,
+          "p50": 314.416744,
+          "p95": 376.384251,
+          "max": 383.61434099999997
+        },
+        "wallMs": {
+          "measured": 20,
+          "missing": 0,
+          "p50": 396.8723149999996,
+          "p95": 466.1798459999991,
+          "max": 470.150341
+        },
+        "rssMiB": {
+          "measured": 20,
+          "missing": 0,
+          "p50": 68.34375,
+          "p95": 69.796875,
+          "max": 70.203125
+        },
+        "referenceRssMiB": {
+          "measured": 20,
+          "missing": 0,
+          "p50": 201.6171875,
+          "p95": 206.6015625,
+          "max": 212.59375
+        },
+        "equalBestKnown": 8,
+        "maxCountExcess": null,
+        "invalidCandidates": 0,
+        "timedOut": 0,
+        "gates": {
+          "complete": true,
+          "lowerBoundGap": false,
+          "bestKnown": false,
+          "firstValidLatency": true,
+          "memory": true
+        }
+      }
+    },
+    "acceptance": {
+      "count": {
+        "cases": 40,
+        "complete": 40,
+        "gap": {
+          "measured": 40,
+          "missing": 0,
+          "p50": 8.333333333333334,
+          "p95": 21.428571428571427,
+          "max": 30
+        },
+        "referenceGap": {
+          "measured": 40,
+          "missing": 0,
+          "p50": 7.6923076923076925,
+          "p95": 18.181818181818183,
+          "max": 30
+        },
+        "bestKnownGap": {
+          "measured": 40,
+          "missing": 0,
+          "p50": 0,
+          "p95": 6.25,
+          "max": 10
+        },
+        "firstValidMs": {
+          "measured": 40,
+          "missing": 0,
+          "p50": 308.5366,
+          "p95": 405.582746,
+          "max": 431.746513
+        },
+        "wallMs": {
+          "measured": 40,
+          "missing": 0,
+          "p50": 393.95367299999634,
+          "p95": 493.527313999999,
+          "max": 525.9977679999974
+        },
+        "rssMiB": {
+          "measured": 40,
+          "missing": 0,
+          "p50": 68.703125,
+          "p95": 70.390625,
+          "max": 71.3046875
+        },
+        "referenceRssMiB": {
+          "measured": 40,
+          "missing": 0,
+          "p50": 201.59375,
+          "p95": 213.4375,
+          "max": 225.19921875
+        },
+        "equalBestKnown": 37,
+        "maxCountExcess": 1,
+        "invalidCandidates": 0,
+        "timedOut": 0,
+        "gates": {
+          "complete": true,
+          "lowerBoundGap": false,
+          "bestKnown": false,
+          "firstValidLatency": true,
+          "memory": true
+        }
+      },
+      "cost": {
+        "cases": 40,
+        "complete": 40,
+        "gap": {
+          "measured": 40,
+          "missing": 0,
+          "p50": 14.664484451718494,
+          "p95": 27.638873790629415,
+          "max": 28.59432886862354
+        },
+        "referenceGap": {
+          "measured": 40,
+          "missing": 0,
+          "p50": 12.226948309422536,
+          "p95": 24.578768417075935,
+          "max": 27.638873790629415
+        },
+        "bestKnownGap": {
+          "measured": 40,
+          "missing": 0,
+          "p50": 0,
+          "p95": 5.882772390188249,
+          "max": 7.401938512797213
+        },
+        "firstValidMs": {
+          "measured": 40,
+          "missing": 0,
+          "p50": 312.76228100000003,
+          "p95": 421.777302,
+          "max": 428.181224
+        },
+        "wallMs": {
+          "measured": 40,
+          "missing": 0,
+          "p50": 407.8120420000014,
+          "p95": 512.9195300000029,
+          "max": 557.8735149999993
+        },
+        "rssMiB": {
+          "measured": 40,
+          "missing": 0,
+          "p50": 68.6875,
+          "p95": 70.640625,
+          "max": 71.19921875
+        },
+        "referenceRssMiB": {
+          "measured": 40,
+          "missing": 0,
+          "p50": 201.59375,
+          "p95": 213.4375,
+          "max": 225.19921875
+        },
+        "equalBestKnown": 20,
+        "maxCountExcess": null,
+        "invalidCandidates": 0,
+        "timedOut": 0,
+        "gates": {
+          "complete": true,
+          "lowerBoundGap": false,
+          "bestKnown": false,
+          "firstValidLatency": true,
+          "memory": true
+        }
+      }
+    }
+  },
+  "failures": [
+    {
+      "seed": 230101,
+      "split": "development",
+      "objective": "cost",
+      "gapPercent": 23.19385420071919,
+      "bestKnownGapPercent": 6.934345404887738,
+      "countExcess": null,
+      "file": "230101.json"
+    },
+    {
+      "seed": 230107,
+      "split": "development",
+      "objective": "count",
+      "gapPercent": 21.428571428571427,
+      "bestKnownGapPercent": 6.25,
+      "countExcess": 1,
+      "file": "230107.json"
+    },
+    {
+      "seed": 230107,
+      "split": "development",
+      "objective": "cost",
+      "gapPercent": 22.402013664149585,
+      "bestKnownGapPercent": 9.35179897201599,
+      "countExcess": null,
+      "file": "230107.json"
+    },
+    {
+      "seed": 230108,
+      "split": "development",
+      "objective": "count",
+      "gapPercent": 26.666666666666668,
+      "bestKnownGapPercent": 5.555555555555555,
+      "countExcess": 1,
+      "file": "230108.json"
+    },
+    {
+      "seed": 230108,
+      "split": "development",
+      "objective": "cost",
+      "gapPercent": 36.82981982639142,
+      "bestKnownGapPercent": 2.00940805394676,
+      "countExcess": null,
+      "file": "230108.json"
+    },
+    {
+      "seed": 230109,
+      "split": "development",
+      "objective": "cost",
+      "gapPercent": 21.786310517529216,
+      "bestKnownGapPercent": 2.133404446814894,
+      "countExcess": null,
+      "file": "230109.json"
+    },
+    {
+      "seed": 230114,
+      "split": "development",
+      "objective": "cost",
+      "gapPercent": 23.284435604177027,
+      "bestKnownGapPercent": 0,
+      "countExcess": null,
+      "file": "230114.json"
+    },
+    {
+      "seed": 230115,
+      "split": "development",
+      "objective": "cost",
+      "gapPercent": 20.489626556016596,
+      "bestKnownGapPercent": 4.190886257624686,
+      "countExcess": null,
+      "file": "230115.json"
+    },
+    {
+      "seed": 230119,
+      "split": "development",
+      "objective": "count",
+      "gapPercent": 14.285714285714286,
+      "bestKnownGapPercent": 6.666666666666667,
+      "countExcess": 1,
+      "file": "230119.json"
+    },
+    {
+      "seed": 930101,
+      "split": "acceptance",
+      "objective": "cost",
+      "gapPercent": 25.057383320581483,
+      "bestKnownGapPercent": 6.495093048825182,
+      "countExcess": null,
+      "file": "930101.json"
+    },
+    {
+      "seed": 930103,
+      "split": "acceptance",
+      "objective": "count",
+      "gapPercent": 30,
+      "bestKnownGapPercent": 0,
+      "countExcess": 0,
+      "file": "930103.json"
+    },
+    {
+      "seed": 930103,
+      "split": "acceptance",
+      "objective": "cost",
+      "gapPercent": 27.638873790629415,
+      "bestKnownGapPercent": 0,
+      "countExcess": null,
+      "file": "930103.json"
+    },
+    {
+      "seed": 930104,
+      "split": "acceptance",
+      "objective": "cost",
+      "gapPercent": 28.121379137569285,
+      "bestKnownGapPercent": 0.8230858325734987,
+      "countExcess": null,
+      "file": "930104.json"
+    },
+    {
+      "seed": 930108,
+      "split": "acceptance",
+      "objective": "count",
+      "gapPercent": 21.428571428571427,
+      "bestKnownGapPercent": 6.25,
+      "countExcess": 1,
+      "file": "930108.json"
+    },
+    {
+      "seed": 930108,
+      "split": "acceptance",
+      "objective": "cost",
+      "gapPercent": 27.208938717919384,
+      "bestKnownGapPercent": 2.95043515832356,
+      "countExcess": null,
+      "file": "930108.json"
+    },
+    {
+      "seed": 930109,
+      "split": "acceptance",
+      "objective": "cost",
+      "gapPercent": 8.519510328997704,
+      "bestKnownGapPercent": 7.401938512797213,
+      "countExcess": null,
+      "file": "930109.json"
+    },
+    {
+      "seed": 930111,
+      "split": "acceptance",
+      "objective": "cost",
+      "gapPercent": 21.12779201757598,
+      "bestKnownGapPercent": 2.196896883152547,
+      "countExcess": null,
+      "file": "930111.json"
+    },
+    {
+      "seed": 930113,
+      "split": "acceptance",
+      "objective": "cost",
+      "gapPercent": 23.235504652827487,
+      "bestKnownGapPercent": 2.508732931089235,
+      "countExcess": null,
+      "file": "930113.json"
+    },
+    {
+      "seed": 930116,
+      "split": "acceptance",
+      "objective": "cost",
+      "gapPercent": 23.31223628691983,
+      "bestKnownGapPercent": 0.5954839597962275,
+      "countExcess": null,
+      "file": "930116.json"
+    },
+    {
+      "seed": 930119,
+      "split": "acceptance",
+      "objective": "count",
+      "gapPercent": 21.428571428571427,
+      "bestKnownGapPercent": 0,
+      "countExcess": 0,
+      "file": "930119.json"
+    },
+    {
+      "seed": 930119,
+      "split": "acceptance",
+      "objective": "cost",
+      "gapPercent": 22.484258729250143,
+      "bestKnownGapPercent": 0.6806775407779172,
+      "countExcess": null,
+      "file": "930119.json"
+    },
+    {
+      "seed": 930124,
+      "split": "acceptance",
+      "objective": "count",
+      "gapPercent": 14.285714285714286,
+      "bestKnownGapPercent": 6.666666666666667,
+      "countExcess": 1,
+      "file": "930124.json"
+    },
+    {
+      "seed": 930124,
+      "split": "acceptance",
+      "objective": "cost",
+      "gapPercent": 17.22123544503651,
+      "bestKnownGapPercent": 5.882772390188249,
+      "countExcess": null,
+      "file": "930124.json"
+    },
+    {
+      "seed": 930125,
+      "split": "acceptance",
+      "objective": "count",
+      "gapPercent": 10,
+      "bestKnownGapPercent": 10,
+      "countExcess": 1,
+      "file": "930125.json"
+    },
+    {
+      "seed": 930128,
+      "split": "acceptance",
+      "objective": "cost",
+      "gapPercent": 24.578768417075935,
+      "bestKnownGapPercent": 0,
+      "countExcess": null,
+      "file": "930128.json"
+    },
+    {
+      "seed": 930134,
+      "split": "acceptance",
+      "objective": "cost",
+      "gapPercent": 28.59432886862354,
+      "bestKnownGapPercent": 5.725749765698219,
+      "countExcess": null,
+      "file": "930134.json"
+    }
+  ]
+}
