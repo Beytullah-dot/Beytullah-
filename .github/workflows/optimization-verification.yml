@@ -42,7 +42,9 @@ jobs:
       - name: Verify module architecture and independent production audit
         run: node tests/engine-contract.cjs
       - name: Verify opt-in multiplicity candidates against independent oracles
-        run: CASES=3 node tests/stage2/check.cjs
+        run: |
+          node tests/stage2/default-off.cjs
+          CASES=3 node tests/stage2/check.cjs
       - name: Verify independent narrow-scrap physical rules
         run: node tests/narrow-scrap-verifier.cjs
       - name: Verify commercial project generator, independent witnesses and area relaxation

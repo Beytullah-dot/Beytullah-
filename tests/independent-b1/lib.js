@@ -12,7 +12,7 @@ const SRC = process.env.BEY_SRC ? path.resolve(process.env.BEY_SRC) : path.resol
 // ---------------------------------------------------------------- engine loader
 function loadEngine(stateOverride) {
   const window = {};
-  const state = Object.assign({ allowNarrowScrapCuts, mode: 'guillotine', priceMode: 'panel', offcutMinEdgeMm: 50, offcutMinAreaCm2: 100 }, stateOverride || {});
+  const state = Object.assign({ enableMultiplicitySolver: false, allowNarrowScrapCuts, mode: 'guillotine', priceMode: 'panel', offcutMinEdgeMm: 50, offcutMinAreaCm2: 100 }, stateOverride || {});
   for (const f of ['engine/material-policy.js', 'engine/optimality-certificate.js', 'engine/fullspan-strip-exact.js',
     'engine/production-audit.js', 'engine/mixed-strip-patterns.js', 'engine/guillotine-block-repair.js',
     'engine/cutting-engine.js'])
@@ -157,7 +157,7 @@ function oracle(data, { sliver = 'relaxed', wantLayout = false } = {}) {
 
 // ---------------------------------------------------------------- generators
 function mkData(parts, stocks, kerf, trim) {
-  return { parts, stocks, kerf, trim, m3: null, allowNarrowScrapCuts };
+  return { parts, stocks, kerf, trim, m3: null, enableMultiplicitySolver: false, allowNarrowScrapCuts };
 }
 function mkPart(i, l, w, o = {}) {
   return { id: 'p' + i, origin: 'p' + i, label: 'P' + i, l, w, t: o.t ?? null, category: 'panel', grain: o.grain || '', material: o.material || 'panel|mdf', rotate: o.rotate !== false, order: i };
