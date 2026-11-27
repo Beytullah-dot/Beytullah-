@@ -21,6 +21,23 @@ for(const flag of [undefined,false,null,'true']){
  assert.equal(worker.result.status,'disabled');
  assert.equal(worker.result.plan,null);
 }
+{
+
+ // A one-state budget must be hard even while seeding rotated leaves.
+ const limitData={...L.mkData([L.mkPart(0,18,5),L.mkPart(1,18,5)],[L.mkStock(0,40,30,2,1200)],1,0),enableMultiplicitySolver:true};
+ const limitJob={type:'construct',requestId:42,mode:'guillotine',objective:'count',priceMode:'panel',data:limitData};
+ const normal=L.loadWorker('advanced-search-worker.js');normal.onmessage({data:limitJob});
+ assert.equal(normal.result.status,'feasible-uncertified');
+ const limited=L.loadWorker('advanced-search-worker.js');
+ const direct=limited.BeythausMultiplicitySearch.solve(limitData,{maxStates:1,objective:'count'});
+ assert.equal(direct.states,1);assert.equal(direct.limitReached,true);assert.equal(direct.limitReason,'maxStates');
+ limited.onmessage({data:{...limitJob,maxStates:1,incumbent:normal.result.plan}});
+ assert.equal(limited.result.limitReached,true);assert(limited.result.limitReasons.includes('maxStates'));
+ assert.equal(limited.result.proof,'none');assert.equal(limited.result.status,'feasible-uncertified');
+ assert.equal(L.verifyPlan(limitData,limited.result.plan).complete,true);
+ assert(limited.result.plan.bins.length<=normal.result.plan.bins.length);
+ console.log('Hard maxStates=1, external limit metadata and incumbent preservation passed.');
+}
 const failures=[],rows=[],cases=[];
 for(const seed of [912041,913243])cases.push({id:String(seed),data:JSON.parse(fs.readFileSync(path.join(__dirname,`../stage1/results/missed-generic-${seed}-area.json`))).data,oracle:'small'});
 cases.push({id:'B2',data:L.mkData([...Array.from({length:11},(_,i)=>L.mkPart(i,18,5,{rotate:true})),...Array.from({length:2},(_,i)=>L.mkPart(i+11,18,11,{rotate:true}))],[L.mkStock(0,28,35,6,980),L.mkStock(1,28,29,3,812),L.mkStock(2,25,33,6,825)],0,1),oracle:'big'});

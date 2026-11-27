@@ -10,22 +10,26 @@ function solve(data,opts={}){
  const start=Date.now(),deadline=start+(opts.maxMs??1500),k=data.kerf,t=data.trim;
  const maxStates=opts.maxStates??12000,maxJoins=opts.maxJoins??400000;
  let nodes=0,states=0,limited=false;
+ const limitReasons=new Set();
+ const limit=reason=>{limited=true;limitReasons.add(reason)};
+ if(!Number.isSafeInteger(maxStates)||maxStates<1)throw Error('Invalid maxStates');
  const groups=new Map();
  for(const p of data.parts){const key=dims(p);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(p)}
  const types=[...groups.values()],K=types.length,N=data.parts.length;
- const result=plan=>({plan,nodes,states,elapsedMs:Date.now()-start,resourceExhausted:limited,proof:'none'});
+ const result=plan=>({plan,nodes,states,elapsedMs:Date.now()-start,resourceExhausted:limited,limitReached:limited,limitReason:[...limitReasons][0]??null,limitReasons:[...limitReasons],proof:'none'});
  if(!K||K>3||![k,t].every(x=>Number.isFinite(x)&&x>=0))return result(null);
  const demand=types.map(g=>g.length),levels=Array.from({length:N+1},()=>[]),byCounts=new Map();
  const stocks=data.stocks.filter(s=>s.qty>0&&s.l>2*t&&s.w>2*t);
  const fits=(node,s)=>node.w<=s.l-2*t+EPS&&node.h<=s.w-2*t+EPS&&types.every((g,i)=>!node.q[i]||(g[0].material===s.material&&(g[0].t==null||s.t!=null&&Math.abs(g[0].t-s.t)<EPS)));
- function tick(){if(++nodes>maxJoins||states>=maxStates||(nodes%256===0&&Date.now()>=deadline)){limited=true;return false}return true}
+ function tick(){if(++nodes>maxJoins){limit('maxJoins');return false}if(states>=maxStates){limit('maxStates');return false}if(nodes%256===0&&Date.now()>=deadline){limit('maxMs');return false}return true}
  function insert(node){
   if(!stocks.some(s=>fits(node,s)))return;
   const key=node.q.join(','),front=byCounts.get(key)||[];
   // Retain one cut topology per identical bounding box; this is heuristic,
   // particularly in the strict terminal-slack model. Never an exact proof.
   if(front.some(x=>Math.abs(x.w-node.w)<EPS&&Math.abs(x.h-node.h)<EPS))return;
-  if(front.length>=48)return;
+  if(states>=maxStates){limit('maxStates');return;}
+  if(front.length>=48){limit('frontierCap');return;}
   front.push(node);byCounts.set(key,front);levels[node.n].push(node);states++;
  }
  types.forEach((g,i)=>{
@@ -36,7 +40,8 @@ function solve(data,opts={}){
   }
  });
  outer:for(let n=2;n<=N;n++)for(let a=1;a<=Math.floor(n/2);a++){
-  if(Date.now()>=deadline||states>=maxStates){limited=true;break outer}
+  if(states>=maxStates){limit('maxStates');break outer}
+  if(Date.now()>=deadline){limit('maxMs');break outer}
   for(const x of levels[a])for(const y of levels[n-a]){
    if(!tick())break outer;
    const q=x.q.map((v,i)=>v+y.q[i]);if(q.some((v,i)=>v>demand[i]))continue;
@@ -77,7 +82,7 @@ function solve(data,opts={}){
  const value=s=>objective==='count'?1:objective==='cost'?price(s):s.l*s.w;
  const patterns=[];
  for(const s of stocks)for(const front of byCounts.values())for(const n of front){
-  if(Date.now()>=deadline+200){limited=true;break}
+  if(Date.now()>=deadline+200){limit('patternTime');break}
   if(!fits(n,s)||value(s)===null)continue;
   try{materialize(n,s,types.map(g=>g.slice()));patterns.push({s,n,v:value(s)})}catch{}
  }
@@ -88,7 +93,8 @@ function solve(data,opts={}){
  const layers=Array.from({length:N+1},()=>new Map());
  layers[0].set('root',{q:demand.map(()=>0),use:stocks.map(()=>0),v:0,chosen:[]});
  outer:for(let n=0;n<N;n++)for(const c of layers[n].values())for(const p of patterns){
-  if(++coverStates>80000||Date.now()>=deadline+500){limited=true;break outer}
+  if(++coverStates>80000){limit('coverStates');break outer}
+  if(Date.now()>=deadline+500){limit('coverTime');break outer}
   const si=sid.get(p.s.id);if(c.use[si]>=p.s.qty)continue;
   const q=c.q.map((v,i)=>v+p.n.q[i]);if(q.some((v,i)=>v>demand[i]))continue;
   const v=c.v+p.v;if(best&&v>best.v+EPS)continue;
