@@ -4,12 +4,14 @@ on:
     paths:
       - 'docs/**'
       - 'tests/ios-webkit-acceptance.cjs'
+      - 'tests/stage2/**'
       - '.github/workflows/ios-webkit-acceptance.yml'
   push:
     branches: [master]
     paths:
       - 'docs/**'
       - 'tests/ios-webkit-acceptance.cjs'
+      - 'tests/stage2/**'
       - '.github/workflows/ios-webkit-acceptance.yml'
   workflow_dispatch:
 
