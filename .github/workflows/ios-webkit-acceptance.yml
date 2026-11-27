@@ -43,6 +43,7 @@ jobs:
           done
           node tests/ios-webkit-acceptance.cjs
           node tests/stage1/closure/browser-pdf.cjs
+          node tests/stage2/browser-matrix.cjs
 
       - name: Stage 1 screen and production PDF evidence
         if: always()
@@ -51,3 +52,11 @@ jobs:
           name: stage1-browser-pdf-evidence
           path: tests/stage1/results/visual/
           if-no-files-found: error
+
+      - name: Stage 2 browser matrix evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage2-browser-matrix-evidence
+          path: tests/stage2/results/browser-matrix.json
+          if-no-files-found: warn
