@@ -42,7 +42,7 @@ function solve(parts,stocks,opts={}){
    (p.t!=null&&(!Number.isFinite(p.t)||p.t<=0)))return bail('unknown-input');
   ids.add(p.id);
   // This restricted model never rotates pieces (including square pieces).
-  if(p.grain==='width'||(p.rotate&&p.grain!=='length'))
+  if(opts.enableMultiplicitySolver!==true&&(p.grain==='width'||(p.rotate&&p.grain!=='length')))
    return bail('unknown-class');
  }
  for(const s of stocks){
@@ -70,7 +70,11 @@ function solve(parts,stocks,opts={}){
  };
  const k=integer(kerf),t=integer(trim);
  if(k===null||t===null)return bail('unknown-precision');
- const ps=parts.map((p,i)=>({p,i,l:integer(p.l),w:integer(p.w)}));
+ const ps=parts.flatMap((p,i)=>{
+  const orientations=opts.enableMultiplicitySolver===true&&p.rotate?[false,true]:[false];
+  return orientations.filter(rotated=>opts.enableMultiplicitySolver!==true||POLICY.grainAllows(p,null,rotated))
+   .map(rotated=>({p,i,rotated,l:integer(rotated?p.w:p.l),w:integer(rotated?p.l:p.w)}));
+ });
  const compatible=(p,s)=>p.material===s.material&&
   (p.category==null||s.category==null||p.category===s.category)&&
   (p.t==null||(s.t!=null&&Math.abs(p.t-s.t)<=1e-6));
@@ -87,7 +91,8 @@ function solve(parts,stocks,opts={}){
   bs.push({s,W,H,unit,candidates,qty:s.qty});
  }
  if(!bs.length)return bail('unknown-no-candidate');
- const validResidual=x=>x===0||x>=k;
+ const narrow=opts.enableMultiplicitySolver===true&&opts.allowNarrowScrapCuts===true;
+ const validResidual=x=>x===0||x>=k||narrow&&x>0;
  const toMm=x=>x/scale;
  const compare=(a,b)=>{
   if(!b)return true;
@@ -132,7 +137,7 @@ function solve(parts,stocks,opts={}){
       const p=group.find(entry=>!local.has(entry.i));
       if(!p||p.b!==seed.b)continue;
       const next=used+k+p.a,rest=target-next;
-      if(next>target||rest!==0&&rest<k)continue;
+      if(next>target||!validResidual(rest))continue;
       if(!add||p.a>add.a||(p.a===add.a&&p.i<add.i))add=p;
      }
      if(!add)break;
@@ -185,14 +190,14 @@ function solve(parts,stocks,opts={}){
   const cut=(src,axis,length)=>{
    const vertical=axis==='vertical',extent=vertical?src.w:src.h;
    const left=extent-length-k;
-   if(length<=0||left<0)throw new Error('Invalid constructed full-edge cut');
+   if(length<=0||left<0&&!(narrow&&extent>length))throw new Error('Invalid constructed full-edge cut');
    const before=vertical?{x:src.x,y:src.y,w:length,h:src.h}:
     {x:src.x,y:src.y,w:src.w,h:length};
-   const after=vertical?{x:src.x+length+k,y:src.y,w:left,h:src.h}:
-    {x:src.x,y:src.y+length+k,w:src.w,h:left};
+   const after=vertical?{x:src.x+length+k,y:src.y,w:Math.max(0,left),h:src.h}:
+    {x:src.x,y:src.y+length+k,w:src.w,h:Math.max(0,left)};
    const at=toMm((vertical?src.x:src.y)+length+k/2);
    const source=rect(src.x,src.y,src.w,src.h);
-   bin.cuts.push({source,axis,at,number:bin.cuts.length+1,
+   bin.cuts.push({source,axis,at,number:bin.cuts.length+1,...(left<0?{overhang:true}:{}),
     label:'Lazy research full-edge',
     x1:vertical?at:source.x,y1:vertical?source.y:at,
     x2:vertical?at:source.x+source.w,
@@ -207,7 +212,7 @@ function solve(parts,stocks,opts={}){
   function take(src,axis,length){
    const delta=dimension(src,axis)-length;
    if(delta===0)return {piece:src,rest:null};
-   if(delta<k)throw new Error('Kerf sliver in constructed plan');
+   if(!validResidual(delta))throw new Error('Kerf sliver in constructed plan');
    const v=cut(src,axis,length);
    return {piece:v.before,rest:dimension(v.after,axis)>0?v.after:null};
   }
@@ -222,7 +227,7 @@ function solve(parts,stocks,opts={}){
      const pieceStage=take(partLeaf,firstAxis,x.a);
      const r=pieceStage.piece;
      bin.placed.push({...x.p,x:toMm(r.x),y:toMm(r.y),
-      w:x.p.l,h:x.p.w,rotated:false});
+      w:toMm(x.l),h:toMm(x.w),rotated:x.rotated===true});
      partLeaf=pieceStage.rest;
     }
     addFree(partLeaf);bandLeaf=stage2.rest;

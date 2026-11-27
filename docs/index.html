@@ -234,6 +234,7 @@ html,body{background:white!important;color:#26432d!important;print-color-adjust:
         <button class="btn small" id="exactSearchCancel" type="button" aria-label="Kesin aramayı durdur">Durdur</button>
       </div>
     </div>
+    <div class="exact-search-line hidden" id="multiplicitySearchLine" role="status" aria-live="polite"><span id="multiplicitySearchText"></span></div>
     <div class="exact-search-line hidden" id="economySearchLine" role="status" aria-live="polite">
       <span id="economySearchText"></span>
       <div class="exact-search-actions">
@@ -379,7 +380,7 @@ function ensurePartLabels(rows){const used=new Set(rows.map(p=>String(p.label??'
 const round=(n,d=3)=>Math.round(n*10**d)/10**d;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const defaultData=()=>({version:2,partsThicknessEnabled:true,stocksThicknessEnabled:true,
- project:'Yeni proje',unit:'cm',kerf:3,trim:0,allowNarrowScrapCuts:false,offcutMinEdgeMm:50,offcutMinAreaCm2:100,
+ project:'Yeni proje',unit:'cm',kerf:3,trim:0,allowNarrowScrapCuts:false,enableMultiplicitySolver:false,offcutMinEdgeMm:50,offcutMinAreaCm2:100,
  offcutValuePerM2:'',useRemnantStock:true,mode:'guillotine',
  priceMode:'panel',objective:'cost',m3Price:25000,materialMode:'single',singleMaterial:'',
  singleCategory:'panel',allowedStockIds:null,parts:[],stocks:[]});
@@ -393,7 +394,7 @@ const save=()=>{try{
  const localState=cloudInventoryActive&&localFullStockShadow?
  {...state,stocks:convertFullStockUnits(localFullStockShadow,localFullStockUnit,state.unit)}:state;
  localStorage.setItem('beythaus-cut-v2',JSON.stringify(localState));if(typeof projectLibrary!=='undefined'&&activeProjectId){let p=projectLibrary.find(x=>x.id===activeProjectId);if(p){p.name=String(state.project||'İsimsiz proje').slice(0,60);p.updatedAt=Date.now();p.data=JSON.parse(JSON.stringify(localState));localStorage.setItem('beythaus-cut-project-library-v1',JSON.stringify(projectLibrary))}}}catch(err){console.warn('Yerel kayıt yapılamadı',err)}};
-function sanitize(o){if(!o||typeof o!=='object'||!Array.isArray(o.parts)||!Array.isArray(o.stocks))throw Error('Geçersiz proje dosyası');let p=defaultData();p.project=String(o.project||p.project).slice(0,60);p.unit=o.unit==='mm'?'mm':'cm';p.kerf=Number.isFinite(val(o.kerf))?val(o.kerf):3;p.trim=Number.isFinite(val(o.trim))?val(o.trim):0;p.allowNarrowScrapCuts=o.allowNarrowScrapCuts===true;p.offcutMinEdgeMm=Number.isFinite(val(o.offcutMinEdgeMm))?val(o.offcutMinEdgeMm):50;p.offcutMinAreaCm2=Number.isFinite(val(o.offcutMinAreaCm2))?val(o.offcutMinAreaCm2):100;
+function sanitize(o){if(!o||typeof o!=='object'||!Array.isArray(o.parts)||!Array.isArray(o.stocks))throw Error('Geçersiz proje dosyası');let p=defaultData();p.project=String(o.project||p.project).slice(0,60);p.unit=o.unit==='mm'?'mm':'cm';p.kerf=Number.isFinite(val(o.kerf))?val(o.kerf):3;p.trim=Number.isFinite(val(o.trim))?val(o.trim):0;p.allowNarrowScrapCuts=o.allowNarrowScrapCuts===true;p.enableMultiplicitySolver=false;p.offcutMinEdgeMm=Number.isFinite(val(o.offcutMinEdgeMm))?val(o.offcutMinEdgeMm):50;p.offcutMinAreaCm2=Number.isFinite(val(o.offcutMinAreaCm2))?val(o.offcutMinAreaCm2):100;
 p.offcutValuePerM2=String(o.offcutValuePerM2??'').trim()!==''&&
  Number.isFinite(val(o.offcutValuePerM2))&&val(o.offcutValuePerM2)>=0?
  String(val(o.offcutValuePerM2)):'';
@@ -710,7 +711,7 @@ function deleteRemnant(id){
  changed();return true
 }
 function remnantPlanSignature(result){
- const payload={project:activeProjectId,kerf:state.kerf,trim:state.trim,allowNarrowScrapCuts:state.allowNarrowScrapCuts===true,mode:state.mode,
+ const payload={project:activeProjectId,kerf:state.kerf,trim:state.trim,allowNarrowScrapCuts:state.allowNarrowScrapCuts===true,enableMultiplicitySolver:false,mode:state.mode,
   boards:result.bins.map(b=>({stock:[
    b.stock.isRemnant?b.stock.remnantId:'raw',b.stock.l,b.stock.w,
    b.stock.physicalThickness??b.stock.t,b.stock.material],
@@ -764,7 +765,7 @@ function cloudProductionPayload(){
  const request={operationId:opId,kind:'production_v2',payload:{
   batchId,projectName:state.project,signature:remnantPlanSignature(solution),
   usedFull:[...usedFull.values()],consumed,created,extraCost,extraNote,
-  planSnapshot:{kerf:val(state.kerf),trim:val(state.trim),allowNarrowScrapCuts:state.allowNarrowScrapCuts===true,bins}}};
+  planSnapshot:{kerf:val(state.kerf),trim:val(state.trim),allowNarrowScrapCuts:state.allowNarrowScrapCuts===true,enableMultiplicitySolver:false,bins}}};
  solution.cloudProductionRequest=request;
  return request
 }
@@ -831,7 +832,7 @@ function registerRemnantProduction(){
   signature,createdAt:now,usedIds,usedFullStocks,createdIds:created.map(p=>p.id),
   grossStockCost,offcutBookValue,materialCost,extraCost,extraNote,totalCost,
   priceBasis:'recorded-stock-value-v1',productionCompleted:true,
-  planSnapshot:{kerf:val(state.kerf),trim:val(state.trim),allowNarrowScrapCuts:state.allowNarrowScrapCuts===true,
+  planSnapshot:{kerf:val(state.kerf),trim:val(state.trim),allowNarrowScrapCuts:state.allowNarrowScrapCuts===true,enableMultiplicitySolver:false,
    bins:solution.bins.map(b=>({stockId:b.stock.id,material:b.stock.material,
     stock:{id:b.stock.id,l:b.stock.l,w:b.stock.w,t:b.stock.physicalThickness??b.stock.t,
      material:b.stock.displayMaterial||String(b.stock.material).split('|').slice(1).join('|'),
@@ -1013,7 +1014,7 @@ function renderRows(){
 function syncThicknessVisibility(){if(state.parts.some(p=>stockKind(p)==='masif'))state.partsThicknessEnabled=true;for(const [flag,cardId,buttonId] of [['partsThicknessEnabled','partsCard','partsThicknessToggle'],['stocksThicknessEnabled','stocksCard','stocksThicknessToggle']]){const on=state[flag]!==false,btn=byId(buttonId);byId(cardId).classList.toggle('thickness-off',!on);btn.setAttribute('aria-pressed',String(on));btn.textContent='Kalınlık '+(on?'✓':'＋');btn.classList.toggle('thickness-on',on)}}
 for(const [flag,buttonId] of [['partsThicknessEnabled','partsThicknessToggle'],['stocksThicknessEnabled','stocksThicknessToggle']])byId(buttonId).onclick=()=>{if(flag==='partsThicknessEnabled'&&state.parts.some(p=>stockKind(p)==='masif')&&state[flag]){toast('Masif parçalarda kalınlık zorunludur.');return}state[flag]=!state[flag];syncThicknessVisibility();changed()};
 function syncSettings(){syncThicknessVisibility();byId('unitSelect').value=state.unit;byId('kerfInput').value=state.kerf;byId('trimInput').value=state.trim;byId('narrowScrapSelect').value=state.allowNarrowScrapCuts===true?'open':'closed';byId('projectName').value=state.project;byId('m3Input').value=state.m3Price;byId('offcutEdgeInput').value=state.offcutMinEdgeMm;byId('offcutAreaInput').value=state.offcutMinAreaCm2;byId('offcutValueInput').value=state.offcutValuePerM2??'';byId('useRemnantStockInput').checked=state.useRemnantStock;for(const b of qsa('#objectiveSegment button')){const selected=b.dataset.objective===state.objective;b.classList.toggle('active',selected);b.setAttribute('aria-pressed',String(selected))}for(const b of qsa('#modeSegment button'))b.classList.toggle('active',b.dataset.mode===state.mode);for(const b of qsa('#priceSegment button'))b.classList.toggle('active',b.dataset.price===state.priceMode);byId('m3Field').classList.toggle('hidden',state.priceMode==='panel');byId('priceHelp').textContent=state.priceMode==='m3'?'Toplam maliyet, kullanılan tam stokların hacmine göre hesaplanır.':'Her stok satırının ₺ / Panel fiyatı kullanılır.';byId('modeHelp').textContent=state.mode==='nest'?'Serbest yerleşim: daha sıkı dizilim; CNC ve uygun içten kesim yöntemleri için.':'Düz kesim: her adımda kenardan kenara tam kesim yapılabilecek yerleşim.';byId('resultTitle').textContent=state.project||'Kesim planı'}
-function changed(){cancelConstructiveSearch(true);clearQuantityResult();autoPlanCache=null;cancelExactSearch(true);cancelEconomySearch(true);dirty=true;lastAudit=null;refreshRemnantUI();refreshProductionSafety();byId('planCard').querySelector('.card-title').textContent=state.mode==='nest'?'Yerleşim taslağı · Üretime uygun değil':'Kesim yerleşimi';byId('optimalityRow').textContent='Girdiler değişti. Optimumluk yeniden hesaplanmalı.';byId('optimalityRow').classList.remove('is-proven');byId('grossWasteProofRow').textContent='Girdiler değişti. Brüt fire yeniden hesaplanmalı.';byId('grossWasteProofRow').classList.remove('is-proven');byId('globalCostProofRow').textContent='Girdiler değişti. Maliyet optimumluğu yeniden hesaplanmalı.';byId('globalCostProofRow').classList.remove('is-proven');invalidateCachedPdf();save();if(solution){for(const id of ['zoomBtn','downloadPdfTopBtn','printBtn'])byId(id).disabled=true;byId('status').className='status-line warning';byId('status').innerHTML='<span class="status-dot"></span><span>Girdiler değişti. Yeni plan için tekrar hesaplayın.</span>'}}
+function changed(){cancelConstructiveSearch(true);cancelAdvancedSearch();clearQuantityResult();autoPlanCache=null;cancelExactSearch(true);cancelEconomySearch(true);dirty=true;lastAudit=null;refreshRemnantUI();refreshProductionSafety();byId('planCard').querySelector('.card-title').textContent=state.mode==='nest'?'Yerleşim taslağı · Üretime uygun değil':'Kesim yerleşimi';byId('optimalityRow').textContent='Girdiler değişti. Optimumluk yeniden hesaplanmalı.';byId('optimalityRow').classList.remove('is-proven');byId('grossWasteProofRow').textContent='Girdiler değişti. Brüt fire yeniden hesaplanmalı.';byId('grossWasteProofRow').classList.remove('is-proven');byId('globalCostProofRow').textContent='Girdiler değişti. Maliyet optimumluğu yeniden hesaplanmalı.';byId('globalCostProofRow').classList.remove('is-proven');invalidateCachedPdf();save();if(solution){for(const id of ['zoomBtn','downloadPdfTopBtn','printBtn'])byId(id).disabled=true;byId('status').className='status-line warning';byId('status').innerHTML='<span class="status-dot"></span><span>Girdiler değişti. Yeni plan için tekrar hesaplayın.</span>'}}
 function toast(msg){const el=byId('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove('show'),2800)}
 function bindTable(id,key){
  const root=byId(id);
@@ -1215,7 +1216,7 @@ function normalize(grouped=false){
  if(!parts.length)errors.push('En az bir geçerli parça girin.');
  if(!stocks.some(s=>s.qty>0))errors.push('Hesaplama için en az bir uygun stok seçin.');
  if(state.materialMode==='single'&&!single)errors.push('Tek tip için stoktan malzeme seçin.');
- return {parts,stocks,kerf,trim,allowNarrowScrapCuts:state.allowNarrowScrapCuts===true,m3:null,minEdge,minArea,errors}
+ return {parts,stocks,kerf,trim,allowNarrowScrapCuts:state.allowNarrowScrapCuts===true,enableMultiplicitySolver:false,m3:null,minEdge,minArea,errors}
 }
 // Engineering boundary: the calculation and production auditor are now
 // independent of the DOM. Changes to the current project are read dynamically.
@@ -1255,7 +1256,7 @@ function planHtml(bin){
  '<p>Net mesafe, kesilecek alt parçanın sol veya üst kenarından ölçülür; testere kalınlığı ayrıca hesaba katılmıştır. Bağlama ve kesme güvenliği operatör tarafından doğrulanmalıdır.</p></div></details>';
  return base+'<div class="offcut-panels">'+offcutPanel+stepsPanel+'</div>';
 }
-function showEmpty(){cancelConstructiveSearch(true);clearQuantityResult();cancelExactSearch(true);cancelEconomySearch(true);dirty=true;lastAudit=null;refreshRemnantUI();refreshProductionSafety();byId('planCard').querySelector('.card-title').textContent=state.mode==='nest'?'Yerleşim taslağı · Üretime uygun değil':'Kesim yerleşimi';byId('optimalityRow').textContent='Minimum stok sayısı: hesaplama bekleniyor.';byId('optimalityRow').classList.remove('is-proven');byId('grossWasteProofRow').textContent='Brüt fire optimumluğu: hesaplama bekleniyor.';byId('grossWasteProofRow').classList.remove('is-proven');byId('globalCostProofRow').textContent='Girdiler değişti. Maliyet optimumluğu yeniden hesaplanmalı.';byId('globalCostProofRow').classList.remove('is-proven');invalidateCachedPdf();byId('mSheets').textContent='—';byId('mYield').textContent='—';byId('mCost').textContent='—';byId('mParts').textContent='—';byId('summarySub').textContent='Parçalar ve stok hazır.';byId('status').className='status-line';byId('status').innerHTML='<span class="status-dot"></span><span>Hesaplamak için düğmeye basın.</span>';byId('planTabs').innerHTML='';byId('planBody').className='empty-state';byId('planBody').innerHTML='<div class="empty-icon">▤</div><strong>Kesim planı burada görünecek</strong><p>Parça ve stok ölçülerini girip yerleşimi hesaplayın. Masif parçalarında kalınlık zorunludur.</p>';byId('costDetails').innerHTML='<p style="color:#8a968d;font-size:12px">Hesaplama bekleniyor.</p>';byId('cutDetails').innerHTML='<p style="color:#8a968d;font-size:12px">Hesaplama bekleniyor.</p>';for(const id of ['zoomBtn','downloadPdfTopBtn','printBtn'])byId(id).disabled=true}
+function showEmpty(){cancelConstructiveSearch(true);cancelAdvancedSearch();clearQuantityResult();cancelExactSearch(true);cancelEconomySearch(true);dirty=true;lastAudit=null;refreshRemnantUI();refreshProductionSafety();byId('planCard').querySelector('.card-title').textContent=state.mode==='nest'?'Yerleşim taslağı · Üretime uygun değil':'Kesim yerleşimi';byId('optimalityRow').textContent='Minimum stok sayısı: hesaplama bekleniyor.';byId('optimalityRow').classList.remove('is-proven');byId('grossWasteProofRow').textContent='Brüt fire optimumluğu: hesaplama bekleniyor.';byId('grossWasteProofRow').classList.remove('is-proven');byId('globalCostProofRow').textContent='Girdiler değişti. Maliyet optimumluğu yeniden hesaplanmalı.';byId('globalCostProofRow').classList.remove('is-proven');invalidateCachedPdf();byId('mSheets').textContent='—';byId('mYield').textContent='—';byId('mCost').textContent='—';byId('mParts').textContent='—';byId('summarySub').textContent='Parçalar ve stok hazır.';byId('status').className='status-line';byId('status').innerHTML='<span class="status-dot"></span><span>Hesaplamak için düğmeye basın.</span>';byId('planTabs').innerHTML='';byId('planBody').className='empty-state';byId('planBody').innerHTML='<div class="empty-icon">▤</div><strong>Kesim planı burada görünecek</strong><p>Parça ve stok ölçülerini girip yerleşimi hesaplayın. Masif parçalarında kalınlık zorunludur.</p>';byId('costDetails').innerHTML='<p style="color:#8a968d;font-size:12px">Hesaplama bekleniyor.</p>';byId('cutDetails').innerHTML='<p style="color:#8a968d;font-size:12px">Hesaplama bekleniyor.</p>';for(const id of ['zoomBtn','downloadPdfTopBtn','printBtn'])byId(id).disabled=true}
 function kv(k,v){return`<div class="kv"><span>${esc(k)}</span><strong>${v}</strong></div>`}
 let lastAudit=null;
 function refreshProductionSafety(){
@@ -1375,7 +1376,7 @@ function certifyLargePlan(data,plan){
   }
  },8500);
  worker.postMessage({type:'certify',requestId,
-  data:{parts:data.parts,stocks:data.stocks,trim:data.trim,kerf:data.kerf,allowNarrowScrapCuts:data.allowNarrowScrapCuts===true},
+  data:{parts:data.parts,stocks:data.stocks,trim:data.trim,kerf:data.kerf,enableMultiplicitySolver:false,allowNarrowScrapCuts:data.allowNarrowScrapCuts===true},
   plan:{bins:plan.bins.map(()=>({})),stockArea:plan.stockArea,cost:plan.cost,
    placedCount:plan.placedCount,unplaced:plan.unplaced,stockProof:plan.stockProof},
   allowMaterialAssignment:state.materialMode==='auto',priceMode:state.priceMode,m3:data.m3});
@@ -1693,7 +1694,7 @@ function cancelExactSearch(silent=true){
  if(silent)byId('exactSearchLine').classList.add('hidden');
  else if(wasRunning)exactSearchStatus('Kesin arama durduruldu. Mevcut kesim planı geçerlidir; optimumluk ayrıca kanıtlanmış değildir.','warning');
 }
-byId('exactSearchCancel').onclick=()=>{cancelExactSearch(false);cancelConstructiveSearch(false);cancelEconomySearch(true)};
+byId('exactSearchCancel').onclick=()=>{cancelAdvancedSearch();cancelExactSearch(false);cancelConstructiveSearch(false);cancelEconomySearch(true)};
 byId('exactSearchApply').onclick=()=>{
  const pending=exactPending;
  if(!pending||dirty||solution!==pending.source){
@@ -1704,6 +1705,7 @@ byId('exactSearchApply').onclick=()=>{
   cancelEconomySearch(true);
   showResult(pending.data,pending.proposal);
   startEconomyWorker(pending.data,pending.proposal);
+  startAdvancedAfterLegacy(pending.data);
   exactSearchStatus('Daha az stok kullanan kesin yerleşim uygulandı. Maliyet, seçilen stoklara göre güncellendi.');
   toast('Alternatif yerleşim uygulandı: '+pending.saved+' stok daha az.');
  }catch(error){
@@ -1712,6 +1714,116 @@ byId('exactSearchApply').onclick=()=>{
  }
 };
 window.addEventListener('pagehide',()=>cancelExactSearch(true));
+
+/* Opt-in multiplicity candidate. Legacy Workers remain unchanged and finish
+   first. A candidate is compared to the final displayed legacy incumbent,
+   not the fast initial plan. This is never an optimum certificate. */
+let advancedWorker=null,advancedTimer=null,advancedRequest=0;
+function advancedSearchStatus(message,kind){
+ const line=byId('multiplicitySearchLine');
+ line.classList.remove('hidden');line.dataset.state=kind;
+ byId('multiplicitySearchText').textContent=message;
+}
+function cancelAdvancedSearch(){
+ advancedRequest++;
+ if(advancedTimer!==null){clearTimeout(advancedTimer);advancedTimer=null}
+ if(advancedWorker){advancedWorker.terminate();advancedWorker=null}
+ byId('multiplicitySearchLine').classList.add('hidden');
+}
+window.addEventListener('pagehide',cancelAdvancedSearch);
+function advancedBetter(candidate,old,data,objective){
+ if(!candidate||!Array.isArray(candidate.bins)||!candidate.bins.length||
+   !Array.isArray(candidate.unplaced)||candidate.unplaced.length||
+   candidate.placedCount!==data.parts.length)return false;
+ const a=auditCutPlan(candidate,data),v=window.BeythausPhysicalVerifier.verifyPlan(data,candidate);
+ if(!a.ok||!v.ok||!v.complete)throw Error('Çift fiziksel denetim başarısız.');
+ const area=candidate.bins.reduce((sum,b)=>sum+b.stock.l*b.stock.w,0);
+ const costs=candidate.bins.map(b=>binCost(data.stocks.find(s=>s.id===b.stock.id),{priceMode:state.priceMode,m3:data.m3}));
+ const unknown=costs.filter(c=>c===null).length,cost=unknown?null:costs.reduce((a,b)=>a+b,0);
+ if(Math.abs(candidate.stockArea-area)>1e-7||candidate.unknownCostBins!==unknown||
+   (cost===null?candidate.cost!==null:!Number.isFinite(candidate.cost)||Math.abs(candidate.cost-cost)>1e-7))
+  throw Error('Adayın alan/maliyet bilgisi uyuşmuyor.');
+ if(objective==='cost'&&cost===null)return false;
+ if(old.unplaced.length)return true;
+ const score=p=>objective==='count'?p.bins.length:objective==='area'?p.stockArea:p.cost;
+ const aScore=score(candidate),bScore=score(old);
+ if(!Number.isFinite(aScore)||!Number.isFinite(bScore))return false;
+ if(aScore<bScore-1e-7)return true;
+ if(aScore>bScore+1e-7)return false;
+ const largest=p=>p.bins.reduce((max,b)=>Math.max(max,...collectOffcuts(b).pieces.map(x=>x.area),0),0);
+ return largest(candidate)>largest(old)+1e-7;
+}
+function startAdvancedAfterLegacy(data){
+ if(state.enableMultiplicitySolver!==true||state.mode!=='guillotine')return;
+ cancelAdvancedSearch();
+ const requestId=advancedRequest,goal=state.objective,projectState=state,started=Date.now();
+ // Count is an experimental test target; the existing public UI still has
+ // area/cost only. Never change the legacy goal or its three Worker payloads.
+ const objective=goal==='count'?'count':goal==='area'?'area':'cost';
+ const current=()=>requestId===advancedRequest&&state===projectState&&
+  state.enableMultiplicitySolver===true&&state.mode==='guillotine'&&state.objective===goal&&!dirty;
+ const limited=reason=>advancedSearchStatus('Sınırlı arama, optimum iddiası yok ('+reason+'). Mevcut plan korundu.','warning');
+ advancedSearchStatus('Eski arama zincirinin son sonucu bekleniyor.','running');
+ function wait(){
+  advancedTimer=null;
+  if(!current())return cancelAdvancedSearch();
+  if(constructiveWorker||exactWorker||economyWorker){
+   if(Date.now()-started>=25000)return limited('legacyWaitTimeout');
+   advancedTimer=setTimeout(wait,40);return;
+  }
+  const incumbent=solution;
+  if(!incumbent)return limited('noIncumbent');
+  let worker;
+  try{worker=new Worker('./advanced-search-worker.js')}
+  catch(error){limited('workerUnavailable');return;}
+  advancedWorker=worker;
+  advancedSearchStatus('Çarpanlı fiziksel arama çalışıyor.','running');
+  function stop(){
+   if(requestId!==advancedRequest||advancedWorker!==worker)return false;
+   if(advancedTimer!==null){clearTimeout(advancedTimer);advancedTimer=null}
+   worker.terminate();advancedWorker=null;return true;
+  }
+  worker.onerror=()=>{if(stop()&&current())limited('workerError')};
+  worker.onmessage=event=>{
+   const r=event.data;
+   if(r?.requestId!==requestId||!stop())return;
+   if(!current()||solution!==incumbent)return;
+   if(r.type!=='construct-finished'||r.proof!=='none'||typeof r.limitReached!=='boolean'){
+    limited('invalidResponse');return;
+   }
+   const reasons=Array.isArray(r.limitReasons)&&r.limitReasons.length?r.limitReasons.join(', '):String(r.limitReason||'unknown');
+   const prefix=r.limitReached?'Sınırlı arama, optimum iddiası yok ('+reasons+'). ':
+    r.status==='feasible-uncertified'?'Tam sonuç — optimum iddiası yok. ':'Tam plan bulunamadı; optimum iddiası yok. ';
+   let applied=false;
+   try{
+    if(r.status==='feasible-uncertified'&&advancedBetter(r.plan,incumbent,data,objective)){
+     // A genuine incumbent certificate must not be silently contradicted.
+     const proven=objective==='count'?incumbent.stockProof?.proven:
+      incumbent.economyProof?.proven&&incumbent.economyProof.objective===objective;
+     const metric=p=>objective==='count'?p.bins.length:objective==='area'?p.stockArea:p.cost;
+     if(proven&&metric(r.plan)<metric(incumbent)-1e-7)throw Error('Mevcut optimum kanıtıyla çelişki.');
+     const candidate={...r.plan,search:{...incumbent.search,multiplicity:'feasible-uncertified'},
+      exact:null,economyProof:null,areaProof:null,stockProof:null,
+      globalAreaProof:null,globalCostProof:null,globalCountProof:null};
+     try{showResult(data,candidate)}catch(error){showResult(data,incumbent);throw error}
+     cancelExactSearch(true);cancelEconomySearch(true);
+     if(state.materialMode==='auto'&&autoPlanCache)
+      autoPlanCache[autoPlanCache.selected]={data,plan:candidate};
+     applied=true;
+    }
+    advancedSearchStatus(prefix+(applied?'Daha iyi fiziksel plan uygulandı.':'Mevcut plan korundu.'),
+     r.limitReached||r.status!=='feasible-uncertified'?'warning':'done');
+   }catch(error){
+    advancedSearchStatus(prefix+'Aday reddedildi; mevcut plan korundu.','warning');
+   }
+  };
+  advancedTimer=setTimeout(()=>{if(stop()&&current())limited('browserTimeout')},3500);
+  worker.postMessage({type:'construct',requestId,mode:'guillotine',objective,
+   priceMode:state.priceMode,data:{...data,enableMultiplicitySolver:true},incumbent});
+ }
+ advancedTimer=setTimeout(wait,0);
+}
+
 /* A: production integration of the researched lazy constructor.
    ONLY a complete, independently re-audited candidate may replace a partial
    guillotine plan. Never derive optimum certificates from the constructor. */
@@ -1819,7 +1931,7 @@ function startConstructiveWorker(data,initial){
  constructiveTimer=setTimeout(()=>finish('Yapıcı arama süre sınırına ulaştı (UNKNOWN); mevcut plan korundu.'),2600);
  worker.postMessage({type:'construct',requestId,mode:'guillotine',objective,
   priceMode:state.priceMode,m3:data.m3,data:{
-   parts:data.parts,stocks:data.stocks,kerf:data.kerf,trim:data.trim,allowNarrowScrapCuts:data.allowNarrowScrapCuts===true}})
+   parts:data.parts,stocks:data.stocks,kerf:data.kerf,trim:data.trim,enableMultiplicitySolver:false,allowNarrowScrapCuts:data.allowNarrowScrapCuts===true}})
 }
 
 function acceptExactWorkerResult(data,initial,response){
@@ -2003,7 +2115,7 @@ function startExactWorker(data,initial){
  economySearchStatus('Minimum panel sayısı aramasından sonra ekonomik analiz başlayacak.');
  exactTimer=setTimeout(()=>fail('Kesin arama süre sınırına ulaştı. Mevcut plan geçerli, optimumluk kanıtlanmadı.'),8000);
  worker.postMessage({type:'solve',requestId,mode:state.mode,
-  data:{parts:data.parts,stocks:data.stocks,kerf:data.kerf,trim:data.trim,allowNarrowScrapCuts:data.allowNarrowScrapCuts===true},
+  data:{parts:data.parts,stocks:data.stocks,kerf:data.kerf,trim:data.trim,enableMultiplicitySolver:false,allowNarrowScrapCuts:data.allowNarrowScrapCuts===true},
   incumbentBins:initial.bins.map(b=>({stockId:b.stock.id,material:b.stock.material})),
   bounds:initial.stockProof?.details||[],
   timeBudgetMs:state.mode==='guillotine'?6500:4200,
@@ -2027,7 +2139,7 @@ function cancelEconomySearch(silent=true){
  if(silent)byId('economySearchLine').classList.add('hidden');
  else if(running)economySearchStatus('Ekonomik arama durduruldu. Minimum maliyet kanıtlanmadı.','warning')
 }
-byId('economySearchCancel').onclick=()=>cancelEconomySearch(false);
+byId('economySearchCancel').onclick=()=>{cancelAdvancedSearch();cancelEconomySearch(false)};
 window.addEventListener('pagehide',()=>cancelEconomySearch(true));
 function acceptEconomyWorkerResult(data,initial,response){
  if(response?.type!=='economy-finished'||!Array.isArray(response.groups))
@@ -2215,7 +2327,7 @@ function startEconomyWorker(data,initial){
  };
  economyTimer=setTimeout(()=>fail('Ekonomik arama süre sınırına ulaştı; minimum maliyet kanıtlanmadı.'),6900);
  worker.postMessage({type:'economy',requestId,cutMode:state.mode,objective,priceMode:state.priceMode,
-  m3:data.m3,data:{parts:data.parts,stocks:data.stocks,kerf:data.kerf,trim:data.trim,allowNarrowScrapCuts:data.allowNarrowScrapCuts===true},
+  m3:data.m3,data:{parts:data.parts,stocks:data.stocks,kerf:data.kerf,trim:data.trim,enableMultiplicitySolver:false,allowNarrowScrapCuts:data.allowNarrowScrapCuts===true},
   incumbentBins:initial.bins.map(b=>({stockId:b.stock.id,material:b.stock.material})),
   timeBudgetMs:5300,maxNodes:250000})
 }
@@ -2231,7 +2343,8 @@ byId('economySearchApply').onclick=()=>{
   economySearchStatus('Ekonomik alternatif uygulandı. Ek stok maliyeti: '+money(pending.proposal.cost)+
    '. Bu, minimum panel sayısı veya artık değerinin optimumluğu anlamına gelmez.');
   toast('Yeni kesim planı: '+money(pending.savings)+' daha az stok maliyeti.');
-  startExactWorker(pending.data,pending.proposal)
+  startExactWorker(pending.data,pending.proposal);
+  startAdvancedAfterLegacy(pending.data)
  }catch(error){
   console.error(error);economySearchStatus('Ekonomik alternatif uygulanamadı.','warning')
  }
@@ -2241,7 +2354,7 @@ let autoPlanCache=null;
 const materialAllocator=window.BeythausMaterialAllocator.createAllocator({optimize,audit:auditCutPlan,offcutMetrics,binCost});
 function showAutoPlan(choice){
  const item=autoPlanCache?.[choice];if(!item)return;
- cancelConstructiveSearch(true);cancelExactSearch(true);cancelEconomySearch(true);
+ cancelAdvancedSearch();cancelConstructiveSearch(true);cancelExactSearch(true);cancelEconomySearch(true);
  state.objective=choice==='area'?'area':'cost';
  syncSettings();save();
  autoPlanCache.selected=choice;
@@ -2254,7 +2367,8 @@ function showAutoPlan(choice){
  byId('optimalityRow').textContent='Karma otomatik: tüm malzeme dağılımlarında minimum stok henüz kanıtlanmadı.';
  byId('optimalityRow').classList.remove('is-proven');
  startExactWorker(item.data,item.plan);
- startConstructiveWorker(item.data,item.plan)
+ startConstructiveWorker(item.data,item.plan);
+ startAdvancedAfterLegacy(item.data)
 }
 byId('autoPlanChoice').onclick=e=>{
  const b=e.target.closest('button[data-choice]');
@@ -2272,7 +2386,7 @@ function showQuantityResult(data){
  if(state.mode!=='guillotine'||state.materialMode==='auto'||stocks.length!==1){
   toast('Bu adet için seri kesim tek stok ve sabit malzeme ile çalışır.');return;
  }
- const stock=stocks[0],job={parts:data.parts,stock,trim:data.trim,kerf:data.kerf,allowNarrowScrapCuts:data.allowNarrowScrapCuts===true};
+ const stock=stocks[0],job={parts:data.parts,stock,trim:data.trim,kerf:data.kerf,enableMultiplicitySolver:false,allowNarrowScrapCuts:data.allowNarrowScrapCuts===true};
  const engine=window.BeythausQuantityPlan;
  const mixed=data.parts.length>1;
  const plan=mixed?engine.solveMixed(job):engine.solve({...job,part:p});
@@ -2319,7 +2433,7 @@ function showQuantityResult(data){
 }
 function run(){
  if(processing)return;
- cancelConstructiveSearch(true);cancelExactSearch(true);
+ cancelAdvancedSearch();cancelConstructiveSearch(true);cancelExactSearch(true);
  cancelEconomySearch(true);
  const needsQuantity=state.parts.reduce((n,p)=>n+((String(p.l).trim()||String(p.w).trim())?(val(p.qty)||0):0),0)>1500||
   state.stocks.some(s=>val(s.qty)>99999);
@@ -2337,12 +2451,13 @@ function run(){
     if(autoPlanCache.economic.plan.unplaced.length)toast(autoPlanCache.economic.plan.unplaced.length+' parça yerleştirilemedi.');
    }else{
     autoPlanCache=null;byId('autoPlanChoice').classList.add('hidden');
-    const sol=optimize(data,true,false,state.objective==='area'?'area':'economic'),errors=validateLayout(sol,{kerf:data.kerf,trim:data.trim,allowNarrowScrapCuts:data.allowNarrowScrapCuts===true});
+    const sol=optimize(data,true,false,state.objective==='area'?'area':'economic'),errors=validateLayout(sol,{kerf:data.kerf,trim:data.trim,enableMultiplicitySolver:false,allowNarrowScrapCuts:data.allowNarrowScrapCuts===true});
     if(errors.length)throw Error(errors.join(' '));
     showResult(data,sol);
     if(sol.unplaced.length)toast(sol.unplaced.length+' parça yerleştirilemedi.');
     startExactWorker(data,sol);
     startConstructiveWorker(data,sol);
+    startAdvancedAfterLegacy(data);
    }
    byId('results').scrollIntoView({behavior:'smooth',block:'start'});
   }catch(error){console.error(error);toast('Hesaplama hatası: '+error.message)}
@@ -2360,7 +2475,7 @@ byId('productionSafetySwitch').onclick=()=>{
  syncSettings();changed();run();
 };
 renderRows();syncSettings();showEmpty();renderProjects();
-window.BeythausCut={enterCloudInventory,exitCloudInventory,getLocalFullStocks:()=>localFullStockShadow?convertFullStockUnits(localFullStockShadow,localFullStockUnit,state.unit):JSON.parse(JSON.stringify(state.stocks)),isCloudInventory:()=>cloudInventoryActive,getSelectedRemnantSource:()=>selectedRemnantEditSource,cloudProductionPayload,markCloudProductionComplete,remnantMovements,cleanRemnantEvent,exportCostRecordPdf,getCostRecords:()=>remnantDB.batches.filter(b=>b.productionCompleted).slice().sort((a,b)=>b.createdAt-a.createdAt),getRemnantDB:()=>JSON.parse(JSON.stringify(remnantDB)),filterRemnants,editRemnantRecord,setRemnantDefaultLocation,openRemnantEditor,submitRemnantEditor,inventoryStocksForPlan,registerRemnantProduction,setRemnantStatus,mergeRemnantBackup,normalize,optimize,optimizeBaseline:data=>optimize(data,false),refineUsableOffcuts,offcutMetrics,betterOffcuts,offcutOptimizationDescription,enumerateBoardMultisets,exactGrossAreaRefine,grossWasteProofDescription,exactUniformFeasibility,exactVariableFeasibility,exactRefinePlan,minStockCountLowerBound,certifyStockCount,stockProofDescription,validateLayout,auditCutPlan,auditGuillotineCuts,collectOffcuts,defaultData,getLastAudit:()=>lastAudit,getState:()=>state,setState:o=>{state=sanitize(o);renderRows();syncSettings();save();showEmpty()},run};
+window.BeythausCut={enterCloudInventory,exitCloudInventory,getLocalFullStocks:()=>localFullStockShadow?convertFullStockUnits(localFullStockShadow,localFullStockUnit,state.unit):JSON.parse(JSON.stringify(state.stocks)),isCloudInventory:()=>cloudInventoryActive,getSelectedRemnantSource:()=>selectedRemnantEditSource,cloudProductionPayload,markCloudProductionComplete,remnantMovements,cleanRemnantEvent,exportCostRecordPdf,getCostRecords:()=>remnantDB.batches.filter(b=>b.productionCompleted).slice().sort((a,b)=>b.createdAt-a.createdAt),getRemnantDB:()=>JSON.parse(JSON.stringify(remnantDB)),filterRemnants,editRemnantRecord,setRemnantDefaultLocation,openRemnantEditor,submitRemnantEditor,inventoryStocksForPlan,registerRemnantProduction,setRemnantStatus,mergeRemnantBackup,normalize,optimize,optimizeBaseline:data=>optimize(data,false),refineUsableOffcuts,offcutMetrics,betterOffcuts,offcutOptimizationDescription,enumerateBoardMultisets,exactGrossAreaRefine,grossWasteProofDescription,exactUniformFeasibility,exactVariableFeasibility,exactRefinePlan,minStockCountLowerBound,certifyStockCount,stockProofDescription,validateLayout,auditCutPlan,auditGuillotineCuts,collectOffcuts,defaultData,getLastAudit:()=>lastAudit,getPlanSnapshot:()=>solution?JSON.parse(JSON.stringify({bins:solution.bins,unplaced:solution.unplaced,placedCount:solution.placedCount,partArea:solution.partArea,stockArea:solution.stockArea,cost:solution.cost,unknownCostBins:solution.unknownCostBins})):null,getState:()=>state,setState:o=>{state=sanitize(o);renderRows();syncSettings();save();showEmpty()},run};
 })();
 </script>
 <script src="./vendor/qrcode.min.js"></script>

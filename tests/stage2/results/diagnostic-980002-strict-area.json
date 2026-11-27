@@ -1,0 +1,1610 @@
+{
+  "kind": "analogous-diagnostic-not-user-worst-case",
+  "sourceCommit": "b75de7b90506cffafd4b8dc33e8c975a0f032d95",
+  "seed": 980002,
+  "narrow": false,
+  "objective": "area",
+  "data": {
+    "parts": [
+      {
+        "id": "p0",
+        "origin": "p0",
+        "label": "P0",
+        "l": 5,
+        "w": 14,
+        "t": null,
+        "category": "panel",
+        "grain": "",
+        "material": "panel|mdf",
+        "rotate": true,
+        "order": 0
+      },
+      {
+        "id": "p1",
+        "origin": "p1",
+        "label": "P1",
+        "l": 5,
+        "w": 14,
+        "t": null,
+        "category": "panel",
+        "grain": "",
+        "material": "panel|mdf",
+        "rotate": true,
+        "order": 1
+      },
+      {
+        "id": "p2",
+        "origin": "p2",
+        "label": "P2",
+        "l": 5,
+        "w": 14,
+        "t": null,
+        "category": "panel",
+        "grain": "",
+        "material": "panel|mdf",
+        "rotate": true,
+        "order": 2
+      },
+      {
+        "id": "p3",
+        "origin": "p3",
+        "label": "P3",
+        "l": 5,
+        "w": 14,
+        "t": null,
+        "category": "panel",
+        "grain": "",
+        "material": "panel|mdf",
+        "rotate": true,
+        "order": 3
+      },
+      {
+        "id": "p4",
+        "origin": "p4",
+        "label": "P4",
+        "l": 5,
+        "w": 14,
+        "t": null,
+        "category": "panel",
+        "grain": "",
+        "material": "panel|mdf",
+        "rotate": true,
+        "order": 4
+      },
+      {
+        "id": "p5",
+        "origin": "p5",
+        "label": "P5",
+        "l": 5,
+        "w": 14,
+        "t": null,
+        "category": "panel",
+        "grain": "",
+        "material": "panel|mdf",
+        "rotate": true,
+        "order": 5
+      },
+      {
+        "id": "p6",
+        "origin": "p6",
+        "label": "P6",
+        "l": 5,
+        "w": 14,
+        "t": null,
+        "category": "panel",
+        "grain": "",
+        "material": "panel|mdf",
+        "rotate": true,
+        "order": 6
+      },
+      {
+        "id": "p7",
+        "origin": "p7",
+        "label": "P7",
+        "l": 5,
+        "w": 14,
+        "t": null,
+        "category": "panel",
+        "grain": "",
+        "material": "panel|mdf",
+        "rotate": true,
+        "order": 7
+      },
+      {
+        "id": "p8",
+        "origin": "p8",
+        "label": "P8",
+        "l": 5,
+        "w": 14,
+        "t": null,
+        "category": "panel",
+        "grain": "",
+        "material": "panel|mdf",
+        "rotate": true,
+        "order": 8
+      },
+      {
+        "id": "p9",
+        "origin": "p9",
+        "label": "P9",
+        "l": 5,
+        "w": 14,
+        "t": null,
+        "category": "panel",
+        "grain": "",
+        "material": "panel|mdf",
+        "rotate": true,
+        "order": 9
+      },
+      {
+        "id": "p10",
+        "origin": "p10",
+        "label": "P10",
+        "l": 13,
+        "w": 10,
+        "t": null,
+        "category": "panel",
+        "grain": "",
+        "material": "panel|mdf",
+        "rotate": true,
+        "order": 10
+      },
+      {
+        "id": "p11",
+        "origin": "p11",
+        "label": "P11",
+        "l": 13,
+        "w": 10,
+        "t": null,
+        "category": "panel",
+        "grain": "",
+        "material": "panel|mdf",
+        "rotate": true,
+        "order": 11
+      },
+      {
+        "id": "p12",
+        "origin": "p12",
+        "label": "P12",
+        "l": 13,
+        "w": 10,
+        "t": null,
+        "category": "panel",
+        "grain": "",
+        "material": "panel|mdf",
+        "rotate": true,
+        "order": 12
+      },
+      {
+        "id": "p13",
+        "origin": "p13",
+        "label": "P13",
+        "l": 13,
+        "w": 10,
+        "t": null,
+        "category": "panel",
+        "grain": "",
+        "material": "panel|mdf",
+        "rotate": true,
+        "order": 13
+      },
+      {
+        "id": "p14",
+        "origin": "p14",
+        "label": "P14",
+        "l": 13,
+        "w": 10,
+        "t": null,
+        "category": "panel",
+        "grain": "",
+        "material": "panel|mdf",
+        "rotate": true,
+        "order": 14
+      },
+      {
+        "id": "p15",
+        "origin": "p15",
+        "label": "P15",
+        "l": 13,
+        "w": 10,
+        "t": null,
+        "category": "panel",
+        "grain": "",
+        "material": "panel|mdf",
+        "rotate": true,
+        "order": 15
+      },
+      {
+        "id": "p16",
+        "origin": "p16",
+        "label": "P16",
+        "l": 13,
+        "w": 10,
+        "t": null,
+        "category": "panel",
+        "grain": "",
+        "material": "panel|mdf",
+        "rotate": true,
+        "order": 16
+      },
+      {
+        "id": "p17",
+        "origin": "p17",
+        "label": "P17",
+        "l": 13,
+        "w": 10,
+        "t": null,
+        "category": "panel",
+        "grain": "",
+        "material": "panel|mdf",
+        "rotate": true,
+        "order": 17
+      },
+      {
+        "id": "p18",
+        "origin": "p18",
+        "label": "P18",
+        "l": 13,
+        "w": 10,
+        "t": null,
+        "category": "panel",
+        "grain": "",
+        "material": "panel|mdf",
+        "rotate": true,
+        "order": 18
+      },
+      {
+        "id": "p19",
+        "origin": "p19",
+        "label": "P19",
+        "l": 13,
+        "w": 10,
+        "t": null,
+        "category": "panel",
+        "grain": "",
+        "material": "panel|mdf",
+        "rotate": true,
+        "order": 19
+      }
+    ],
+    "stocks": [
+      {
+        "id": "s0",
+        "l": 29,
+        "w": 28,
+        "t": null,
+        "qty": 4,
+        "price": 109,
+        "category": "panel",
+        "priceUnit": "panel",
+        "grain": "",
+        "material": "panel|mdf",
+        "order": 0
+      },
+      {
+        "id": "s1",
+        "l": 31,
+        "w": 35,
+        "t": null,
+        "qty": 6,
+        "price": 90,
+        "category": "panel",
+        "priceUnit": "panel",
+        "grain": "",
+        "material": "panel|mdf",
+        "order": 1
+      }
+    ],
+    "kerf": 4,
+    "trim": 1,
+    "m3": null,
+    "enableMultiplicitySolver": true,
+    "allowNarrowScrapCuts": false
+  },
+  "oracle": {
+    "feasible": true,
+    "count": 5,
+    "area": 5418,
+    "cost": 450
+  },
+  "lazy": {
+    "value": 6503,
+    "valid": true,
+    "limited": false
+  },
+  "results": [
+    {
+      "variant": "base",
+      "objectiveValue": null,
+      "valid": null,
+      "complete": null,
+      "productionAudit": null,
+      "physicalVerifier": null,
+      "restrictedOptimum": 5418,
+      "states": 108,
+      "nodes": 7387,
+      "limited": true,
+      "elapsedMs": 86,
+      "patternCount": 51,
+      "distinctStockCountVectors": 20,
+      "duplicates": 176,
+      "frontierCap": 0,
+      "materializeRejected": 83,
+      "coverStates": 80001
+    },
+    {
+      "variant": "reverseChildren",
+      "objectiveValue": null,
+      "valid": null,
+      "complete": null,
+      "productionAudit": null,
+      "physicalVerifier": null,
+      "restrictedOptimum": 5425,
+      "states": 108,
+      "nodes": 7387,
+      "limited": true,
+      "elapsedMs": 93,
+      "patternCount": 43,
+      "distinctStockCountVectors": 18,
+      "duplicates": 176,
+      "frontierCap": 0,
+      "materializeRejected": 91,
+      "coverStates": 80001
+    },
+    {
+      "variant": "largerFrontier",
+      "objectiveValue": null,
+      "valid": null,
+      "complete": null,
+      "productionAudit": null,
+      "physicalVerifier": null,
+      "restrictedOptimum": 5418,
+      "states": 108,
+      "nodes": 7387,
+      "limited": true,
+      "elapsedMs": 87,
+      "patternCount": 51,
+      "distinctStockCountVectors": 20,
+      "duplicates": 176,
+      "frontierCap": 0,
+      "materializeRejected": 83,
+      "coverStates": 80001
+    },
+    {
+      "variant": "fourTopologies",
+      "objectiveValue": null,
+      "valid": null,
+      "complete": null,
+      "productionAudit": null,
+      "physicalVerifier": null,
+      "restrictedOptimum": 5418,
+      "states": 302,
+      "nodes": 58140,
+      "limited": true,
+      "elapsedMs": 150,
+      "patternCount": 99,
+      "distinctStockCountVectors": 20,
+      "duplicates": 471,
+      "frontierCap": 0,
+      "materializeRejected": 250,
+      "coverStates": 80001
+    },
+    {
+      "variant": "coverDedup",
+      "objectiveValue": 5418,
+      "valid": true,
+      "complete": true,
+      "productionAudit": true,
+      "physicalVerifier": true,
+      "restrictedOptimum": 5418,
+      "states": 108,
+      "nodes": 7387,
+      "limited": false,
+      "elapsedMs": 61,
+      "patternCount": 51,
+      "distinctStockCountVectors": 20,
+      "duplicates": 176,
+      "frontierCap": 0,
+      "materializeRejected": 83,
+      "coverStates": 51980
+    },
+    {
+      "variant": "coverBudgetOnly",
+      "objectiveValue": 5418,
+      "valid": true,
+      "complete": true,
+      "productionAudit": true,
+      "physicalVerifier": true,
+      "restrictedOptimum": 5418,
+      "states": 108,
+      "nodes": 7387,
+      "limited": false,
+      "elapsedMs": 134,
+      "patternCount": 51,
+      "distinctStockCountVectors": 20,
+      "duplicates": 176,
+      "frontierCap": 0,
+      "materializeRejected": 83,
+      "coverStates": 132549
+    },
+    {
+      "variant": "stockInstanceDP80k",
+      "objectiveValue": 5418,
+      "valid": true,
+      "complete": true,
+      "productionAudit": true,
+      "physicalVerifier": true,
+      "restrictedOptimum": 5418,
+      "states": 108,
+      "nodes": 7387,
+      "limited": false,
+      "elapsedMs": 16,
+      "patternCount": 51,
+      "distinctStockCountVectors": 20,
+      "duplicates": 176,
+      "frontierCap": 0,
+      "materializeRejected": 83,
+      "coverStates": 8748
+    },
+    {
+      "variant": "stockInstanceDP800k",
+      "objectiveValue": 5418,
+      "valid": true,
+      "complete": true,
+      "productionAudit": true,
+      "physicalVerifier": true,
+      "restrictedOptimum": 5418,
+      "states": 108,
+      "nodes": 7387,
+      "limited": false,
+      "elapsedMs": 17,
+      "patternCount": 51,
+      "distinctStockCountVectors": 20,
+      "duplicates": 176,
+      "frontierCap": 0,
+      "materializeRejected": 83,
+      "coverStates": 8748
+    }
+  ],
+  "verifiedWitness": {
+    "variant": "coverDedup",
+    "plan": {
+      "bins": [
+        {
+          "stock": {
+            "id": "s0",
+            "l": 29,
+            "w": 28,
+            "t": null,
+            "qty": 4,
+            "price": 109,
+            "category": "panel",
+            "priceUnit": "panel",
+            "grain": "",
+            "material": "panel|mdf",
+            "order": 0
+          },
+          "placed": [
+            {
+              "id": "p9",
+              "origin": "p9",
+              "label": "P9",
+              "l": 5,
+              "w": 5,
+              "t": null,
+              "category": "panel",
+              "grain": "",
+              "material": "panel|mdf",
+              "rotate": true,
+              "order": 9,
+              "x": 1,
+              "y": 1,
+              "h": 14,
+              "rotated": false
+            },
+            {
+              "id": "p8",
+              "origin": "p8",
+              "label": "P8",
+              "l": 5,
+              "w": 5,
+              "t": null,
+              "category": "panel",
+              "grain": "",
+              "material": "panel|mdf",
+              "rotate": true,
+              "order": 8,
+              "x": 10,
+              "y": 1,
+              "h": 14,
+              "rotated": false
+            },
+            {
+              "id": "p7",
+              "origin": "p7",
+              "label": "P7",
+              "l": 5,
+              "w": 5,
+              "t": null,
+              "category": "panel",
+              "grain": "",
+              "material": "panel|mdf",
+              "rotate": true,
+              "order": 7,
+              "x": 19,
+              "y": 1,
+              "h": 14,
+              "rotated": false
+            }
+          ],
+          "cuts": [
+            {
+              "number": 1,
+              "source": {
+                "x": 1,
+                "y": 1,
+                "w": 27,
+                "h": 26
+              },
+              "axis": "vertical",
+              "at": 8,
+              "label": "Multiplicity candidate",
+              "x1": 8,
+              "y1": 1,
+              "x2": 8,
+              "y2": 27
+            },
+            {
+              "number": 2,
+              "source": {
+                "x": 1,
+                "y": 1,
+                "w": 5,
+                "h": 26
+              },
+              "axis": "horizontal",
+              "at": 17,
+              "label": "Multiplicity candidate",
+              "x1": 1,
+              "y1": 17,
+              "x2": 6,
+              "y2": 17
+            },
+            {
+              "number": 3,
+              "source": {
+                "x": 10,
+                "y": 1,
+                "w": 18,
+                "h": 26
+              },
+              "axis": "vertical",
+              "at": 17,
+              "label": "Multiplicity candidate",
+              "x1": 17,
+              "y1": 1,
+              "x2": 17,
+              "y2": 27
+            },
+            {
+              "number": 4,
+              "source": {
+                "x": 10,
+                "y": 1,
+                "w": 5,
+                "h": 26
+              },
+              "axis": "horizontal",
+              "at": 17,
+              "label": "Multiplicity candidate",
+              "x1": 10,
+              "y1": 17,
+              "x2": 15,
+              "y2": 17
+            },
+            {
+              "number": 5,
+              "source": {
+                "x": 19,
+                "y": 1,
+                "w": 9,
+                "h": 26
+              },
+              "axis": "vertical",
+              "at": 26,
+              "label": "Multiplicity candidate",
+              "x1": 26,
+              "y1": 1,
+              "x2": 26,
+              "y2": 27
+            },
+            {
+              "number": 6,
+              "source": {
+                "x": 19,
+                "y": 1,
+                "w": 5,
+                "h": 26
+              },
+              "axis": "horizontal",
+              "at": 17,
+              "label": "Multiplicity candidate",
+              "x1": 19,
+              "y1": 17,
+              "x2": 24,
+              "y2": 17
+            }
+          ],
+          "free": [
+            {
+              "x": 1,
+              "y": 19,
+              "w": 5,
+              "h": 8
+            },
+            {
+              "x": 10,
+              "y": 19,
+              "w": 5,
+              "h": 8
+            },
+            {
+              "x": 19,
+              "y": 19,
+              "w": 5,
+              "h": 8
+            }
+          ]
+        },
+        {
+          "stock": {
+            "id": "s0",
+            "l": 29,
+            "w": 28,
+            "t": null,
+            "qty": 4,
+            "price": 109,
+            "category": "panel",
+            "priceUnit": "panel",
+            "grain": "",
+            "material": "panel|mdf",
+            "order": 0
+          },
+          "placed": [
+            {
+              "id": "p6",
+              "origin": "p6",
+              "label": "P6",
+              "l": 5,
+              "w": 14,
+              "t": null,
+              "category": "panel",
+              "grain": "",
+              "material": "panel|mdf",
+              "rotate": true,
+              "order": 6,
+              "x": 1,
+              "y": 1,
+              "h": 5,
+              "rotated": true
+            },
+            {
+              "id": "p19",
+              "origin": "p19",
+              "label": "P19",
+              "l": 13,
+              "w": 13,
+              "t": null,
+              "category": "panel",
+              "grain": "",
+              "material": "panel|mdf",
+              "rotate": true,
+              "order": 19,
+              "x": 1,
+              "y": 10,
+              "h": 10,
+              "rotated": false
+            },
+            {
+              "id": "p18",
+              "origin": "p18",
+              "label": "P18",
+              "l": 13,
+              "w": 10,
+              "t": null,
+              "category": "panel",
+              "grain": "",
+              "material": "panel|mdf",
+              "rotate": true,
+              "order": 18,
+              "x": 18,
+              "y": 10,
+              "h": 13,
+              "rotated": true
+            }
+          ],
+          "cuts": [
+            {
+              "number": 1,
+              "source": {
+                "x": 1,
+                "y": 1,
+                "w": 27,
+                "h": 26
+              },
+              "axis": "horizontal",
+              "at": 8,
+              "label": "Multiplicity candidate",
+              "x1": 1,
+              "y1": 8,
+              "x2": 28,
+              "y2": 8
+            },
+            {
+              "number": 2,
+              "source": {
+                "x": 1,
+                "y": 1,
+                "w": 27,
+                "h": 5
+              },
+              "axis": "vertical",
+              "at": 17,
+              "label": "Multiplicity candidate",
+              "x1": 17,
+              "y1": 1,
+              "x2": 17,
+              "y2": 6
+            },
+            {
+              "number": 3,
+              "source": {
+                "x": 1,
+                "y": 10,
+                "w": 27,
+                "h": 17
+              },
+              "axis": "vertical",
+              "at": 16,
+              "label": "Multiplicity candidate",
+              "x1": 16,
+              "y1": 10,
+              "x2": 16,
+              "y2": 27
+            },
+            {
+              "number": 4,
+              "source": {
+                "x": 1,
+                "y": 10,
+                "w": 13,
+                "h": 17
+              },
+              "axis": "horizontal",
+              "at": 22,
+              "label": "Multiplicity candidate",
+              "x1": 1,
+              "y1": 22,
+              "x2": 14,
+              "y2": 22
+            },
+            {
+              "number": 5,
+              "source": {
+                "x": 18,
+                "y": 10,
+                "w": 10,
+                "h": 17
+              },
+              "axis": "horizontal",
+              "at": 25,
+              "label": "Multiplicity candidate",
+              "x1": 18,
+              "y1": 25,
+              "x2": 28,
+              "y2": 25
+            }
+          ],
+          "free": [
+            {
+              "x": 19,
+              "y": 1,
+              "w": 9,
+              "h": 5
+            },
+            {
+              "x": 1,
+              "y": 24,
+              "w": 13,
+              "h": 3
+            }
+          ]
+        },
+        {
+          "stock": {
+            "id": "s0",
+            "l": 29,
+            "w": 28,
+            "t": null,
+            "qty": 4,
+            "price": 109,
+            "category": "panel",
+            "priceUnit": "panel",
+            "grain": "",
+            "material": "panel|mdf",
+            "order": 0
+          },
+          "placed": [
+            {
+              "id": "p5",
+              "origin": "p5",
+              "label": "P5",
+              "l": 5,
+              "w": 14,
+              "t": null,
+              "category": "panel",
+              "grain": "",
+              "material": "panel|mdf",
+              "rotate": true,
+              "order": 5,
+              "x": 1,
+              "y": 1,
+              "h": 5,
+              "rotated": true
+            },
+            {
+              "id": "p17",
+              "origin": "p17",
+              "label": "P17",
+              "l": 13,
+              "w": 13,
+              "t": null,
+              "category": "panel",
+              "grain": "",
+              "material": "panel|mdf",
+              "rotate": true,
+              "order": 17,
+              "x": 1,
+              "y": 10,
+              "h": 10,
+              "rotated": false
+            },
+            {
+              "id": "p16",
+              "origin": "p16",
+              "label": "P16",
+              "l": 13,
+              "w": 10,
+              "t": null,
+              "category": "panel",
+              "grain": "",
+              "material": "panel|mdf",
+              "rotate": true,
+              "order": 16,
+              "x": 18,
+              "y": 10,
+              "h": 13,
+              "rotated": true
+            }
+          ],
+          "cuts": [
+            {
+              "number": 1,
+              "source": {
+                "x": 1,
+                "y": 1,
+                "w": 27,
+                "h": 26
+              },
+              "axis": "horizontal",
+              "at": 8,
+              "label": "Multiplicity candidate",
+              "x1": 1,
+              "y1": 8,
+              "x2": 28,
+              "y2": 8
+            },
+            {
+              "number": 2,
+              "source": {
+                "x": 1,
+                "y": 1,
+                "w": 27,
+                "h": 5
+              },
+              "axis": "vertical",
+              "at": 17,
+              "label": "Multiplicity candidate",
+              "x1": 17,
+              "y1": 1,
+              "x2": 17,
+              "y2": 6
+            },
+            {
+              "number": 3,
+              "source": {
+                "x": 1,
+                "y": 10,
+                "w": 27,
+                "h": 17
+              },
+              "axis": "vertical",
+              "at": 16,
+              "label": "Multiplicity candidate",
+              "x1": 16,
+              "y1": 10,
+              "x2": 16,
+              "y2": 27
+            },
+            {
+              "number": 4,
+              "source": {
+                "x": 1,
+                "y": 10,
+                "w": 13,
+                "h": 17
+              },
+              "axis": "horizontal",
+              "at": 22,
+              "label": "Multiplicity candidate",
+              "x1": 1,
+              "y1": 22,
+              "x2": 14,
+              "y2": 22
+            },
+            {
+              "number": 5,
+              "source": {
+                "x": 18,
+                "y": 10,
+                "w": 10,
+                "h": 17
+              },
+              "axis": "horizontal",
+              "at": 25,
+              "label": "Multiplicity candidate",
+              "x1": 18,
+              "y1": 25,
+              "x2": 28,
+              "y2": 25
+            }
+          ],
+          "free": [
+            {
+              "x": 19,
+              "y": 1,
+              "w": 9,
+              "h": 5
+            },
+            {
+              "x": 1,
+              "y": 24,
+              "w": 13,
+              "h": 3
+            }
+          ]
+        },
+        {
+          "stock": {
+            "id": "s0",
+            "l": 29,
+            "w": 28,
+            "t": null,
+            "qty": 4,
+            "price": 109,
+            "category": "panel",
+            "priceUnit": "panel",
+            "grain": "",
+            "material": "panel|mdf",
+            "order": 0
+          },
+          "placed": [
+            {
+              "id": "p4",
+              "origin": "p4",
+              "label": "P4",
+              "l": 5,
+              "w": 14,
+              "t": null,
+              "category": "panel",
+              "grain": "",
+              "material": "panel|mdf",
+              "rotate": true,
+              "order": 4,
+              "x": 1,
+              "y": 1,
+              "h": 5,
+              "rotated": true
+            },
+            {
+              "id": "p15",
+              "origin": "p15",
+              "label": "P15",
+              "l": 13,
+              "w": 13,
+              "t": null,
+              "category": "panel",
+              "grain": "",
+              "material": "panel|mdf",
+              "rotate": true,
+              "order": 15,
+              "x": 1,
+              "y": 10,
+              "h": 10,
+              "rotated": false
+            },
+            {
+              "id": "p14",
+              "origin": "p14",
+              "label": "P14",
+              "l": 13,
+              "w": 10,
+              "t": null,
+              "category": "panel",
+              "grain": "",
+              "material": "panel|mdf",
+              "rotate": true,
+              "order": 14,
+              "x": 18,
+              "y": 10,
+              "h": 13,
+              "rotated": true
+            }
+          ],
+          "cuts": [
+            {
+              "number": 1,
+              "source": {
+                "x": 1,
+                "y": 1,
+                "w": 27,
+                "h": 26
+              },
+              "axis": "horizontal",
+              "at": 8,
+              "label": "Multiplicity candidate",
+              "x1": 1,
+              "y1": 8,
+              "x2": 28,
+              "y2": 8
+            },
+            {
+              "number": 2,
+              "source": {
+                "x": 1,
+                "y": 1,
+                "w": 27,
+                "h": 5
+              },
+              "axis": "vertical",
+              "at": 17,
+              "label": "Multiplicity candidate",
+              "x1": 17,
+              "y1": 1,
+              "x2": 17,
+              "y2": 6
+            },
+            {
+              "number": 3,
+              "source": {
+                "x": 1,
+                "y": 10,
+                "w": 27,
+                "h": 17
+              },
+              "axis": "vertical",
+              "at": 16,
+              "label": "Multiplicity candidate",
+              "x1": 16,
+              "y1": 10,
+              "x2": 16,
+              "y2": 27
+            },
+            {
+              "number": 4,
+              "source": {
+                "x": 1,
+                "y": 10,
+                "w": 13,
+                "h": 17
+              },
+              "axis": "horizontal",
+              "at": 22,
+              "label": "Multiplicity candidate",
+              "x1": 1,
+              "y1": 22,
+              "x2": 14,
+              "y2": 22
+            },
+            {
+              "number": 5,
+              "source": {
+                "x": 18,
+                "y": 10,
+                "w": 10,
+                "h": 17
+              },
+              "axis": "horizontal",
+              "at": 25,
+              "label": "Multiplicity candidate",
+              "x1": 18,
+              "y1": 25,
+              "x2": 28,
+              "y2": 25
+            }
+          ],
+          "free": [
+            {
+              "x": 19,
+              "y": 1,
+              "w": 9,
+              "h": 5
+            },
+            {
+              "x": 1,
+              "y": 24,
+              "w": 13,
+              "h": 3
+            }
+          ]
+        },
+        {
+          "stock": {
+            "id": "s1",
+            "l": 31,
+            "w": 35,
+            "t": null,
+            "qty": 6,
+            "price": 90,
+            "category": "panel",
+            "priceUnit": "panel",
+            "grain": "",
+            "material": "panel|mdf",
+            "order": 1
+          },
+          "placed": [
+            {
+              "id": "p3",
+              "origin": "p3",
+              "label": "P3",
+              "l": 5,
+              "w": 5,
+              "t": null,
+              "category": "panel",
+              "grain": "",
+              "material": "panel|mdf",
+              "rotate": true,
+              "order": 3,
+              "x": 1,
+              "y": 1,
+              "h": 14,
+              "rotated": false
+            },
+            {
+              "id": "p2",
+              "origin": "p2",
+              "label": "P2",
+              "l": 5,
+              "w": 14,
+              "t": null,
+              "category": "panel",
+              "grain": "",
+              "material": "panel|mdf",
+              "rotate": true,
+              "order": 2,
+              "x": 10,
+              "y": 1,
+              "h": 5,
+              "rotated": true
+            },
+            {
+              "id": "p13",
+              "origin": "p13",
+              "label": "P13",
+              "l": 13,
+              "w": 13,
+              "t": null,
+              "category": "panel",
+              "grain": "",
+              "material": "panel|mdf",
+              "rotate": true,
+              "order": 13,
+              "x": 10,
+              "y": 10,
+              "h": 10,
+              "rotated": false
+            },
+            {
+              "id": "p12",
+              "origin": "p12",
+              "label": "P12",
+              "l": 13,
+              "w": 13,
+              "t": null,
+              "category": "panel",
+              "grain": "",
+              "material": "panel|mdf",
+              "rotate": true,
+              "order": 12,
+              "x": 10,
+              "y": 24,
+              "h": 10,
+              "rotated": false
+            }
+          ],
+          "cuts": [
+            {
+              "number": 1,
+              "source": {
+                "x": 1,
+                "y": 1,
+                "w": 29,
+                "h": 33
+              },
+              "axis": "vertical",
+              "at": 8,
+              "label": "Multiplicity candidate",
+              "x1": 8,
+              "y1": 1,
+              "x2": 8,
+              "y2": 34
+            },
+            {
+              "number": 2,
+              "source": {
+                "x": 1,
+                "y": 1,
+                "w": 5,
+                "h": 33
+              },
+              "axis": "horizontal",
+              "at": 17,
+              "label": "Multiplicity candidate",
+              "x1": 1,
+              "y1": 17,
+              "x2": 6,
+              "y2": 17
+            },
+            {
+              "number": 3,
+              "source": {
+                "x": 10,
+                "y": 1,
+                "w": 20,
+                "h": 33
+              },
+              "axis": "horizontal",
+              "at": 8,
+              "label": "Multiplicity candidate",
+              "x1": 10,
+              "y1": 8,
+              "x2": 30,
+              "y2": 8
+            },
+            {
+              "number": 4,
+              "source": {
+                "x": 10,
+                "y": 1,
+                "w": 20,
+                "h": 5
+              },
+              "axis": "vertical",
+              "at": 26,
+              "label": "Multiplicity candidate",
+              "x1": 26,
+              "y1": 1,
+              "x2": 26,
+              "y2": 6
+            },
+            {
+              "number": 5,
+              "source": {
+                "x": 10,
+                "y": 10,
+                "w": 20,
+                "h": 24
+              },
+              "axis": "horizontal",
+              "at": 22,
+              "label": "Multiplicity candidate",
+              "x1": 10,
+              "y1": 22,
+              "x2": 30,
+              "y2": 22
+            },
+            {
+              "number": 6,
+              "source": {
+                "x": 10,
+                "y": 10,
+                "w": 20,
+                "h": 10
+              },
+              "axis": "vertical",
+              "at": 25,
+              "label": "Multiplicity candidate",
+              "x1": 25,
+              "y1": 10,
+              "x2": 25,
+              "y2": 20
+            },
+            {
+              "number": 7,
+              "source": {
+                "x": 10,
+                "y": 24,
+                "w": 20,
+                "h": 10
+              },
+              "axis": "vertical",
+              "at": 25,
+              "label": "Multiplicity candidate",
+              "x1": 25,
+              "y1": 24,
+              "x2": 25,
+              "y2": 34
+            }
+          ],
+          "free": [
+            {
+              "x": 1,
+              "y": 19,
+              "w": 5,
+              "h": 15
+            },
+            {
+              "x": 28,
+              "y": 1,
+              "w": 2,
+              "h": 5
+            },
+            {
+              "x": 27,
+              "y": 10,
+              "w": 3,
+              "h": 10
+            },
+            {
+              "x": 27,
+              "y": 24,
+              "w": 3,
+              "h": 10
+            }
+          ]
+        },
+        {
+          "stock": {
+            "id": "s1",
+            "l": 31,
+            "w": 35,
+            "t": null,
+            "qty": 6,
+            "price": 90,
+            "category": "panel",
+            "priceUnit": "panel",
+            "grain": "",
+            "material": "panel|mdf",
+            "order": 1
+          },
+          "placed": [
+            {
+              "id": "p1",
+              "origin": "p1",
+              "label": "P1",
+              "l": 5,
+              "w": 5,
+              "t": null,
+              "category": "panel",
+              "grain": "",
+              "material": "panel|mdf",
+              "rotate": true,
+              "order": 1,
+              "x": 1,
+              "y": 1,
+              "h": 14,
+              "rotated": false
+            },
+            {
+              "id": "p0",
+              "origin": "p0",
+              "label": "P0",
+              "l": 5,
+              "w": 14,
+              "t": null,
+              "category": "panel",
+              "grain": "",
+              "material": "panel|mdf",
+              "rotate": true,
+              "order": 0,
+              "x": 10,
+              "y": 1,
+              "h": 5,
+              "rotated": true
+            },
+            {
+              "id": "p11",
+              "origin": "p11",
+              "label": "P11",
+              "l": 13,
+              "w": 13,
+              "t": null,
+              "category": "panel",
+              "grain": "",
+              "material": "panel|mdf",
+              "rotate": true,
+              "order": 11,
+              "x": 10,
+              "y": 10,
+              "h": 10,
+              "rotated": false
+            },
+            {
+              "id": "p10",
+              "origin": "p10",
+              "label": "P10",
+              "l": 13,
+              "w": 13,
+              "t": null,
+              "category": "panel",
+              "grain": "",
+              "material": "panel|mdf",
+              "rotate": true,
+              "order": 10,
+              "x": 10,
+              "y": 24,
+              "h": 10,
+              "rotated": false
+            }
+          ],
+          "cuts": [
+            {
+              "number": 1,
+              "source": {
+                "x": 1,
+                "y": 1,
+                "w": 29,
+                "h": 33
+              },
+              "axis": "vertical",
+              "at": 8,
+              "label": "Multiplicity candidate",
+              "x1": 8,
+              "y1": 1,
+              "x2": 8,
+              "y2": 34
+            },
+            {
+              "number": 2,
+              "source": {
+                "x": 1,
+                "y": 1,
+                "w": 5,
+                "h": 33
+              },
+              "axis": "horizontal",
+              "at": 17,
+              "label": "Multiplicity candidate",
+              "x1": 1,
+              "y1": 17,
+              "x2": 6,
+              "y2": 17
+            },
+            {
+              "number": 3,
+              "source": {
+                "x": 10,
+                "y": 1,
+                "w": 20,
+                "h": 33
+              },
+              "axis": "horizontal",
+              "at": 8,
+              "label": "Multiplicity candidate",
+              "x1": 10,
+              "y1": 8,
+              "x2": 30,
+              "y2": 8
+            },
+            {
+              "number": 4,
+              "source": {
+                "x": 10,
+                "y": 1,
+                "w": 20,
+                "h": 5
+              },
+              "axis": "vertical",
+              "at": 26,
+              "label": "Multiplicity candidate",
+              "x1": 26,
+              "y1": 1,
+              "x2": 26,
+              "y2": 6
+            },
+            {
+              "number": 5,
+              "source": {
+                "x": 10,
+                "y": 10,
+                "w": 20,
+                "h": 24
+              },
+              "axis": "horizontal",
+              "at": 22,
+              "label": "Multiplicity candidate",
+              "x1": 10,
+              "y1": 22,
+              "x2": 30,
+              "y2": 22
+            },
+            {
+              "number": 6,
+              "source": {
+                "x": 10,
+                "y": 10,
+                "w": 20,
+                "h": 10
+              },
+              "axis": "vertical",
+              "at": 25,
+              "label": "Multiplicity candidate",
+              "x1": 25,
+              "y1": 10,
+              "x2": 25,
+              "y2": 20
+            },
+            {
+              "number": 7,
+              "source": {
+                "x": 10,
+                "y": 24,
+                "w": 20,
+                "h": 10
+              },
+              "axis": "vertical",
+              "at": 25,
+              "label": "Multiplicity candidate",
+              "x1": 25,
+              "y1": 24,
+              "x2": 25,
+              "y2": 34
+            }
+          ],
+          "free": [
+            {
+              "x": 1,
+              "y": 19,
+              "w": 5,
+              "h": 15
+            },
+            {
+              "x": 28,
+              "y": 1,
+              "w": 2,
+              "h": 5
+            },
+            {
+              "x": 27,
+              "y": 10,
+              "w": 3,
+              "h": 10
+            },
+            {
+              "x": 27,
+              "y": 24,
+              "w": 3,
+              "h": 10
+            }
+          ]
+        }
+      ],
+      "unplaced": [],
+      "placedCount": 20,
+      "partArea": 2000,
+      "stockArea": 5418,
+      "unknownCostBins": 0,
+      "cost": 616
+    }
+  }
+}
